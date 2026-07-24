@@ -637,7 +637,11 @@ function runMix(m,b){
 
   // 메시지
   const pairs = Math.min(m.hcl, m.naoh);
-  setMsg('mixMsg', m.k+' — H⁺ '+m.hcl+'개, OH⁻ '+m.naoh+'개 → 물 '+pairs+'개 생성', m.s);
+  const leftH = m.hcl - pairs, leftOH = m.naoh - pairs;
+  let leftTxt = '남은 이온 없음';
+  if(leftH  > 0) leftTxt = 'H⁺ '  + leftH  + '개가 남음';
+  if(leftOH > 0) leftTxt = 'OH⁻ ' + leftOH + '개가 남음';
+  setMsg('mixMsg', m.k+' — 짝 '+pairs+'쌍이 물이 되고, '+leftTxt, m.s);
 
   done[m.k]=m;
   b.classList.add('done');
@@ -655,18 +659,28 @@ function drawParticles(m){
   bk.innerHTML='';
   const pairs=Math.min(m.hcl,m.naoh);
   const leftH = m.hcl-pairs, leftOH = m.naoh-pairs;
-  const add=(cls,txt,n)=>{
-    for(let i=0;i<n;i++){
-      const d=document.createElement('div');
-      d.className='ion '+cls; d.innerHTML=txt;
-      d.style.left=(8+Math.random()*78)+'%';
-      d.style.top =(10+Math.random()*68)+'%';
-      bk.appendChild(d);
-    }
-  };
-  add('w','H₂O', Math.min(pairs,6));
-  add('h','H<sup>+</sup>', Math.min(leftH,4));
-  add('oh','OH<sup>-</sup>', Math.min(leftOH,4));
+
+  // 세지 못할 만큼 겹치지 않도록 격자 배치 (최대 10개)
+  const items=[];
+  for(let i=0;i<pairs;i++)  items.push(['w','H₂O']);
+  for(let i=0;i<leftH;i++)  items.push(['h','H<sup>+</sup>']);
+  for(let i=0;i<leftOH;i++) items.push(['oh','OH<sup>-</sup>']);
+
+  const cols=5, total=items.length;
+  const rows=Math.ceil(total/cols);
+  items.forEach((it,i)=>{
+    const r=Math.floor(i/cols), c=i%cols;
+    const inRow=Math.min(cols, total-r*cols);
+    const d=document.createElement('div');
+    d.className='ion '+it[0];
+    d.innerHTML=it[1];
+    // 행마다 가운데 정렬
+    const span=84/cols;
+    const offset=(cols-inRow)*span/2;
+    d.style.left=(8+offset+c*span)+'%';
+    d.style.top =(rows===1?38:(16+r*(58/Math.max(rows-1,1))))+'%';
+    bk.appendChild(d);
+  });
 }
 
 function drawChart(){
