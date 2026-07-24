@@ -1,0 +1,557 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>지질 시대 탐험</title>
+<style>
+  :root{
+    /* 암석과 화석에서 가져온 색 */
+    --precam:#4a5a6b;   /* 스트로마톨라이트 회청색 */
+    --paleo:#7d6234;    /* 삼엽충 갈색 사암 */
+    --meso:#8c5a3c;     /* 중생대 적색 이암 */
+    --ceno:#a89060;     /* 신생대 황토 */
+    --ink:#231c14;
+    --ink2:#5d5347;
+    --sand:#efe7d8;
+    --paper:#faf6ee;
+    --line:#d6cbb6;
+    --gold:#b8862b;
+    --ok:#3f7d4e;
+    --no:#b4402f;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{
+    font-family:"맑은 고딕","Malgun Gothic",system-ui,sans-serif;
+    background:var(--paper);color:var(--ink);line-height:1.65;padding:14px;
+  }
+  .wrap{max-width:1000px;margin:0 auto}
+
+  /* ---- 지층 헤더: 이 앱의 시그니처 ---- */
+  header{border-radius:14px;overflow:hidden;margin-bottom:16px;
+    box-shadow:0 2px 0 #cfc3ac}
+  .strata{display:flex;flex-direction:column}
+  .band{padding:0 22px;display:flex;align-items:center;justify-content:space-between;
+    color:#fff}
+  .band .nm{font-size:13px;letter-spacing:.5px;opacity:.92}
+  .band .pc{font-size:12px;opacity:.75}
+  .b1{background:var(--precam);height:74px}
+  .b2{background:var(--paleo);height:26px}
+  .b3{background:var(--meso);height:20px}
+  .b4{background:var(--ceno);height:18px}
+  .hero{background:var(--ink);padding:18px 22px}
+  .hero h1{font-size:25px;letter-spacing:-.5px;color:#fff}
+  .hero p{font-size:13.5px;color:#b3a894;margin-top:2px}
+
+  /* ---- 탭 ---- */
+  .tabs{display:flex;gap:7px;margin-bottom:16px;flex-wrap:wrap}
+  .tab{flex:1;min-width:130px;border:2px solid var(--line);background:#fff;
+    border-radius:11px;padding:11px 12px;cursor:pointer;text-align:left;
+    font-family:inherit;font-size:14px;color:var(--ink2);transition:.15s}
+  .tab b{display:block;font-size:16px;color:var(--ink);margin-bottom:1px}
+  .tab:hover{border-color:var(--ink2)}
+  .tab.on{background:var(--ink);border-color:var(--ink);color:#b3a894}
+  .tab.on b{color:#fff}
+  .tab:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+
+  .panel{display:none}
+  .panel.on{display:block}
+
+  .card{background:#fff;border:1px solid var(--line);border-radius:13px;
+    padding:18px;margin-bottom:14px}
+  .card h2{font-size:18px;margin-bottom:3px}
+  .card .hint{font-size:13px;color:var(--ink2);margin-bottom:14px}
+
+  .btn{font-family:inherit;font-size:15px;border:none;border-radius:10px;
+    padding:11px 17px;cursor:pointer;background:var(--ink);color:#fff;
+    box-shadow:0 2px 0 #000;transition:.1s}
+  .btn:active{transform:translateY(2px);box-shadow:none}
+  .btn.ghost{background:#fff;color:var(--ink);border:2px solid var(--line);box-shadow:none}
+  .btn.ghost:hover{border-color:var(--ink2)}
+  .btn:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+  .btn:disabled{opacity:.4;cursor:not-allowed}
+  .center{text-align:center}
+  .mt{margin-top:12px}
+
+  /* ---- 모드1: 시대 카드 ---- */
+  .eras{display:grid;grid-template-columns:repeat(auto-fit,minmax(215px,1fr));gap:12px}
+  .era{border-radius:12px;overflow:hidden;border:1px solid var(--line);background:#fff}
+  .era .top{padding:13px 15px;color:#fff}
+  .era .top h3{font-size:18px}
+  .era .top .ago{font-size:12.5px;opacity:.85}
+  .era .body{padding:13px 15px}
+  .era .row{display:flex;gap:8px;font-size:13.5px;padding:5px 0;
+    border-bottom:1px dashed var(--line)}
+  .era .row:last-child{border:none}
+  .era .row .k{color:var(--ink2);min-width:52px;flex-shrink:0}
+  .era .row .v{font-weight:bold}
+  .life{display:flex;gap:6px;flex-wrap:wrap;margin-top:9px}
+  .chip{font-size:12px;background:var(--sand);border-radius:20px;padding:3px 10px;
+    border:1px solid var(--line)}
+
+  figure{margin:0}
+  .fig{background:var(--sand);border-radius:10px;padding:8px;text-align:center}
+  .fig svg{width:100%;height:auto;max-height:110px;display:block}
+  .fig figcaption{font-size:11.5px;color:var(--ink2);margin-top:4px}
+
+  /* ---- 연표 ---- */
+  .tl{position:relative;background:var(--sand);border-radius:11px;padding:14px}
+  .tlbar{display:flex;height:44px;border-radius:7px;overflow:hidden}
+  .tlseg{display:flex;align-items:center;justify-content:center;color:#fff;
+    font-size:12.5px;font-weight:bold}
+  .tlnote{font-size:12.5px;color:var(--ink2);margin-top:8px;text-align:center}
+
+  /* ---- 모드2: 플래시카드 ---- */
+  .flash{background:var(--sand);border-radius:13px;padding:22px;text-align:center;
+    min-height:212px;display:flex;flex-direction:column;align-items:center;
+    justify-content:center;gap:10px}
+  .flash .q{font-size:27px;font-weight:bold}
+  .flash .sub{font-size:13.5px;color:var(--ink2)}
+  .flash svg{max-height:88px;width:auto}
+  .opts{display:grid;grid-template-columns:repeat(2,1fr);gap:9px;margin-top:13px}
+  .opt{border:2px solid var(--line);background:#fff;border-radius:10px;padding:13px;
+    cursor:pointer;font-family:inherit;font-size:15px;font-weight:bold;transition:.12s}
+  .opt:hover{border-color:var(--ink2)}
+  .opt.ok{background:#e6f2e9;border-color:var(--ok);color:var(--ok)}
+  .opt.no{background:#fbeae7;border-color:var(--no);color:var(--no)}
+  .opt:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+  .prog{display:flex;justify-content:space-between;font-size:13px;
+    color:var(--ink2);margin-bottom:9px}
+  .bar{height:7px;background:var(--sand);border-radius:4px;overflow:hidden;margin-bottom:13px}
+  .fill{height:100%;background:var(--gold);transition:width .3s;width:0}
+
+  /* ---- 모드3: 순서 맞추기 ---- */
+  .slots{display:grid;grid-template-columns:repeat(4,1fr);gap:9px;margin-bottom:14px}
+  .slot{min-height:82px;border:3px dashed var(--line);border-radius:11px;
+    display:flex;align-items:center;justify-content:center;font-size:13px;
+    color:var(--ink2);padding:6px;text-align:center;background:#fff}
+  .slot.filled{border-style:solid}
+  .slot .no{font-size:11.5px;display:block;color:var(--ink2);margin-bottom:2px}
+  .pool{display:flex;gap:9px;flex-wrap:wrap;justify-content:center}
+  .tile{border:2px solid var(--line);background:#fff;border-radius:10px;
+    padding:11px 15px;cursor:grab;font-family:inherit;font-size:14.5px;
+    font-weight:bold;transition:.12s}
+  .tile:hover{border-color:var(--ink2)}
+  .tile.sel{border-color:var(--ink);border-width:3px;background:var(--sand)}
+  .tile.used{opacity:.32;cursor:default}
+  .tile:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+
+  /* ---- 모드4: 퀴즈 ---- */
+  .score{display:flex;gap:9px;margin-bottom:13px}
+  .sbox{flex:1;background:var(--sand);border-radius:10px;padding:11px;text-align:center}
+  .sbox .n{font-size:25px;font-weight:bold}
+  .sbox .l{font-size:11.5px;color:var(--ink2)}
+  .qtext{font-size:19px;font-weight:bold;margin-bottom:14px;line-height:1.5}
+
+  .msg{border-radius:11px;padding:13px;text-align:center;font-size:16px;
+    font-weight:bold;background:var(--sand);color:var(--ink2);margin-top:13px}
+  .msg.ok{background:#e6f2e9;color:var(--ok)}
+  .msg.no{background:#fbeae7;color:var(--no)}
+
+  .note{background:#fdf6e3;border-left:5px solid var(--gold);
+    border-radius:0 10px 10px 0;padding:12px 14px;font-size:13.5px;margin-top:12px}
+
+  table{width:100%;border-collapse:collapse;font-size:13.5px}
+  th,td{border:1px solid var(--line);padding:8px 7px;text-align:center}
+  th{background:var(--ink);color:#fff;font-size:12.5px}
+  tbody tr:nth-child(even){background:var(--sand)}
+
+  @media (max-width:620px){
+    .opts{grid-template-columns:1fr}
+    .slots{grid-template-columns:repeat(2,1fr)}
+    .hero h1{font-size:20px}
+  }
+  @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <div class="strata">
+    <div class="band b1"><span class="nm">선캄브리아시대</span><span class="pc">88.2%</span></div>
+    <div class="band b2"><span class="nm">고생대</span><span class="pc">6.3%</span></div>
+    <div class="band b3"><span class="nm">중생대</span><span class="pc">4.1%</span></div>
+    <div class="band b4"><span class="nm">신생대</span><span class="pc">1.4%</span></div>
+  </div>
+  <div class="hero">
+    <h1>지질 시대 탐험</h1>
+    <p>46억 년을 네 층으로 나누어 익힙니다 · 위가 오래된 층</p>
+  </div>
+</header>
+
+<div class="tabs" role="tablist">
+  <button class="tab on" id="tabBtn0" role="tab"><b>둘러보기</b>네 시대 한눈에</button>
+  <button class="tab" id="tabBtn1" role="tab"><b>생물 카드</b>어느 시대일까</button>
+  <button class="tab" id="tabBtn2" role="tab"><b>순서 맞추기</b>연표 완성하기</button>
+  <button class="tab" id="tabBtn3" role="tab"><b>도전 퀴즈</b>점수 기록</button>
+</div>
+
+<!-- ========== 모드 1 ========== -->
+<section class="panel on" id="p0">
+  <div class="card">
+    <h2>시간의 비율</h2>
+    <p class="hint">지질 시대 대부분은 선캄브리아시대입니다. 막대 길이가 곧 시간입니다.</p>
+    <div class="tl">
+      <div class="tlbar">
+        <div class="tlseg" style="flex:88.2;background:var(--precam)">선캄브리아시대</div>
+        <div class="tlseg" style="flex:6.3;background:var(--paleo)">고생대</div>
+        <div class="tlseg" style="flex:4.1;background:var(--meso)">중생</div>
+        <div class="tlseg" style="flex:1.4;background:var(--ceno)"></div>
+      </div>
+      <p class="tlnote">왼쪽이 과거 · 오른쪽 끝 가장 얇은 층이 신생대(1.4%)입니다</p>
+    </div>
+    <div class="note">
+      <b>46억 년을 1년으로 줄이면</b> — 고생대는 11월 19일에 시작하고, 인류는 12월 31일 밤 11시 37분에 등장합니다.
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>네 시대</h2>
+    <p class="hint">각 카드의 그림과 대표 생물을 눈에 익혀 두세요.</p>
+    <div class="eras" id="eras"></div>
+  </div>
+
+  <div class="card">
+    <h2>한 장 요약</h2>
+    <p class="hint">외울 것은 이 표 하나입니다.</p>
+    <table>
+      <thead><tr><th>시대</th><th>시작</th><th>대표 생물</th><th>끝에 일어난 일</th></tr></thead>
+      <tbody>
+        <tr><td><b>선캄브리아시대</b></td><td>46억 년 전</td><td>남세균, 스트로마톨라이트</td><td>다세포 생물 등장</td></tr>
+        <tr><td><b>고생대</b></td><td>5억 3900만 년 전</td><td>삼엽충, 양치식물</td><td>가장 큰 대멸종</td></tr>
+        <tr><td><b>중생대</b></td><td>2억 5200만 년 전</td><td>공룡, 암모나이트</td><td>공룡 멸종</td></tr>
+        <tr><td><b>신생대</b></td><td>6600만 년 전</td><td>매머드, 화폐석, 인류</td><td>빙하기 반복</td></tr>
+      </tbody>
+    </table>
+    <div class="note"><b>앞글자만</b> — 선 · 고 · 중 · 신 &nbsp;/&nbsp; 대표 생물은 삼엽충 · 공룡 · 매머드</div>
+  </div>
+</section>
+
+<!-- ========== 모드 2 ========== -->
+<section class="panel" id="p1">
+  <div class="card">
+    <h2>이 생물은 어느 시대일까?</h2>
+    <p class="hint">그림과 이름을 보고 시대를 고르세요.</p>
+    <div class="prog"><span id="fcNum">1 / 12</span><span id="fcScore">맞힌 개수 0</span></div>
+    <div class="bar"><div class="fill" id="fcFill"></div></div>
+    <div class="flash" id="flash"></div>
+    <div class="opts" id="fcOpts"></div>
+    <div class="msg" id="fcMsg">시대를 골라 보세요</div>
+    <div class="mt center"><button class="btn ghost" id="fcReset">처음부터</button></div>
+  </div>
+</section>
+
+<!-- ========== 모드 3 ========== -->
+<section class="panel" id="p2">
+  <div class="card">
+    <h2>연표를 완성하세요</h2>
+    <p class="hint">아래 이름을 눌러 오래된 순서대로 왼쪽부터 놓으세요.</p>
+    <div class="slots" id="slots"></div>
+    <div class="pool" id="pool"></div>
+    <div class="msg" id="ordMsg">1번 칸부터 채워 보세요</div>
+    <div class="mt center"><button class="btn ghost" id="ordReset">다시 하기</button></div>
+  </div>
+  <div class="card" id="ordExtra" style="display:none">
+    <h2>한 단계 더</h2>
+    <p class="hint">이번에는 생물을 오래된 순서대로 놓아 보세요.</p>
+    <div class="slots" id="slots2"></div>
+    <div class="pool" id="pool2"></div>
+    <div class="msg" id="ordMsg2">1번 칸부터 채워 보세요</div>
+  </div>
+</section>
+
+<!-- ========== 모드 4 ========== -->
+<section class="panel" id="p3">
+  <div class="card">
+    <h2>도전 퀴즈</h2>
+    <p class="hint">10문제입니다. 틀린 문제는 마지막에 다시 나옵니다.</p>
+    <div class="score">
+      <div class="sbox"><div class="n" id="qNum">1</div><div class="l">문제</div></div>
+      <div class="sbox"><div class="n" id="qOk">0</div><div class="l">맞힘</div></div>
+      <div class="sbox"><div class="n" id="qNo">0</div><div class="l">틀림</div></div>
+    </div>
+    <div class="bar"><div class="fill" id="qFill"></div></div>
+    <div class="qtext" id="qText">준비되면 시작을 누르세요</div>
+    <div class="opts" id="qOpts"></div>
+    <div class="msg" id="qMsg">10문제에 도전해 보세요</div>
+    <div class="mt center">
+      <button class="btn" id="qStart">시작하기</button>
+      <button class="btn ghost" id="qReset">처음부터</button>
+    </div>
+  </div>
+</section>
+
+</div>
+
+<script>
+/* ================= 그림 (SVG) ================= */
+const ART = {
+  strom:`<svg viewBox="0 0 120 80"><ellipse cx="60" cy="70" rx="52" ry="9" fill="#6b7d8d"/><path d="M20 70 Q22 40 34 30 Q46 20 58 30 Q70 40 70 70Z" fill="#5a6b7b"/><path d="M62 70 Q64 46 76 38 Q88 30 96 42 Q102 52 100 70Z" fill="#647585"/><g stroke="#8fa0b0" stroke-width="1.6" fill="none"><path d="M24 68 Q26 44 36 34"/><path d="M30 68 Q32 48 40 38"/><path d="M36 68 Q38 50 46 42"/><path d="M66 68 Q68 50 78 42"/><path d="M72 68 Q74 52 84 46"/><path d="M80 68 Q82 54 90 50"/></g></svg>`,
+  cyano:`<svg viewBox="0 0 120 80"><rect x="0" y="0" width="120" height="80" fill="none"/><g stroke="#3f7d4e" stroke-width="7" stroke-linecap="round" fill="none"><path d="M18 58 Q34 42 50 56 Q66 70 84 52"/><path d="M26 30 Q42 18 58 30 Q74 42 92 28"/></g><g fill="#5aa06b"><circle cx="18" cy="58" r="5"/><circle cx="50" cy="56" r="5"/><circle cx="84" cy="52" r="5"/><circle cx="26" cy="30" r="5"/><circle cx="58" cy="30" r="5"/><circle cx="92" cy="28" r="5"/></g></svg>`,
+  trilo:`<svg viewBox="0 0 120 80"><ellipse cx="60" cy="40" rx="30" ry="24" fill="#7d6234"/><path d="M30 40 Q60 8 90 40 Q60 72 30 40Z" fill="#94743f"/><ellipse cx="60" cy="24" rx="17" ry="12" fill="#6d5530"/><circle cx="52" cy="22" r="3" fill="#2e2418"/><circle cx="68" cy="22" r="3" fill="#2e2418"/><g stroke="#5d4926" stroke-width="2"><path d="M42 34h36M41 42h38M43 50h34M46 58h28"/></g><path d="M60 16v48" stroke="#5d4926" stroke-width="2.5"/></svg>`,
+  fern:`<svg viewBox="0 0 120 80"><path d="M60 76V22" stroke="#3f7d4e" stroke-width="3.5"/><g stroke="#4a8f58" stroke-width="2.6" stroke-linecap="round"><path d="M60 68 L36 62M60 68 L84 62M60 58 L34 50M60 58 L86 50M60 48 L38 39M60 48 L82 39M60 38 L43 30M60 38 L77 30M60 28 L49 22M60 28 L71 22"/></g><path d="M60 22 Q56 14 62 12 Q68 10 66 18" fill="none" stroke="#3f7d4e" stroke-width="2.6"/></svg>`,
+  fish:`<svg viewBox="0 0 120 80"><path d="M14 40 Q46 12 84 40 Q46 68 14 40Z" fill="#5f7f96"/><path d="M84 40 L106 24 L102 40 L106 56Z" fill="#4d6b80"/><circle cx="32" cy="36" r="4" fill="#f4efe2"/><circle cx="32" cy="36" r="2" fill="#231c14"/><path d="M48 22 L58 12 L64 26" fill="#4d6b80"/><path d="M44 54 Q54 64 62 54" fill="none" stroke="#4d6b80" stroke-width="3"/></svg>`,
+  dino:`<svg viewBox="0 0 120 80"><path d="M16 62 Q10 50 22 46 Q30 26 50 24 Q72 22 82 36 Q94 34 104 22 Q100 40 88 46 Q88 62 78 66 L72 56 L54 58 L48 68 Q30 70 16 62Z" fill="#6f7a48"/><circle cx="96" cy="28" r="2.6" fill="#231c14"/><g stroke="#59613a" stroke-width="2.4" fill="none"><path d="M40 34 L46 26M52 32 L58 24M64 34 L70 27"/></g><path d="M22 46 Q34 40 48 44" stroke="#59613a" stroke-width="2" fill="none"/></svg>`,
+  ammon:`<svg viewBox="0 0 120 80"><g transform="translate(60,40)"><circle r="30" fill="#8c5a3c"/><circle r="22" fill="#9d6a48" /><circle r="14" fill="#ab7854"/><circle r="7" fill="#bb8a66"/><g stroke="#6d4530" stroke-width="1.8" fill="none"><path d="M0-30 A30 30 0 0 1 26 15"/><path d="M0-22 A22 22 0 0 1 19 11"/><path d="M0-14 A14 14 0 0 1 12 7"/></g></g></svg>`,
+  conifer:`<svg viewBox="0 0 120 80"><rect x="55" y="54" width="10" height="22" fill="#6b4f2e"/><path d="M60 6 L82 34 L38 34Z" fill="#3f6b45"/><path d="M60 22 L88 52 L32 52Z" fill="#48794f"/><path d="M60 36 L94 62 L26 62Z" fill="#3f6b45"/></svg>`,
+  mammoth:`<svg viewBox="0 0 120 80"><path d="M26 62 Q18 44 30 34 Q42 22 62 24 Q84 26 92 42 Q96 58 88 66 L80 66 L78 56 L46 56 L44 66 L34 66Z" fill="#7b5c42"/><path d="M30 34 Q22 44 26 56" fill="none" stroke="#6a4c34" stroke-width="3"/><path d="M32 52 Q22 60 26 70" fill="none" stroke="#e8ddc4" stroke-width="4.5" stroke-linecap="round"/><path d="M40 52 Q30 62 34 72" fill="none" stroke="#e8ddc4" stroke-width="4.5" stroke-linecap="round"/><path d="M34 44 Q26 52 30 62" fill="none" stroke="#5d4230" stroke-width="5" stroke-linecap="round"/><circle cx="40" cy="36" r="2.6" fill="#231c14"/></svg>`,
+  nummul:`<svg viewBox="0 0 120 80"><g transform="translate(60,40)"><circle r="28" fill="#a89060"/><circle r="21" fill="#b79f6f" /><circle r="14" fill="#c4ae80"/><g stroke="#8a7548" stroke-width="1.5"><path d="M0-28V28M-28 0H28M-20-20L20 20M-20 20L20-20"/></g><circle r="5" fill="#8a7548"/></g></svg>`,
+  human:`<svg viewBox="0 0 120 80"><circle cx="60" cy="18" r="9" fill="#a2724f"/><path d="M60 27 L60 52" stroke="#a2724f" stroke-width="6" stroke-linecap="round"/><path d="M60 34 L44 44M60 34 L78 40" stroke="#a2724f" stroke-width="5" stroke-linecap="round"/><path d="M60 52 L50 72M60 52 L70 72" stroke="#a2724f" stroke-width="5.5" stroke-linecap="round"/><path d="M80 26 L74 60" stroke="#6b4f2e" stroke-width="3.5"/></svg>`,
+  flower:`<svg viewBox="0 0 120 80"><path d="M60 76V40" stroke="#3f7d4e" stroke-width="3.5"/><path d="M60 56 Q46 50 42 40 Q56 42 60 54" fill="#4a8f58"/><g fill="#c46a8a"><ellipse cx="60" cy="26" rx="8" ry="13"/><ellipse cx="60" cy="26" rx="13" ry="8"/><ellipse cx="51" cy="18" rx="8" ry="11" transform="rotate(-40 51 18)"/><ellipse cx="69" cy="18" rx="8" ry="11" transform="rotate(40 69 18)"/></g><circle cx="60" cy="26" r="6" fill="#e8c25e"/></svg>`
+};
+
+/* ================= 데이터 ================= */
+const ERAS = [
+  {k:'선캄브리아시대', c:'var(--precam)', ago:'46억 ~ 5억 3900만 년 전',
+   env:'대기에 산소가 적었다가 남세균의 광합성으로 늘어남',
+   life:['남세균','스트로마톨라이트','에디아카라 생물군'],
+   end:'후기에 다세포 생물 등장',
+   art:'strom', cap:'스트로마톨라이트'},
+  {k:'고생대', c:'var(--paleo)', ago:'5억 3900만 ~ 2억 5200만 년 전',
+   env:'오존층이 만들어져 생물이 바다에서 육지로 올라옴',
+   life:['삼엽충','완족류','어류','양서류','양치식물'],
+   end:'판게아 형성, 기후 한랭화 → 가장 큰 대멸종',
+   art:'trilo', cap:'삼엽충'},
+  {k:'중생대', c:'var(--meso)', ago:'2억 5200만 ~ 6600만 년 전',
+   env:'판게아가 갈라지고 화산 활동으로 온난했음',
+   life:['공룡','암모나이트','겉씨식물','익룡'],
+   end:'환경 급변 → 공룡과 암모나이트 멸종',
+   art:'dino', cap:'공룡'},
+  {k:'신생대', c:'var(--ceno)', ago:'6600만 년 전 ~ 현재',
+   env:'수륙 분포가 현재와 비슷해지고, 말기에 빙하기 반복',
+   life:['매머드','화폐석','속씨식물','인류'],
+   end:'인류의 조상 출현',
+   art:'mammoth', cap:'매머드'}
+];
+
+const LIFE = [
+  {n:'삼엽충', e:'고생대', a:'trilo', h:'바다에 살던 단단한 껍데기 생물'},
+  {n:'공룡', e:'중생대', a:'dino', h:'육상 파충류'},
+  {n:'매머드', e:'신생대', a:'mammoth', h:'털이 긴 포유류'},
+  {n:'스트로마톨라이트', e:'선캄브리아시대', a:'strom', h:'남세균이 만든 층 구조'},
+  {n:'암모나이트', e:'중생대', a:'ammon', h:'나선 껍데기의 해양 생물'},
+  {n:'화폐석', e:'신생대', a:'nummul', h:'동전처럼 생긴 바다 생물'},
+  {n:'남세균', e:'선캄브리아시대', a:'cyano', h:'최초로 광합성을 한 생물'},
+  {n:'양치식물', e:'고생대', a:'fern', h:'숲을 이룬 포자 식물'},
+  {n:'겉씨식물', e:'중생대', a:'conifer', h:'은행나무·소나무 종류'},
+  {n:'속씨식물', e:'신생대', a:'flower', h:'꽃이 피는 식물'},
+  {n:'어류', e:'고생대', a:'fish', h:'바다에서 번성한 척추동물'},
+  {n:'인류', e:'신생대', a:'human', h:'가장 늦게 나타난 생물'}
+];
+
+const ERA_NAMES = ['선캄브리아시대','고생대','중생대','신생대'];
+
+/* ================= 공통 ================= */
+function shuffle(a){return a.map(v=>[Math.random(),v]).sort((x,y)=>x[0]-y[0]).map(v=>v[1])}
+/* 받침 유무에 따라 은/는, 이/가 선택 */
+function josa(word, withBatchim, without){
+  const last = word.charCodeAt(word.length-1);
+  if(last < 0xAC00 || last > 0xD7A3) return without;
+  return ((last - 0xAC00) % 28) ? withBatchim : without;
+}
+function setMsg(id,t,cls){const e=document.getElementById(id);e.textContent=t;e.className='msg '+(cls||'')}
+function go(i){
+  document.querySelectorAll('.panel').forEach((p,n)=>p.classList.toggle('on',n===i));
+  document.querySelectorAll('.tab').forEach((t,n)=>t.classList.toggle('on',n===i));
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+/* ================= 모드 1 ================= */
+document.getElementById('eras').innerHTML = ERAS.map(e=>`
+  <div class="era">
+    <div class="top" style="background:${e.c}">
+      <h3>${e.k}</h3><div class="ago">${e.ago}</div>
+    </div>
+    <div class="body">
+      <figure class="fig">${ART[e.art]}<figcaption>${e.cap}</figcaption></figure>
+      <div class="row" style="margin-top:9px"><span class="k">환경</span><span>${e.env}</span></div>
+      <div class="row"><span class="k">끝날 때</span><span>${e.end}</span></div>
+      <div class="life">${e.life.map(l=>`<span class="chip">${l}</span>`).join('')}</div>
+    </div>
+  </div>`).join('');
+
+/* ================= 모드 2 ================= */
+let fcList=[], fcIdx=0, fcOk=0, fcLock=false;
+
+function fcStart(){
+  fcList=shuffle([...LIFE]); fcIdx=0; fcOk=0; fcLock=false; fcRender();
+}
+function fcRender(){
+  if(fcIdx>=fcList.length){
+    document.getElementById('flash').innerHTML=
+      `<div class="q">끝!</div><div class="sub">12문제 중 ${fcOk}개를 맞혔습니다</div>`;
+    document.getElementById('fcOpts').innerHTML='';
+    setMsg('fcMsg', fcOk===12?'전부 맞혔습니다':'다시 한 번 해 보세요', fcOk>=10?'ok':'');
+    document.getElementById('fcFill').style.width='100%';
+    return;
+  }
+  const it=fcList[fcIdx];
+  document.getElementById('fcNum').textContent=(fcIdx+1)+' / '+fcList.length;
+  document.getElementById('fcScore').textContent='맞힌 개수 '+fcOk;
+  document.getElementById('fcFill').style.width=(fcIdx/fcList.length*100)+'%';
+  document.getElementById('flash').innerHTML=
+    `${ART[it.a]}<div class="q">${it.n}</div><div class="sub">${it.h}</div>`;
+  const opts=document.getElementById('fcOpts');
+  opts.innerHTML='';
+  ERA_NAMES.forEach(nm=>{
+    const b=document.createElement('button');
+    b.className='opt'; b.textContent=nm;
+    b.addEventListener('click',()=>fcPick(b,nm,it));
+    opts.appendChild(b);
+  });
+  setMsg('fcMsg','시대를 골라 보세요','');
+}
+function fcPick(btn,nm,it){
+  if(fcLock) return; fcLock=true;
+  if(nm===it.e){
+    btn.classList.add('ok'); fcOk++;
+    setMsg('fcMsg','맞았습니다 — '+it.n+josa(it.n,'은','는')+' '+it.e,'ok');
+  }else{
+    btn.classList.add('no');
+    [...document.querySelectorAll('#fcOpts .opt')].find(b=>b.textContent===it.e).classList.add('ok');
+    setMsg('fcMsg','아쉽습니다 — '+it.n+josa(it.n,'은','는')+' '+it.e+'입니다','no');
+  }
+  setTimeout(()=>{fcIdx++; fcLock=false; fcRender();},1200);
+}
+document.getElementById('fcReset').addEventListener('click',fcStart);
+fcStart();
+
+/* ================= 모드 3 ================= */
+function buildOrder(slotsId,poolId,msgId,items,answer,onDone){
+  const slotsEl=document.getElementById(slotsId), poolEl=document.getElementById(poolId);
+  let placed=new Array(4).fill(null), sel=null;
+
+  function draw(){
+    slotsEl.innerHTML='';
+    placed.forEach((v,i)=>{
+      const d=document.createElement('div');
+      d.className='slot'+(v?' filled':'');
+      d.innerHTML=v?`<span><span class="no">${i+1}번 (오래됨→최근)</span><b>${v}</b></span>`
+                   :`<span class="no">${i+1}번</span>`;
+      if(v) d.addEventListener('click',()=>{placed[i]=null;draw();setMsg(msgId,'다시 놓아 보세요','')});
+      else d.addEventListener('click',()=>{
+        if(!sel){setMsg(msgId,'아래에서 이름을 먼저 고르세요','');return}
+        placed[i]=sel; sel=null; draw(); check();
+      });
+      slotsEl.appendChild(d);
+    });
+    poolEl.innerHTML='';
+    items.forEach(nm=>{
+      const b=document.createElement('button');
+      const used=placed.includes(nm);
+      b.className='tile'+(used?' used':'')+(sel===nm?' sel':'');
+      b.textContent=nm;
+      if(!used) b.addEventListener('click',()=>{sel=(sel===nm?null:nm);draw()});
+      poolEl.appendChild(b);
+    });
+  }
+  function check(){
+    if(placed.includes(null)) return;
+    const ok=placed.every((v,i)=>v===answer[i]);
+    if(ok){ setMsg(msgId,'정확합니다 — 오래된 순서가 맞습니다','ok'); if(onDone)onDone(); }
+    else{
+      const cnt=placed.filter((v,i)=>v===answer[i]).length;
+      setMsg(msgId,cnt+'개가 제자리입니다 — 칸을 눌러 빼고 다시 놓으세요','no');
+    }
+  }
+  draw();
+  return ()=>{placed=new Array(4).fill(null);sel=null;draw();setMsg(msgId,'1번 칸부터 채워 보세요','')};
+}
+
+const resetOrd1=buildOrder('slots','pool','ordMsg',shuffle([...ERA_NAMES]),ERA_NAMES,()=>{
+  document.getElementById('ordExtra').style.display='block';
+});
+const LIFE_ORDER=['남세균','삼엽충','공룡','매머드'];
+const resetOrd2=buildOrder('slots2','pool2','ordMsg2',shuffle([...LIFE_ORDER]),LIFE_ORDER);
+document.getElementById('ordReset').addEventListener('click',()=>{
+  resetOrd1(); resetOrd2();
+  document.getElementById('ordExtra').style.display='none';
+});
+
+/* ================= 모드 4 ================= */
+const QUIZ=[
+  {q:'삼엽충이 번성한 시대는?',o:ERA_NAMES,a:'고생대',x:'삼엽충은 고생대 바다의 대표 생물입니다.'},
+  {q:'공룡이 살았던 시대는?',o:ERA_NAMES,a:'중생대',x:'중생대는 공룡의 시대입니다.'},
+  {q:'지질 시대 중 가장 긴 시대는?',o:ERA_NAMES,a:'선캄브리아시대',x:'전체의 88.2%를 차지합니다.'},
+  {q:'인류의 조상이 나타난 시대는?',o:ERA_NAMES,a:'신생대',x:'신생대에 비로소 인류가 출현했습니다.'},
+  {q:'가장 큰 규모의 대멸종이 일어난 때는?',o:['선캄브리아시대 말','고생대 말','중생대 말','신생대 말'],a:'고생대 말',x:'고생대 말에 지구 역사상 가장 큰 대멸종이 있었습니다.'},
+  {q:'공룡과 암모나이트가 멸종한 때는?',o:['선캄브리아시대 말','고생대 말','중생대 말','신생대 말'],a:'중생대 말',x:'중생대 말 환경이 급변하며 멸종했습니다.'},
+  {q:'초대륙 판게아가 만들어진 때는?',o:['선캄브리아시대 말','고생대 말','중생대 말','신생대 말'],a:'고생대 말',x:'고생대 말에 여러 대륙이 합쳐졌습니다.'},
+  {q:'스트로마톨라이트를 만든 생물은?',o:['남세균','삼엽충','암모나이트','화폐석'],a:'남세균',x:'남세균의 광합성 활동으로 만들어졌습니다.'},
+  {q:'화폐석이 번성한 시대는?',o:ERA_NAMES,a:'신생대',x:'화폐석은 신생대 바다의 대표 화석입니다.'},
+  {q:'빙하기와 간빙기가 여러 차례 반복된 시대는?',o:ERA_NAMES,a:'신생대',x:'신생대 말에 빙하기가 반복되었습니다.'}
+];
+let qList=[], qIdx=0, qOk=0, qNo=0, qWrong=[], qLock=false, qOn=false;
+
+function qStart(){
+  qList=shuffle([...QUIZ]); qIdx=0; qOk=0; qNo=0; qWrong=[]; qLock=false; qOn=true;
+  document.getElementById('qStart').disabled=true;
+  qRender();
+}
+function qRender(){
+  if(qIdx>=qList.length){
+    if(qWrong.length){
+      const again=qWrong.slice(); qWrong=[];
+      qList=again; qIdx=0;
+      document.getElementById('qText').textContent='틀린 문제를 다시 풀어 봅시다';
+      document.getElementById('qOpts').innerHTML='';
+      setMsg('qMsg',again.length+'문제가 다시 나옵니다','');
+      setTimeout(qRender,1400);
+      return;
+    }
+    document.getElementById('qText').textContent='모두 맞혔습니다';
+    document.getElementById('qOpts').innerHTML='';
+    document.getElementById('qFill').style.width='100%';
+    setMsg('qMsg','맞힘 '+qOk+' · 틀림 '+qNo,'ok');
+    document.getElementById('qStart').disabled=false;
+    qOn=false;
+    return;
+  }
+  const it=qList[qIdx];
+  document.getElementById('qNum').textContent=qIdx+1;
+  document.getElementById('qOk').textContent=qOk;
+  document.getElementById('qNo').textContent=qNo;
+  document.getElementById('qFill').style.width=(qIdx/qList.length*100)+'%';
+  document.getElementById('qText').textContent=it.q;
+  const opts=document.getElementById('qOpts'); opts.innerHTML='';
+  shuffle([...it.o]).forEach(o=>{
+    const b=document.createElement('button');
+    b.className='opt'; b.textContent=o;
+    b.addEventListener('click',()=>qPick(b,o,it));
+    opts.appendChild(b);
+  });
+  setMsg('qMsg','답을 고르세요','');
+}
+function qPick(btn,o,it){
+  if(qLock) return; qLock=true;
+  if(o===it.a){ btn.classList.add('ok'); qOk++; setMsg('qMsg','맞았습니다 — '+it.x,'ok'); }
+  else{
+    btn.classList.add('no'); qNo++; qWrong.push(it);
+    [...document.querySelectorAll('#qOpts .opt')].find(b=>b.textContent===it.a).classList.add('ok');
+    setMsg('qMsg','정답은 '+it.a+' — '+it.x,'no');
+  }
+  document.getElementById('qOk').textContent=qOk;
+  document.getElementById('qNo').textContent=qNo;
+  setTimeout(()=>{qIdx++; qLock=false; qRender();},1600);
+}
+document.getElementById('qStart').addEventListener('click',qStart);
+document.getElementById('qReset').addEventListener('click',()=>{
+  qOn=false; qLock=false;
+  document.getElementById('qStart').disabled=false;
+  document.getElementById('qText').textContent='준비되면 시작을 누르세요';
+  document.getElementById('qOpts').innerHTML='';
+  document.getElementById('qFill').style.width='0';
+  document.getElementById('qNum').textContent='1';
+  document.getElementById('qOk').textContent='0';
+  document.getElementById('qNo').textContent='0';
+  setMsg('qMsg','10문제에 도전해 보세요','');
+});
+
+/* ================= 탭 바인딩 ================= */
+for(let i=0;i<4;i++){
+  document.getElementById('tabBtn'+i).addEventListener('click',()=>go(i));
+}
+</script>
+</body>
+</html>
