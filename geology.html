@@ -1,0 +1,671 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>통합과학2 복습 · 지질 시대의 환경과 생물 변화</title>
+<style>
+:root{
+  --surface:#fcfcfb; --plane:#f4f3ef; --card:#ffffff;
+  --ink:#0b0b0b; --ink2:#52514e; --muted:#898781;
+  --line:#e1e0d9; --axis:#c3c2b7;
+  --blue:#2a78d6; --orange:#eb6834; --aqua:#1baf7a; --yellow:#eda100;
+  --violet:#4a3aa7; --red:#d03b3b; --good:#0ca30c;
+  --pc:#6b7f8c; --pz:#1baf7a; --mz:#eb6834; --cz:#2a78d6;
+  --radius:14px;
+  --shadow:0 1px 2px rgba(11,11,11,.05), 0 6px 20px rgba(11,11,11,.06);
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  margin:0; background:var(--plane); color:var(--ink);
+  font-family:"Pretendard","Apple SD Gothic Neo","Malgun Gothic",system-ui,-apple-system,"Segoe UI",sans-serif;
+  line-height:1.75; -webkit-text-size-adjust:100%;
+}
+.wrap{max-width:960px;margin:0 auto;padding:0 16px 80px}
+
+/* ── header ── */
+header{
+  background:linear-gradient(140deg,#20303a 0%,#2f4a52 55%,#3d5c4a 100%);
+  color:#fff;padding:44px 0 34px;margin-bottom:0;
+}
+header .wrap{padding-bottom:0}
+.eyebrow{font-size:13px;letter-spacing:.06em;opacity:.75;margin:0 0 8px}
+h1{font-size:clamp(24px,5vw,36px);margin:0 0 6px;line-height:1.3;font-weight:800}
+.sub{opacity:.8;font-size:14px;margin:0 0 22px}
+.goals{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.18);border-radius:var(--radius);padding:14px 18px}
+.goals b{display:block;font-size:12px;letter-spacing:.08em;opacity:.8;margin-bottom:6px}
+.goals ul{margin:0;padding-left:18px;font-size:14.5px}
+.goals li+li{margin-top:2px}
+
+/* ── nav ── */
+nav{position:sticky;top:0;z-index:50;background:rgba(244,243,239,.92);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
+nav .wrap{display:flex;gap:6px;overflow-x:auto;padding-top:10px;padding-bottom:10px;scrollbar-width:none}
+nav .wrap::-webkit-scrollbar{display:none}
+nav a{
+  flex:0 0 auto;text-decoration:none;color:var(--ink2);font-size:14px;font-weight:600;
+  padding:8px 14px;border-radius:999px;border:1px solid var(--line);background:#fff;
+}
+nav a:hover{border-color:var(--axis);color:var(--ink)}
+nav a.on{background:var(--ink);color:#fff;border-color:var(--ink)}
+
+/* ── sections ── */
+section{padding-top:44px}
+h2{font-size:22px;margin:0 0 4px;display:flex;align-items:center;gap:10px;font-weight:800}
+h2 .num{
+  display:inline-grid;place-items:center;width:28px;height:28px;border-radius:9px;
+  background:var(--ink);color:#fff;font-size:14px;font-weight:700
+}
+.lead{color:var(--ink2);font-size:14.5px;margin:0 0 20px;padding-left:38px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:20px 22px;box-shadow:var(--shadow)}
+.card+.card{margin-top:14px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media(max-width:720px){.grid2{grid-template-columns:1fr}}
+
+.term{background:#f6f8f5;border-left:4px solid var(--aqua);border-radius:10px;padding:12px 16px;margin:0 0 12px}
+.term b{color:#0f7a55}
+.hl{background:linear-gradient(transparent 58%,#ffe9a8 58%);font-weight:700}
+.tag{display:inline-block;font-size:11.5px;font-weight:700;padding:2px 9px;border-radius:999px;background:#eef1ee;color:var(--ink2)}
+
+/* 화석 형성 과정 */
+.flow{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:6px}
+@media(max-width:720px){.flow{grid-template-columns:1fr 1fr}}
+.step{background:#faf9f6;border:1px solid var(--line);border-radius:12px;padding:14px;position:relative}
+.step .n{font-size:11px;font-weight:800;color:var(--muted);letter-spacing:.08em}
+.step .t{font-weight:700;font-size:14.5px;margin:3px 0 4px}
+.step .d{font-size:13px;color:var(--ink2);line-height:1.6}
+
+/* 비율 바 */
+.ratio{display:flex;height:44px;border-radius:10px;overflow:hidden;border:1px solid var(--line);background:#fff}
+.ratio div{display:grid;place-items:center;color:#fff;font-size:12px;font-weight:700;min-width:0}
+.ratio-legend{display:flex;flex-wrap:wrap;gap:14px;margin-top:10px;font-size:13px;color:var(--ink2)}
+.ratio-legend span{display:flex;align-items:center;gap:6px}
+.dot{width:11px;height:11px;border-radius:3px;display:inline-block}
+
+/* 타임라인 */
+.tl{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+@media(max-width:720px){.tl{grid-template-columns:1fr 1fr}}
+.era{
+  cursor:pointer;border:1.5px solid var(--line);background:#fff;border-radius:12px;padding:14px 12px;text-align:left;
+  font-family:inherit;transition:.15s;position:relative;overflow:hidden
+}
+.era::before{content:"";position:absolute;inset:0 auto 0 0;width:5px;background:var(--c)}
+.era:hover{border-color:var(--c);transform:translateY(-2px)}
+.era.on{border-color:var(--c);background:var(--bg);box-shadow:0 4px 14px rgba(11,11,11,.09)}
+.era .name{font-weight:800;font-size:15px;margin-bottom:2px}
+.era .when{font-size:12px;color:var(--muted);line-height:1.5}
+.era .len{font-size:11.5px;color:var(--ink2);margin-top:6px;font-weight:700}
+.detail{margin-top:14px;border:1px solid var(--line);border-radius:var(--radius);background:#fff;padding:20px 22px;box-shadow:var(--shadow)}
+.detail h3{margin:0 0 2px;font-size:19px;display:flex;align-items:center;gap:9px}
+.detail .when2{color:var(--muted);font-size:13px;margin:0 0 14px}
+.dgrid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media(max-width:720px){.dgrid{grid-template-columns:1fr}}
+.box{background:#faf9f6;border:1px solid var(--line);border-radius:11px;padding:13px 15px}
+.box h4{margin:0 0 6px;font-size:13px;color:var(--muted);letter-spacing:.04em}
+.box ul{margin:0;padding-left:17px;font-size:14px}
+.box li+li{margin-top:3px}
+.fossil{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.fossil b{background:#fff;border:1px solid var(--line);border-radius:999px;padding:5px 13px;font-size:13px}
+
+table{width:100%;border-collapse:collapse;font-size:13.5px;margin-top:4px}
+th,td{border-bottom:1px solid var(--line);padding:10px 8px;text-align:left;vertical-align:top}
+th{background:#faf9f6;font-size:12.5px;color:var(--ink2);white-space:nowrap}
+td:first-child,th:first-child{white-space:nowrap;font-weight:700}
+.scroll{overflow-x:auto}
+
+/* 가설 */
+.hyp{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+@media(max-width:720px){.hyp{grid-template-columns:1fr}}
+.hyp .h{background:#fff;border:1px solid var(--line);border-radius:12px;padding:16px;text-align:center}
+.hyp .ic{font-size:30px;line-height:1}
+.hyp .t{font-weight:800;margin:8px 0 5px;font-size:15px}
+.hyp .d{font-size:13.5px;color:var(--ink2)}
+
+/* 차트 */
+.chart-wrap{position:relative}
+svg{display:block;width:100%;height:auto}
+.tip{
+  position:absolute;pointer-events:none;opacity:0;transition:opacity .12s;
+  background:#0b0b0b;color:#fff;font-size:12.5px;padding:7px 10px;border-radius:8px;white-space:nowrap;
+  transform:translate(-50%,-115%);z-index:5;line-height:1.5
+}
+.note{font-size:12.5px;color:var(--muted);margin-top:8px}
+
+/* 퀴즈 */
+.qbar{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:14px}
+.qprog{flex:1;min-width:180px;height:8px;background:#e7e6e0;border-radius:99px;overflow:hidden}
+.qprog i{display:block;height:100%;width:0;background:var(--aqua);transition:width .3s}
+.q{background:#fff;border:1px solid var(--line);border-radius:var(--radius);padding:18px 20px;box-shadow:var(--shadow)}
+.q+.q{margin-top:12px}
+.q .qh{display:flex;gap:10px;align-items:baseline;margin-bottom:12px}
+.q .qn{font-size:12px;font-weight:800;color:#fff;background:var(--ink2);border-radius:7px;padding:2px 8px;flex:0 0 auto}
+.q .qt{font-weight:600;font-size:15.5px}
+.opts{display:grid;gap:8px}
+.opts.ox{grid-template-columns:1fr 1fr;max-width:280px}
+.opt{
+  display:flex;align-items:center;gap:10px;border:1.5px solid var(--line);background:#fff;border-radius:10px;
+  padding:10px 14px;cursor:pointer;font-family:inherit;font-size:14.5px;text-align:left;transition:.12s;color:var(--ink)
+}
+.opt:hover{border-color:var(--axis);background:#faf9f6}
+.opt.sel{border-color:var(--blue);background:#eef4fd}
+.opt.ok{border-color:var(--good);background:#eefaee}
+.opt.no{border-color:var(--red);background:#fdeeee}
+.opt .mk{margin-left:auto;font-weight:800;font-size:13px}
+.fill{
+  font-family:inherit;font-size:15px;padding:9px 13px;border:1.5px solid var(--line);border-radius:10px;width:min(280px,100%);
+  background:#fff;color:var(--ink)
+}
+.fill:focus{outline:none;border-color:var(--blue)}
+.fill.ok{border-color:var(--good);background:#eefaee}
+.fill.no{border-color:var(--red);background:#fdeeee}
+.order{display:flex;flex-wrap:wrap;gap:8px}
+.slots{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;min-height:44px;align-items:center}
+.slot{border:1.5px dashed var(--axis);border-radius:10px;padding:9px 14px;font-size:14.5px;background:#faf9f6;color:var(--muted)}
+.slot.filled{border-style:solid;border-color:var(--blue);background:#eef4fd;color:var(--ink);cursor:pointer;font-weight:600}
+.slot.ok{border-color:var(--good);background:#eefaee}
+.slot.no{border-color:var(--red);background:#fdeeee}
+.arrow{color:var(--muted);font-size:13px}
+.fb{margin-top:12px;border-radius:10px;padding:11px 14px;font-size:14px;display:none;line-height:1.65}
+.fb.show{display:block}
+.fb.right{background:#eefaee;border:1px solid #b7e3b7;color:#14631a}
+.fb.wrong{background:#fdeeee;border:1px solid #f2c2c2;color:#8f2020}
+.fb b{display:block;margin-bottom:2px}
+.btn{
+  font-family:inherit;font-weight:700;font-size:14.5px;border-radius:10px;padding:10px 20px;cursor:pointer;border:1.5px solid transparent;transition:.12s
+}
+.btn.p{background:var(--ink);color:#fff}
+.btn.p:hover{background:#333}
+.btn.s{background:#fff;color:var(--ink2);border-color:var(--line)}
+.btn.s:hover{border-color:var(--axis)}
+.btn.sm{padding:6px 14px;font-size:13px}
+.qactions{display:flex;gap:10px;justify-content:center;margin-top:22px;flex-wrap:wrap}
+.result{display:none;margin-top:18px;background:#fff;border:1px solid var(--line);border-radius:var(--radius);padding:24px;text-align:center;box-shadow:var(--shadow)}
+.result.show{display:block}
+.score{font-size:44px;font-weight:800;line-height:1.1}
+.score small{font-size:18px;color:var(--muted);font-weight:700}
+.rmsg{color:var(--ink2);margin-top:6px;font-size:14.5px}
+
+footer{margin-top:50px;padding-top:20px;border-top:1px solid var(--line);color:var(--muted);font-size:12.5px;text-align:center}
+.up{position:fixed;right:18px;bottom:18px;width:44px;height:44px;border-radius:50%;border:1px solid var(--line);background:#fff;box-shadow:var(--shadow);cursor:pointer;font-size:17px;color:var(--ink2);z-index:60}
+@media print{nav,.up,.qactions{display:none}}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap">
+    <p class="eyebrow">통합과학 2 · Ⅰ. 변화와 다양성 · 1. 환경 변화와 생물다양성</p>
+    <h1>지질 시대의 환경과 생물 변화</h1>
+    <p class="sub">교과서 14~19쪽 복습 노트 · 개념 정리 + 확인 문제</p>
+    <div class="goals">
+      <b>학습 목표</b>
+      <ul>
+        <li>지질 시대를 통해 지구 환경이 끊임없이 변화해 왔음을 설명할 수 있다.</li>
+        <li>지질 시대의 환경 변화가 생물의 변화에 미치는 영향을 추론할 수 있다.</li>
+      </ul>
+    </div>
+  </div>
+</header>
+
+<nav>
+  <div class="wrap" id="nav">
+    <a href="#s1" class="on">① 지질 시대와 화석</a>
+    <a href="#s2">② 지질 시대의 구분</a>
+    <a href="#s3">③ 생물 대멸종</a>
+    <a href="#s4">④ 한눈에 정리</a>
+    <a href="#s5">⑤ 확인 문제</a>
+  </div>
+</nav>
+
+<div class="wrap">
+
+<!-- ================= 1 ================= -->
+<section id="s1">
+  <h2><span class="num">1</span>지질 시대와 화석</h2>
+  <p class="lead">지구의 역사를 읽는 두 개의 열쇳말부터 확실히 잡고 갑니다.</p>
+
+  <div class="card">
+    <div class="term"><b>지질 시대</b> — 지구가 탄생한 약 <span class="hl">46억 년 전</span>부터 현재까지의 기간.</div>
+    <div class="term"><b>화석</b> — 지질 시대에 살았던 생물의 <span class="hl">유해나 흔적</span>이 지층 속에 남아 있는 것.</div>
+    <p style="margin:14px 0 0;font-size:14.5px">화석을 연구하면 지층의 생성 시기와 환경, 생물의 진화 과정 등 <b>지구의 역사</b>를 이해할 수 있습니다. 특히 지구 환경의 급격한 변화로 생긴 <b>생물계의 큰 변화</b>는 지질 시대를 구분하는 중요한 기준이 됩니다.</p>
+  </div>
+
+  <div class="card">
+    <h3 style="margin:0 0 10px;font-size:16px">화석은 어떻게 만들어질까? <span class="tag">그림 Ⅰ-1</span></h3>
+    <div class="flow">
+      <div class="step"><div class="n">STEP 1</div><div class="t">유해가 묻힘</div><div class="d">과거에 살았던 생물의 유해가 땅속에 묻힌다.</div></div>
+      <div class="step"><div class="n">STEP 2</div><div class="t">퇴적물이 쌓임</div><div class="d">그 위로 퇴적물이 계속 쌓인다.</div></div>
+      <div class="step"><div class="n">STEP 3</div><div class="t">화석 형성</div><div class="d">오랜 세월이 지나면서 화석이 형성된다.</div></div>
+      <div class="step"><div class="n">STEP 4</div><div class="t">융기·침식</div><div class="d">지층이 융기해 침식 작용으로 깎이면서 화석이 드러난다.</div></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3 style="margin:0 0 8px;font-size:16px">과거의 환경은 어떻게 알아낼까?</h3>
+    <p style="margin:0;font-size:14.5px">생물의 종류마다 서식하는 환경이 다르므로, 화석으로 산출되는 생물이 <b>주로 어떤 환경에서 살았는지</b>를 조사하면 지층이 생성될 당시의 환경을 알 수 있습니다.</p>
+    <div class="grid2" style="margin-top:12px">
+      <div class="box"><h4>고사리 화석 (강원 태백)</h4><p style="margin:0;font-size:14px">고사리는 <b>따뜻하고 습한 육지</b>에 서식 → 지층 생성 당시 육지 환경</p></div>
+      <div class="box"><h4>조개 화석 (제주 서귀포)</h4><p style="margin:0;font-size:14px">조개는 <b>얕은 바다</b>에 서식 → 지층 생성 당시 바다 환경</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= 2 ================= -->
+<section id="s2">
+  <h2><span class="num">2</span>지질 시대의 구분</h2>
+  <p class="lead">화석의 산출 정도를 기준으로 네 시대로 나눕니다. 카드를 눌러 자세히 보세요.</p>
+
+  <div class="card">
+    <h3 style="margin:0 0 12px;font-size:16px">지질 시대의 상대적 길이 <span class="tag">그림 Ⅰ-2</span></h3>
+    <div class="ratio">
+      <div style="width:88.2%;background:#6b7f8c">선캄브리아시대 88.2%</div>
+      <div style="width:6.3%;background:#1baf7a" title="고생대 6.3%"></div>
+      <div style="width:4.1%;background:#eb6834" title="중생대 4.1%"></div>
+      <div style="width:1.4%;background:#2a78d6" title="신생대 1.4%"></div>
+    </div>
+    <div class="ratio-legend">
+      <span><i class="dot" style="background:#6b7f8c"></i>선캄브리아시대 88.2%</span>
+      <span><i class="dot" style="background:#1baf7a"></i>고생대 6.3%</span>
+      <span><i class="dot" style="background:#eb6834"></i>중생대 4.1%</span>
+      <span><i class="dot" style="background:#2a78d6"></i>신생대 1.4%</span>
+    </div>
+    <p class="note">지질 시대 대부분을 차지하는 선캄브리아시대는 지구 탄생 이후부터 <b>40억 년 이상</b> 지속되었습니다.</p>
+  </div>
+
+  <div class="tl" id="tl" style="margin-top:14px"></div>
+  <div class="detail" id="detail"></div>
+</section>
+
+<!-- ================= 3 ================= -->
+<section id="s3">
+  <h2><span class="num">3</span>생물 대멸종</h2>
+  <p class="lead">지구 환경의 급격한 변화는 생물의 운명을 바꿔 놓았습니다.</p>
+
+  <div class="card">
+    <div class="term" style="border-left-color:var(--red)"><b style="color:#a32a2a">생물 대멸종</b> — 지구상에 살았던 생물 중 많은 종류가 <span class="hl">짧은 기간 동안 한꺼번에</span> 사라지는 사건.</div>
+    <p style="margin:0;font-size:14.5px">특히 <b>고생대 말</b>과 <b>중생대 말</b>에 생물의 종류가 크게 감소했으며, 여러 과학자의 연구에 따르면 <b>고생대 말</b>에는 지구 역사상 <span class="hl">가장 큰 규모</span>의 대멸종이 일어난 것으로 알려져 있습니다.</p>
+  </div>
+
+  <div class="card">
+    <h3 style="margin:0 0 6px;font-size:16px">지질 시대 동안 해양 생물 과(科)의 수 변화 <span class="tag">그림 Ⅰ-11</span></h3>
+    <p style="margin:0 0 6px;font-size:13.5px;color:var(--ink2)">그래프 위에 마우스를 올리면(또는 손가락으로 짚으면) 값을 볼 수 있습니다.</p>
+    <div class="chart-wrap" id="chartWrap"></div>
+    <p class="note">교과서 그림 Ⅰ-11을 바탕으로 재구성한 개형입니다. 가로축은 시간(억 년 전), 세로축은 해양 생물 과의 수.</p>
+  </div>
+
+  <div class="card">
+    <h3 style="margin:0 0 12px;font-size:16px">대멸종의 원인을 설명하는 여러 가설 <span class="tag">탐구</span></h3>
+    <div class="hyp">
+      <div class="h"><div class="ic">☄️</div><div class="t">운석(소행성) 충돌설</div><div class="d">큰 운석이 지구에 충돌해 전 세계 해안가에 해일이 발생했다.</div></div>
+      <div class="h"><div class="ic">🌋</div><div class="t">화산 폭발설</div><div class="d">대규모 화산 활동으로 많은 양의 화산 가스가 방출되었다.</div></div>
+      <div class="h"><div class="ic">🌏</div><div class="t">수륙 분포 변화설</div><div class="d">여러 대륙이 합쳐져 하나의 초대륙이 형성되었다.</div></div>
+    </div>
+    <p style="margin:14px 0 0;font-size:14px;color:var(--ink2)"><b>가설을 평가할 때</b> — 신뢰할 수 있는 자료를 찾고, 가설의 타당성을 입증할 수 있는 <b>과학적 증거</b>를 함께 찾아야 합니다.</p>
+  </div>
+
+  <div class="card">
+    <h3 style="margin:0 0 8px;font-size:16px">환경 변화 → 생물 변화, 그리고 다양성</h3>
+    <p style="margin:0 0 10px;font-size:14.5px">지구 환경은 <b>화산·지진 같은 지각 변동</b>, <b>대륙 이동에 의한 수륙 분포와 해수면의 변화</b>, <b>기후 변화</b>, <b>운석 충돌</b> 등 다양한 요인에 의해 변합니다.</p>
+    <div style="background:#f6f8f5;border-radius:11px;padding:14px 16px;font-size:14.5px">
+      급격한 환경 변화 → <b>생물 대멸종</b>의 원인<br>
+      같은 환경 변화라도 <b>적응한 생물</b> → 다양한 종으로 <b>진화</b>하며 멸종한 생물을 대체해 번성<br>
+      <b style="color:#0f7a55">➜ 그 결과 오늘날 지구상에는 다양한 생물이 분포한다.</b>
+    </div>
+  </div>
+</section>
+
+<!-- ================= 4 ================= -->
+<section id="s4">
+  <h2><span class="num">4</span>한눈에 정리</h2>
+  <p class="lead">시험 직전 이 표만 봐도 됩니다.</p>
+  <div class="card scroll">
+    <table>
+      <thead><tr><th>구분</th><th>시작 시기</th><th>환경</th><th>바다의 생물</th><th>육지의 생물</th><th>대표 화석</th></tr></thead>
+      <tbody>
+        <tr><td style="color:#4a5c66">선캄브리아<br>시대</td><td>약 46억 년 전<br>(40억 년 이상 지속)</td><td>남세균의 광합성으로 바다와 대기 중 산소 증가</td><td>남세균, 후기에 다세포 생물 등장</td><td>—</td><td>스트로마톨라이트,<br>에디아카라 생물군</td></tr>
+        <tr><td style="color:#0f7a55">고생대</td><td>약 5억 3900만 년 전</td><td>오존층 형성 → 자외선 차단, 서식지가 바다에서 육지로 확장 / 말에 초대륙 판게아 형성·한랭화</td><td>삼엽충, 완족류 등 해양 무척추동물, 어류 번성</td><td>양서류, 거대 곤충, 양치식물</td><td>삼엽충</td></tr>
+        <tr><td style="color:#b8501f">중생대</td><td>약 2억 5200만 년 전</td><td>판게아 분리, 화산 활동 활발 → 대기 중 CO₂ 증가 → 온실 효과 커져 <b>온난</b></td><td>해양 파충류, 암모나이트</td><td>겉씨식물(은행나무), 육상 파충류인 공룡</td><td>암모나이트</td></tr>
+        <tr><td style="color:#1e5ea8">신생대</td><td>약 6600만 년 전</td><td>중기까지 온난 → 이후 기온 하강, 말에 빙하기와 간빙기 반복 / 대서양 확장, 히말라야산맥 형성</td><td>화폐석 번성</td><td>매머드 같은 포유류, 속씨식물, <b>인류의 조상 출현</b></td><td>화폐석</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="card">
+    <h3 style="margin:0 0 8px;font-size:16px">두 번의 큰 대멸종</h3>
+    <div class="grid2">
+      <div class="box" style="border-color:#f2c2c2;background:#fdf4f4"><h4>고생대 말 (약 2억 5200만 년 전)</h4><p style="margin:0;font-size:14px">초대륙 판게아 형성, 기후 한랭화 등 환경 급변 → <b>삼엽충</b>을 포함한 많은 생물 멸종. 지구 역사상 <b>최대 규모</b>.</p></div>
+      <div class="box" style="border-color:#f2c2c2;background:#fdf4f4"><h4>중생대 말 (약 6600만 년 전)</h4><p style="margin:0;font-size:14px">지구 환경이 급격히 변해 <b>공룡</b>과 <b>암모나이트</b> 등 많은 생물이 적응하지 못하고 멸종.</p></div>
+    </div>
+  </div>
+  <div class="card" style="background:#f8f7f3">
+    <h3 style="margin:0 0 6px;font-size:15px">＋ 알아두기 · 생물의 분류</h3>
+    <p style="margin:0;font-size:14px">생물은 <b>7가지 체계</b>로 분류합니다. 분류의 가장 작은 기본 단위인 <b>종</b>을 묶어 <b>속</b>으로, 비슷한 속을 묶어 <b>과</b>로 분류합니다. (그래서 위 그래프의 단위가 '과의 수'입니다.)</p>
+  </div>
+</section>
+
+<!-- ================= 5 ================= -->
+<section id="s5">
+  <h2><span class="num">5</span>확인 문제</h2>
+  <p class="lead">교과서 &lt;스스로 확인하기&gt;를 포함한 18문항. 풀고 나서 <b>채점하기</b>를 누르면 해설이 나옵니다.</p>
+
+  <div class="qbar">
+    <div class="qprog"><i id="prog"></i></div>
+    <span id="progTxt" style="font-size:13px;color:var(--ink2);font-weight:700">0 / 18 문항</span>
+  </div>
+
+  <div id="quiz"></div>
+
+  <div class="qactions">
+    <button class="btn p" id="grade">채점하기</button>
+    <button class="btn s" id="reset">다시 풀기</button>
+  </div>
+
+  <div class="result" id="result">
+    <div class="score"><span id="sc">0</span><small> / 18</small></div>
+    <p class="rmsg" id="rmsg"></p>
+  </div>
+</section>
+
+<footer>
+  미래엔 통합과학2 · Ⅰ. 변화와 다양성 · 1. 환경 변화와 생물다양성 (교과서 14~19쪽) 기반 복습 자료
+</footer>
+</div>
+
+<button class="up" id="up" title="맨 위로">↑</button>
+
+<script>
+/* ─────────── 지질 시대 데이터 ─────────── */
+const ERAS = [
+  {
+    id:'pc', name:'선캄브리아시대', color:'#6b7f8c', bg:'#eef1f3',
+    when:'약 46억 년 전 ~ 5억 3900만 년 전', len:'전체의 88.2%',
+    env:[
+      '화석이 매우 드물게 발견되어 당시 환경을 정확히 알아내기 어렵다.',
+      '최초의 생물이 출현한 이후 <b>광합성을 하는 남세균</b>이 등장했다.',
+      '남세균의 광합성으로 <b>바다와 대기 중에 산소가 많아졌다</b>.',
+      '다양한 생물이 출현할 수 있는 환경이 만들어졌다.'
+    ],
+    life:[
+      '남세균(최초의 광합성 생물)',
+      '후기에 <b>다세포 생물</b> 등장',
+      '지층에서 스트로마톨라이트가 발견됨'
+    ],
+    fossils:['스트로마톨라이트','에디아카라 생물군(오스트레일리아)'],
+    key:'스트로마톨라이트는 퇴적물이 여러 겹의 층을 이루는 구조로, <b>남세균의 활동</b>으로 만들어졌다.'
+  },
+  {
+    id:'pz', name:'고생대', color:'#1baf7a', bg:'#eefaf5',
+    when:'약 5억 3900만 년 전 시작', len:'전체의 6.3%',
+    env:[
+      '<b>오존층이 형성</b>되어 강한 자외선을 차단 → 서식지가 <b>바다에서 육지로 확장</b>.',
+      '말에 초대륙 <b>판게아</b>가 형성되었다.',
+      '말에 기후가 <b>한랭</b>해지는 등 환경이 급격히 변했다.'
+    ],
+    life:[
+      '바다 : 단단한 껍데기와 뼈를 가진 해양 생물 번성 → <b>삼엽충, 완족류</b> 등 해양 무척추동물, <b>어류</b> 번성',
+      '육지 : <b>양서류, 거대 곤충, 양치식물</b> 번성 → 생물의 종류가 더욱 다양해짐',
+      '말에 <b>삼엽충</b>을 포함한 많은 생물이 멸종 → 생물의 종류가 크게 감소'
+    ],
+    fossils:['삼엽충'],
+    key:'고생대 말의 대멸종은 지구 역사상 <b>가장 큰 규모</b>로 알려져 있다.'
+  },
+  {
+    id:'mz', name:'중생대', color:'#eb6834', bg:'#fdf1ec',
+    when:'약 2억 5200만 년 전 시작', len:'전체의 4.1%',
+    env:[
+      '<b>판게아가 분리</b>되며 생물 서식지의 환경이 다양해졌다.',
+      '화산 활동이 활발 → 대기 중 <b>이산화 탄소 농도 증가</b> → <b>온실 효과</b>가 커져 전반적으로 기후가 <b>온난</b>했다.',
+      '말에 지구 환경이 급격히 변했다.'
+    ],
+    life:[
+      '육지 : <b>겉씨식물</b>(은행나무 등)과 육상 파충류인 <b>공룡</b> 번성',
+      '바다 : <b>해양 파충류</b>와 <b>암모나이트</b> 번성',
+      '말에 <b>공룡과 암모나이트</b> 등 많은 생물이 적응하지 못하고 멸종'
+    ],
+    fossils:['암모나이트'],
+    key:'경상남도 고성군 덕명리 해안가에서는 <b>공룡 발자국 화석</b>을 볼 수 있다.'
+  },
+  {
+    id:'cz', name:'신생대', color:'#2a78d6', bg:'#eef4fd',
+    when:'약 6600만 년 전 시작 ~ 현재', len:'전체의 1.4%',
+    env:[
+      '중기까지는 대체로 <b>온난한 기후</b>가 지속되었다.',
+      '이후 기온이 점차 낮아져 <b>말에는 빙하기와 간빙기가 여러 차례 반복</b>되었다.',
+      '대륙 이동이 계속되어 <b>대서양이 넓어지고 히말라야산맥이 형성</b>되는 등 수륙 분포가 현재와 비슷해졌다.'
+    ],
+    life:[
+      '바다 : <b>화폐석</b> 번성',
+      '육지 : <b>매머드</b> 같은 포유류와 <b>속씨식물</b> 번성',
+      '비로소 <b>인류의 조상</b>이 출현했다.'
+    ],
+    fossils:['화폐석'],
+    key:'수륙 분포가 오늘날과 비슷해진 시기이며, 인류의 조상이 등장했다.'
+  }
+];
+
+const tl = document.getElementById('tl');
+const detail = document.getElementById('detail');
+ERAS.forEach((e,i)=>{
+  const b=document.createElement('button');
+  b.className='era'+(i===0?' on':'');
+  b.style.setProperty('--c',e.color); b.style.setProperty('--bg',e.bg);
+  b.innerHTML=`<div class="name" style="color:${e.color}">${e.name}</div><div class="when">${e.when}</div><div class="len">${e.len}</div>`;
+  b.onclick=()=>{document.querySelectorAll('.era').forEach(x=>x.classList.remove('on'));b.classList.add('on');render(e);};
+  tl.appendChild(b);
+});
+function render(e){
+  detail.innerHTML=`
+    <h3><span class="dot" style="background:${e.color};width:14px;height:14px"></span>${e.name}</h3>
+    <p class="when2">${e.when} · ${e.len}</p>
+    <div class="dgrid">
+      <div class="box"><h4>🌎 환경</h4><ul>${e.env.map(x=>'<li>'+x+'</li>').join('')}</ul></div>
+      <div class="box"><h4>🦕 생물</h4><ul>${e.life.map(x=>'<li>'+x+'</li>').join('')}</ul></div>
+    </div>
+    <div class="fossil"><span style="font-size:13px;color:var(--muted);align-self:center">대표 화석</span>${e.fossils.map(f=>'<b>'+f+'</b>').join('')}</div>
+    <p style="margin:12px 0 0;font-size:14px;background:${e.bg};border-radius:10px;padding:11px 14px">💡 ${e.key}</p>`;
+}
+render(ERAS[0]);
+
+/* ─────────── 해양 생물 과의 수 그래프 ─────────── */
+(function(){
+  // [시간(억 년 전), 과의 수] — 교과서 그림 I-11 개형
+  const D=[[5.39,25],[5.20,190],[5.05,370],[4.85,420],[4.60,430],[4.44,340],[4.30,395],[4.10,450],
+           [3.90,470],[3.72,395],[3.60,430],[3.30,465],[3.00,490],[2.75,515],[2.60,520],[2.52,150],
+           [2.40,230],[2.30,320],[2.15,375],[2.01,300],[1.90,370],[1.70,430],[1.45,500],[1.20,560],
+           [1.00,605],[0.85,630],[0.72,650],[0.66,520],[0.55,570],[0.40,660],[0.25,760],[0.10,850],[0,900]];
+  const EXT=[{x:4.44,y:340},{x:3.72,y:395},{x:2.52,y:150,l:'고생대 말 · 최대 규모',dx:-12,dy:4,an:'end'},
+             {x:2.01,y:300},{x:0.66,y:520,l:'중생대 말',dx:-12,dy:4,an:'end'}];
+  const W=760,H=346,m={t:26,r:22,b:64,l:56};
+  const pw=W-m.l-m.r, ph=H-m.t-m.b;
+  const X=v=>m.l+(5.6-v)/5.6*pw, Y=v=>m.t+ph-(v/950)*ph;
+  const path=D.map((p,i)=>(i?'L':'M')+X(p[0]).toFixed(1)+' '+Y(p[1]).toFixed(1)).join(' ');
+  // 시대 구간 배경
+  const bands=[['선캄브리아시대',5.6,5.39,'#6b7f8c'],['고생대',5.39,2.52,'#1baf7a'],['중생대',2.52,0.66,'#eb6834'],['신생대',0.66,0,'#2a78d6']];
+  let svg=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="지질 시대 동안 해양 생물 과의 수 변화 그래프">
+  <rect x="0" y="0" width="${W}" height="${H}" fill="#fcfcfb"/>`;
+  bands.forEach(b=>{
+    const x1=X(b[1]),x2=X(b[2]);
+    svg+=`<rect x="${x1}" y="${m.t}" width="${x2-x1}" height="${ph}" fill="${b[3]}" opacity="0.06"/>`;
+    if(x2-x1>50) svg+=`<text x="${(x1+x2)/2}" y="${m.t+ph+34}" text-anchor="middle" font-size="12" fill="${b[3]}" font-weight="700">${b[0]}</text>`;
+  });
+  [0,300,600,900].forEach(v=>{
+    svg+=`<line x1="${m.l}" x2="${W-m.r}" y1="${Y(v)}" y2="${Y(v)}" stroke="#e1e0d9" stroke-width="1"/>
+    <text x="${m.l-9}" y="${Y(v)+4}" text-anchor="end" font-size="11" fill="#898781">${v}</text>`;
+  });
+  [5.39,2.52,0.66].forEach(v=>{
+    svg+=`<line x1="${X(v)}" x2="${X(v)}" y1="${m.t}" y2="${m.t+ph}" stroke="#c3c2b7" stroke-width="1" stroke-dasharray="3 3"/>
+    <text x="${X(v)}" y="${m.t+ph+18}" text-anchor="middle" font-size="11" fill="#52514e">${v}</text>`;
+  });
+  svg+=`<text x="${X(0)}" y="${m.t+ph+18}" text-anchor="middle" font-size="11" fill="#52514e">0</text>`;
+  svg+=`<line x1="${m.l}" x2="${W-m.r}" y1="${m.t+ph}" y2="${m.t+ph}" stroke="#c3c2b7" stroke-width="1.5"/>`;
+  svg+=`<path d="${path}" fill="none" stroke="#2a78d6" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>`;
+  EXT.forEach(e=>{
+    svg+=`<circle cx="${X(e.x)}" cy="${Y(e.y)}" r="6.5" fill="#d03b3b" stroke="#fcfcfb" stroke-width="2"/>`;
+    if(e.l) svg+=`<text x="${X(e.x)+(e.dx||0)}" y="${Y(e.y)+(e.dy||-14)}" text-anchor="${e.an||'middle'}" font-size="11.5" font-weight="700" fill="#a32a2a">${e.l}</text>`;
+  });
+  svg+=`<text x="${m.l-46}" y="${m.t-8}" font-size="11.5" fill="#52514e" font-weight="700">해양 생물 과의 수</text>`;
+  svg+=`<text x="${m.l}" y="${H-7}" font-size="11.5" fill="#52514e">← 시간(억 년 전)  ·  오른쪽으로 갈수록 현재</text>`;
+  svg+=`<line id="cross" x1="0" x2="0" y1="${m.t}" y2="${m.t+ph}" stroke="#0b0b0b" stroke-width="1" opacity="0" stroke-dasharray="3 3"/>`;
+  svg+=`<circle id="hd" r="5.5" fill="#2a78d6" stroke="#fcfcfb" stroke-width="2" opacity="0"/>`;
+  svg+=`</svg><div class="tip" id="tip"></div>
+  <div style="display:flex;gap:16px;flex-wrap:wrap;margin-top:8px;font-size:12.5px;color:#52514e">
+    <span style="display:flex;align-items:center;gap:6px"><i style="width:16px;height:2.5px;background:#2a78d6;display:inline-block;border-radius:2px"></i>해양 생물 과의 수</span>
+    <span style="display:flex;align-items:center;gap:6px"><i style="width:11px;height:11px;border-radius:50%;background:#d03b3b;display:inline-block"></i>대멸종 시기</span>
+  </div>`;
+  const wrap=document.getElementById('chartWrap');
+  wrap.innerHTML=svg;
+  const el=wrap.querySelector('svg'),tip=document.getElementById('tip'),
+        cross=document.getElementById('cross'),hd=document.getElementById('hd');
+  function move(ev){
+    const r=el.getBoundingClientRect(), cx=(ev.touches?ev.touches[0].clientX:ev.clientX);
+    const vx=(cx-r.left)/r.width*W;
+    let best=D[0],bd=1e9;
+    D.forEach(p=>{const d=Math.abs(X(p[0])-vx); if(d<bd){bd=d;best=p;}});
+    const px=X(best[0]),py=Y(best[1]);
+    cross.setAttribute('x1',px);cross.setAttribute('x2',px);cross.setAttribute('opacity','.28');
+    hd.setAttribute('cx',px);hd.setAttribute('cy',py);hd.setAttribute('opacity','1');
+    let era=bands.find(b=>best[0]<=b[1]&&best[0]>=b[2]);
+    tip.innerHTML=`<b>${best[0]}억 년 전</b> · ${era?era[0]:''}<br>해양 생물 약 ${best[1]}과`;
+    tip.style.left=(px/W*r.width)+'px';
+    tip.style.top=(py/H*r.height)+'px';
+    tip.style.opacity='1';
+  }
+  el.addEventListener('mousemove',move);
+  el.addEventListener('touchmove',e=>{move(e);e.preventDefault();},{passive:false});
+  el.addEventListener('touchstart',move);
+  el.addEventListener('mouseleave',()=>{tip.style.opacity='0';cross.setAttribute('opacity','0');hd.setAttribute('opacity','0');});
+})();
+
+/* ─────────── 확인 문제 ─────────── */
+const QUIZ=[
+ {t:'fill',q:'지구가 탄생한 약 46억 년 전부터 현재까지를 ( )(이)라고 한다.',a:['지질 시대','지질시대'],e:'지질 시대는 지구 탄생부터 현재까지의 기간을 말합니다.'},
+ {t:'fill',q:'지질 시대에 살았던 생물의 유해나 흔적이 지층 속에 남아 있는 것을 ( )(이)라고 한다.',a:['화석'],e:'화석 연구를 통해 지층의 생성 시기와 환경, 생물의 진화 과정을 알 수 있습니다.'},
+ {t:'order',q:'지질 시대를 상대적 길이가 <b>긴 것부터</b> 순서대로 나열하시오.',items:['신생대','중생대','고생대','선캄브리아시대'],a:['선캄브리아시대','고생대','중생대','신생대'],e:'선캄브리아시대 88.2% > 고생대 6.3% > 중생대 4.1% > 신생대 1.4%'},
+ {t:'ox',q:'삼엽충은 고생대에 번성했다.',a:'O',e:'삼엽충은 고생대의 대표적인 표준 화석이며, 고생대 말 대멸종 때 멸종했습니다.'},
+ {t:'fill',q:'신생대 말에는 ( )와/과 간빙기가 여러 차례 반복되었다.',a:['빙하기'],e:'신생대는 중기까지 온난했으나 이후 기온이 낮아져 말에 빙하기와 간빙기가 반복되었습니다.'},
+ {t:'fill',q:'지구상에서 살았던 생물 중 많은 종류가 짧은 기간 동안 한꺼번에 사라지는 사건을 ( )(이)라고 한다.',a:['생물 대멸종','대멸종','생물대멸종'],e:'특히 고생대 말과 중생대 말에 생물의 종류가 크게 감소했습니다.'},
+ {t:'ox',q:'급격한 환경 변화는 생물 대멸종의 원인이 될 수 있다.',a:'O',e:'다만 같은 환경 변화에 적응한 생물은 다양한 종으로 진화하며 번성할 기회를 얻습니다.'},
+ {t:'mc',q:'화석이 매우 드물게 발견되어 당시의 환경을 정확히 알아내기 어려운 지질 시대는?',o:['선캄브리아시대','고생대','중생대','신생대'],a:0,e:'그래서 지질 시대는 화석이 드문 선캄브리아시대와, 화석이 비교적 많은 고생대·중생대·신생대로 구분합니다.'},
+ {t:'mc',q:'선캄브리아시대의 지층에서 발견되며 남세균의 활동으로 만들어진 화석은?',o:['삼엽충','스트로마톨라이트','암모나이트','화폐석'],a:1,e:'스트로마톨라이트는 퇴적물이 여러 겹의 층을 이루는 구조입니다. 오스트레일리아에서 발견된 에디아카라 생물군도 대표적입니다.'},
+ {t:'mc',q:'고생대에 오존층이 형성되면서 나타난 결과로 옳은 것은?',o:['바다에서 어류가 멸종했다.','대기 중 이산화 탄소가 증가했다.','생물의 서식지가 바다에서 육지로 확장되었다.','판게아가 분리되었다.'],a:2,e:'오존층이 강한 자외선을 차단하면서 육지에도 생물이 살 수 있게 되어 양서류·곤충·양치식물이 번성했습니다.'},
+ {t:'mc',q:'고생대 말에 형성된 초대륙의 이름은?',o:['곤드와나','로디니아','판게아','로라시아'],a:2,e:'고생대 말에는 초대륙 판게아가 형성되고 기후가 한랭해지는 등 환경이 급격히 변했습니다.'},
+ {t:'mc',q:'중생대의 기후가 전반적으로 온난했던 까닭으로 가장 적절한 것은?',o:['화산 활동이 활발해 대기 중 이산화 탄소 농도가 증가해 온실 효과가 커졌기 때문','오존층이 두꺼워졌기 때문','빙하가 모두 녹아 해수면이 낮아졌기 때문','태양의 밝기가 갑자기 커졌기 때문'],a:0,e:'중생대에는 판게아가 분리되고 화산 활동이 활발해 CO₂ 농도가 증가 → 온실 효과가 커졌습니다.'},
+ {t:'mc',q:'중생대 말에 멸종한 대표적인 생물을 모두 고른 것은?',o:['삼엽충, 완족류','공룡, 암모나이트','매머드, 화폐석','남세균, 에디아카라 생물군'],a:1,e:'중생대 말 지구 환경이 급격히 변해 공룡과 암모나이트 등 많은 생물이 적응하지 못하고 멸종했습니다. 삼엽충은 고생대 말에 멸종했습니다.'},
+ {t:'mc',q:'신생대의 육지에서 번성한 생물로 옳은 것은?',o:['양치식물과 양서류','겉씨식물과 공룡','속씨식물과 포유류','삼엽충과 완족류'],a:2,e:'신생대 육지에서는 매머드 같은 포유류와 속씨식물이 번성했고, 비로소 인류의 조상이 출현했습니다.'},
+ {t:'mc',q:'인류의 조상이 출현한 지질 시대는?',o:['선캄브리아시대','고생대','중생대','신생대'],a:3,e:'신생대에는 대륙 이동이 계속되어 대서양이 넓어지고 히말라야산맥이 형성되는 등 수륙 분포가 현재와 비슷해졌습니다.'},
+ {t:'mc',q:'지구 역사상 <b>가장 큰 규모</b>의 생물 대멸종이 일어난 시기는?',o:['선캄브리아시대 후기','고생대 말','중생대 말','신생대 말'],a:1,e:'여러 과학자의 연구에 따르면 고생대 말(약 2억 5200만 년 전)에 최대 규모의 대멸종이 일어났습니다.'},
+ {t:'mc',q:'생물 대멸종의 원인을 설명하는 가설로 교과서에 제시된 것이 <b>아닌</b> 것은?',o:['운석(소행성) 충돌설','화산 폭발설','수륙 분포 변화설','태양 소멸설'],a:3,e:'교과서에는 운석(소행성) 충돌설, 화산 폭발설, 수륙 분포 변화설 세 가지가 제시되어 있습니다.'},
+ {t:'mc',q:'지구 환경을 변화시키는 요인으로 보기 <b>어려운</b> 것은?',o:['화산·지진과 같은 지각 변동','대륙 이동에 의한 수륙 분포와 해수면의 변화','기후 변화와 운석 충돌','생물 개체의 하루 활동량'],a:3,e:'지구 환경은 지각 변동, 대륙 이동, 기후 변화, 운석 충돌 등 다양한 요인으로 변합니다.'}
+];
+
+const quizEl=document.getElementById('quiz');
+const state=QUIZ.map(()=>null);
+const norm=s=>(s||'').replace(/\s|\(|\)/g,'').trim();
+
+QUIZ.forEach((q,i)=>{
+  const d=document.createElement('div'); d.className='q'; d.id='q'+i;
+  let body='';
+  if(q.t==='ox'){
+    body=`<div class="opts ox">${['O','X'].map(v=>`<button class="opt" data-v="${v}">${v==='O'?'⭕ 맞다':'❌ 아니다'}</button>`).join('')}</div>`;
+  }else if(q.t==='mc'){
+    body=`<div class="opts">${q.o.map((o,k)=>`<button class="opt" data-v="${k}"><span style="color:var(--muted);font-weight:700">${'①②③④'[k]}</span> ${o}</button>`).join('')}</div>`;
+  }else if(q.t==='fill'){
+    body=`<input class="fill" type="text" placeholder="답을 입력하세요" autocomplete="off">`;
+  }else if(q.t==='order'){
+    body=`<div class="order">${q.items.map(v=>`<button class="opt" data-v="${v}" style="padding:8px 14px">${v}</button>`).join('')}</div>
+          <div class="slots">${q.a.map((_,k)=>`<span class="slot" data-i="${k}">${k+1}번째</span>${k<q.a.length-1?'<span class="arrow">→</span>':''}`).join('')}</div>`;
+  }
+  d.innerHTML=`<div class="qh"><span class="qn">${i+1}</span><span class="qt">${q.q}</span></div>${body}<div class="fb"></div>`;
+  quizEl.appendChild(d);
+
+  if(q.t==='ox'||q.t==='mc'){
+    d.querySelectorAll('.opt').forEach(b=>b.onclick=()=>{
+      d.querySelectorAll('.opt').forEach(x=>x.classList.remove('sel'));
+      b.classList.add('sel'); state[i]=q.t==='ox'?b.dataset.v:+b.dataset.v; upd();
+    });
+  }else if(q.t==='fill'){
+    d.querySelector('.fill').addEventListener('input',ev=>{state[i]=ev.target.value.trim()||null;upd();});
+  }else if(q.t==='order'){
+    const picks=[];
+    const slots=[...d.querySelectorAll('.slot')];
+    const btns=[...d.querySelectorAll('.order .opt')];
+    const paint=()=>{
+      slots.forEach((s,k)=>{ if(picks[k]){s.textContent=picks[k];s.classList.add('filled');} else {s.textContent=(k+1)+'번째';s.classList.remove('filled');} });
+      btns.forEach(b=>b.style.display=picks.includes(b.dataset.v)?'none':'');
+      state[i]=picks.length===q.a.length?picks.slice():null; upd();
+    };
+    btns.forEach(b=>b.onclick=()=>{ if(picks.length<q.a.length){picks.push(b.dataset.v);paint();} });
+    slots.forEach((s,k)=>s.onclick=()=>{ if(picks[k]!==undefined){picks.splice(k,1);paint();} });
+  }
+});
+
+function upd(){
+  const n=state.filter(v=>v!==null&&v!=='').length;
+  document.getElementById('prog').style.width=(n/QUIZ.length*100)+'%';
+  document.getElementById('progTxt').textContent=n+' / '+QUIZ.length+' 문항';
+}
+
+function isRight(q,v){
+  if(v===null||v===undefined||v==='')return false;
+  if(q.t==='ox')return v===q.a;
+  if(q.t==='mc')return v===q.a;
+  if(q.t==='fill')return q.a.some(a=>norm(a)===norm(v));
+  if(q.t==='order')return v.join('|')===q.a.join('|');
+  return false;
+}
+
+document.getElementById('grade').onclick=()=>{
+  let sc=0;
+  QUIZ.forEach((q,i)=>{
+    const d=document.getElementById('q'+i), fb=d.querySelector('.fb'), ok=isRight(q,state[i]);
+    if(ok)sc++;
+    if(q.t==='ox'||q.t==='mc'){
+      d.querySelectorAll('.opt').forEach(b=>{
+        b.classList.remove('sel','ok','no');
+        const v=q.t==='ox'?b.dataset.v:+b.dataset.v;
+        if(v===q.a){b.classList.add('ok');b.querySelector('.mk')||b.insertAdjacentHTML('beforeend','<span class="mk" style="color:#0ca30c">정답</span>');}
+        else if(v===state[i]){b.classList.add('no');b.insertAdjacentHTML('beforeend','<span class="mk" style="color:#d03b3b">내 답</span>');}
+      });
+    }else if(q.t==='fill'){
+      const f=d.querySelector('.fill'); f.classList.remove('ok','no'); f.classList.add(ok?'ok':'no');
+    }else if(q.t==='order'){
+      d.querySelectorAll('.slot').forEach((s,k)=>{
+        s.classList.remove('ok','no');
+        if(state[i])s.classList.add(state[i][k]===q.a[k]?'ok':'no');
+      });
+    }
+    const ans=q.t==='ox'?q.a:q.t==='mc'?q.o[q.a]:q.t==='fill'?q.a[0]:q.a.join(' → ');
+    fb.className='fb show '+(ok?'right':'wrong');
+    fb.innerHTML=`<b>${ok?'✅ 정답!':'❌ 정답 : '+ans}</b>${q.e}`;
+  });
+  const r=document.getElementById('result');
+  document.getElementById('sc').textContent=sc;
+  const p=sc/QUIZ.length;
+  document.getElementById('rmsg').textContent =
+    p===1?'완벽합니다! 이 단원은 끝났어요 🎉':
+    p>=.8?'아주 좋아요! 틀린 문항의 해설만 다시 읽어 보세요.':
+    p>=.6?'절반 이상 맞혔어요. 「한눈에 정리」 표를 한 번 더 보고 다시 풀어 보세요.':
+    '개념 정리부터 천천히 다시 읽어 보세요. 지질 시대별 환경·생물을 표로 외우면 쉬워집니다.';
+  r.classList.add('show');
+  r.scrollIntoView({behavior:'smooth',block:'center'});
+};
+
+document.getElementById('reset').onclick=()=>{
+  state.fill(null);
+  document.getElementById('result').classList.remove('show');
+  quizEl.innerHTML=''; location.reload();
+};
+
+/* ─────────── 네비게이션 & 맨 위로 ─────────── */
+const links=[...document.querySelectorAll('#nav a')];
+const secs=links.map(a=>document.querySelector(a.getAttribute('href')));
+addEventListener('scroll',()=>{
+  const y=scrollY+120; let idx=0;
+  secs.forEach((s,i)=>{if(s&&s.offsetTop<=y)idx=i;});
+  links.forEach((a,i)=>a.classList.toggle('on',i===idx));
+  document.getElementById('up').style.display=scrollY>400?'block':'none';
+});
+document.getElementById('up').onclick=()=>scrollTo({top:0,behavior:'smooth'});
+document.getElementById('up').style.display='none';
+</script>
+</body>
+</html>
