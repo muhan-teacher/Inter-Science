@@ -1,0 +1,704 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>에너지의 흡수와 방출 탐구 — 통합과학</title>
+<link rel="preconnect" href="https://cdn.jsdelivr.net">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<style>
+:root{
+  --navy:#132a4f; --navy2:#1e3f74; --navy3:#2b5694;
+  --gold:#c8a227; --gold2:#e5c35c; --gold-soft:#fdf6e0;
+  --endo:#2563a8; --endo-bg:#e8f1fb; --endo-line:#b6d2ee;
+  --exo:#c0392b;  --exo-bg:#fdecea;  --exo-line:#f2c2bb;
+  --chem:#7b4397; --phys:#1b7f6b;
+  --ink:#16202e; --ink2:#43536a; --ink3:#7a8798;
+  --bg:#f4f6fa; --card:#ffffff; --line:#dde3ec;
+  --ok:#158a52; --ok-bg:#e7f6ee; --no:#c0392b; --no-bg:#fdecea;
+  --radius:14px;
+  --shadow:0 1px 2px rgba(19,42,79,.06), 0 6px 20px rgba(19,42,79,.07);
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{
+  margin:0; background:var(--bg); color:var(--ink);
+  font-family:"Pretendard Variable",Pretendard,-apple-system,BlinkMacSystemFont,"Malgun Gothic","맑은 고딕","Apple SD Gothic Neo",system-ui,sans-serif;
+  font-size:16px; line-height:1.65; letter-spacing:-.01em;
+}
+img{max-width:100%}
+[hidden]{display:none!important}
+button{font-family:inherit; font-size:inherit; cursor:pointer}
+textarea,input{font-family:inherit; font-size:inherit}
+
+/* ---------- layout ---------- */
+.wrap{max-width:1080px; margin:0 auto; padding:0 16px 72px}
+header.top{
+  background:linear-gradient(135deg,var(--navy) 0%, var(--navy2) 60%, var(--navy3) 100%);
+  color:#fff; padding:calc(env(safe-area-inset-top,0px) + 22px) 16px 20px;
+  border-bottom:4px solid var(--gold);
+}
+header.top .inner{max-width:1080px; margin:0 auto}
+.eyebrow{font-size:12.5px; letter-spacing:.14em; color:var(--gold2); font-weight:700; margin:0 0 6px}
+header.top h1{margin:0; font-size:clamp(20px,4.4vw,29px); font-weight:800; letter-spacing:-.03em}
+header.top p.sub{margin:8px 0 0; font-size:14px; color:#cfdcef; max-width:62ch}
+
+/* progress */
+.steps{display:flex; gap:6px; flex-wrap:wrap; margin:18px 0 22px}
+.steps li{
+  list-style:none; flex:1 1 130px; min-width:0;
+  background:#fff; border:1px solid var(--line); border-radius:10px;
+  padding:9px 11px; font-size:12.5px; color:var(--ink3); font-weight:600;
+  display:flex; align-items:center; gap:8px;
+}
+.steps li .n{
+  width:20px; height:20px; border-radius:50%; background:#e7ecf4; color:var(--ink3);
+  display:grid; place-items:center; font-size:11.5px; font-weight:800; flex:none;
+}
+.steps li.on{background:var(--navy); border-color:var(--navy); color:#fff}
+.steps li.on .n{background:var(--gold); color:var(--navy)}
+.steps li.done{background:#fff; border-color:var(--navy3); color:var(--navy3)}
+.steps li.done .n{background:var(--navy3); color:#fff}
+.steps li span.t{overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+
+.card{
+  background:var(--card); border:1px solid var(--line); border-radius:var(--radius);
+  box-shadow:var(--shadow); padding:22px; margin:0 0 18px;
+}
+.card h2{margin:0 0 4px; font-size:19px; font-weight:800; letter-spacing:-.02em}
+.card h2 .badge{
+  display:inline-block; vertical-align:2px; margin-right:8px; background:var(--gold-soft);
+  color:#8a6d10; border:1px solid #ecdca0; border-radius:6px; padding:1px 7px; font-size:11.5px; font-weight:800;
+}
+.card p.lead{margin:6px 0 0; color:var(--ink2); font-size:14.5px}
+.hr{height:1px; background:var(--line); margin:18px 0}
+
+/* buttons */
+.btn{
+  border:1px solid var(--navy); background:var(--navy); color:#fff;
+  border-radius:10px; padding:11px 18px; font-weight:700; font-size:15px;
+  transition:filter .15s ease, transform .05s ease;
+}
+.btn:hover{filter:brightness(1.12)}
+.btn:active{transform:translateY(1px)}
+.btn.ghost{background:#fff; color:var(--navy); border-color:var(--line)}
+.btn.gold{background:var(--gold); border-color:var(--gold); color:#2c2103}
+.btn.sm{padding:7px 13px; font-size:13.5px; border-radius:8px}
+.btn:disabled{opacity:.45; cursor:not-allowed}
+.rowbtns{display:flex; gap:10px; flex-wrap:wrap; margin-top:18px}
+.spacer{flex:1 1 auto}
+
+/* ---------- concept table ---------- */
+.tblwrap{overflow-x:auto; margin-top:14px}
+table.concept{border-collapse:collapse; width:100%; min-width:520px; font-size:14.5px}
+table.concept th, table.concept td{border:1px solid #c9d4e3; padding:11px 10px; text-align:center}
+table.concept thead th{background:var(--navy); color:#fff; font-weight:700}
+table.concept td.rowhead{background:#eef2f8; font-weight:800; width:110px}
+table.concept tr.endo td:not(.rowhead){background:var(--endo-bg)}
+table.concept tr.exo  td:not(.rowhead){background:var(--exo-bg)}
+.arrow{font-weight:800; letter-spacing:.02em}
+.endoT{color:var(--endo); font-weight:800}
+.exoT{color:var(--exo); font-weight:800}
+
+.keys{display:grid; grid-template-columns:repeat(auto-fit,minmax(230px,1fr)); gap:12px; margin-top:16px}
+.key{border:1px solid var(--line); border-radius:12px; padding:13px 14px; background:#fbfcfe}
+.key h3{margin:0 0 5px; font-size:14px; font-weight:800}
+.key p{margin:0; font-size:13.5px; color:var(--ink2)}
+.key.c1{border-left:4px solid var(--chem)} .key.c1 h3{color:var(--chem)}
+.key.c2{border-left:4px solid var(--phys)} .key.c2 h3{color:var(--phys)}
+.key.c3{border-left:4px solid var(--endo)} .key.c3 h3{color:var(--endo)}
+.key.c4{border-left:4px solid var(--exo)}  .key.c4 h3{color:var(--exo)}
+
+/* ---------- start form ---------- */
+.field{display:flex; flex-direction:column; gap:6px; margin-top:14px}
+.field label{font-size:13.5px; font-weight:700; color:var(--ink2)}
+.field input{border:1px solid var(--line); border-radius:9px; padding:11px 12px; background:#fff; width:100%; min-width:0}
+.field input:focus{outline:2px solid var(--navy3); outline-offset:1px}
+.two{display:grid; grid-template-columns:1fr 1fr; gap:12px}
+.two>*{min-width:0}
+@media (max-width:560px){ .two{grid-template-columns:1fr} }
+.levels{display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:12px; margin-top:12px}
+.lv{border:2px solid var(--line); border-radius:12px; padding:14px; background:#fff; text-align:left}
+.lv[aria-pressed="true"]{border-color:var(--navy); background:#f2f6fc}
+.lv b{display:block; font-size:15px; margin-bottom:4px}
+.lv small{color:var(--ink2); font-size:13px; line-height:1.5; display:block}
+
+/* ---------- sorting ---------- */
+.sortgrid{display:grid; grid-template-columns:320px 1fr; gap:16px; margin-top:16px}
+@media (max-width:820px){ .sortgrid{grid-template-columns:1fr} }
+.pool{border:1px solid var(--line); border-radius:12px; background:#fbfcfe; padding:12px; min-height:120px}
+.pool h3{margin:0 0 10px; font-size:13.5px; font-weight:800; color:var(--ink2); display:flex; justify-content:space-between}
+.phen{
+  display:block; width:100%; text-align:left; background:#fff; border:1px solid var(--line);
+  border-radius:10px; padding:10px 12px; margin-bottom:8px; font-size:14px; line-height:1.45;
+  transition:border-color .12s, box-shadow .12s;
+}
+.phen:hover{border-color:var(--navy3)}
+.phen.sel{border-color:var(--gold); box-shadow:0 0 0 3px rgba(200,162,39,.25); background:#fffdf5}
+.phen .tag{display:block; font-size:11.5px; color:var(--ink3); margin-top:3px}
+.phen.res-o{border-color:#9fd9bd; background:var(--ok-bg)}
+.phen.res-x{border-color:#f0b7af; background:var(--no-bg)}
+.phen .mark{float:right; font-weight:900; margin-left:8px}
+.phen.res-o .mark{color:var(--ok)} .phen.res-x .mark{color:var(--no)}
+.phen .why{display:block; margin-top:7px; padding-top:7px; border-top:1px dashed #cfd8e4; font-size:12.5px; color:var(--ink2)}
+
+.quads{display:grid; grid-template-columns:1fr 1fr; gap:12px}
+@media (max-width:520px){ .quads{grid-template-columns:1fr} }
+.quad{border:2px dashed #c6d1e0; border-radius:12px; padding:11px; background:#fff; min-height:132px}
+.quad.q-endo{background:linear-gradient(#f7fbff,#fff)}
+.quad.q-exo{background:linear-gradient(#fff8f7,#fff)}
+.quad h4{margin:0 0 4px; font-size:14px; font-weight:800}
+.quad .meta{font-size:11.5px; color:var(--ink3); margin:0 0 9px}
+.quad.armed{border-color:var(--gold); background:#fffdf3; box-shadow:0 0 0 3px rgba(200,162,39,.18)}
+.quad .drop{width:100%; border:0; background:transparent; color:var(--navy3); font-size:12.5px; font-weight:700; padding:6px 0; text-align:left}
+.hint{font-size:13px; color:var(--ink2); background:#f1f5fb; border:1px solid #dde7f4; border-radius:9px; padding:10px 12px; margin-top:14px}
+.scoreline{font-size:14.5px; font-weight:700; margin-top:14px}
+
+/* ---------- writing ---------- */
+.q{border:1px solid var(--line); border-radius:12px; padding:16px; margin-top:14px; background:#fff}
+.q .qhead{display:flex; gap:9px; align-items:flex-start}
+.q .qno{flex:none; width:24px; height:24px; border-radius:50%; background:var(--navy); color:#fff; display:grid; place-items:center; font-size:12.5px; font-weight:800}
+.q .qtext{font-size:15px; font-weight:700; margin:0}
+.q .ctx{font-size:13.5px; color:var(--ink2); margin:8px 0 0; padding:10px 12px; background:#f7f9fc; border-left:3px solid var(--navy3); border-radius:0 8px 8px 0}
+.frame{font-size:13px; color:#5a4a12; background:var(--gold-soft); border:1px solid #ecdca0; border-radius:9px; padding:10px 12px; margin-top:11px}
+.frame b{color:#7a5f0c}
+.q textarea{width:100%; margin-top:10px; border:1px solid var(--line); border-radius:10px; padding:12px; min-height:112px; resize:vertical; line-height:1.6}
+.q textarea:focus{outline:2px solid var(--navy3); outline-offset:1px}
+.cnt{font-size:12px; color:var(--ink3); text-align:right; margin-top:4px}
+.chips{display:flex; flex-wrap:wrap; gap:6px; margin-top:10px}
+.chip{font-size:12px; border-radius:999px; padding:4px 10px; border:1px solid var(--line); background:#f7f9fc; color:var(--ink2)}
+.chip.hit{background:var(--ok-bg); border-color:#9fd9bd; color:#0f6b40; font-weight:700}
+.chip.miss{background:#fff; border-color:#e3d0cd; color:#9a6a62}
+.fb{margin-top:11px; border-radius:10px; padding:12px 13px; font-size:13.5px; display:none}
+.fb.show{display:block}
+.fb.good{background:var(--ok-bg); border:1px solid #9fd9bd}
+.fb.mid{background:var(--gold-soft); border:1px solid #ecdca0}
+.fb.low{background:var(--no-bg); border:1px solid #f0b7af}
+.fb .model{margin-top:9px; padding-top:9px; border-top:1px dashed #b9c6b9; font-size:13.5px}
+.fb .model b{display:block; margin-bottom:3px; font-size:12.5px; letter-spacing:.02em}
+
+/* ---------- summary ---------- */
+#sumCard{background:#fff; border:2px solid var(--navy); border-radius:16px; overflow:hidden}
+#sumCard .sh{background:linear-gradient(135deg,var(--navy),var(--navy3)); color:#fff; padding:18px 20px; border-bottom:3px solid var(--gold)}
+#sumCard .sh h3{margin:0; font-size:18px; font-weight:800}
+#sumCard .sh p{margin:4px 0 0; font-size:12.5px; color:#cfdcef}
+#sumCard .sb{padding:18px 20px}
+.who{display:flex; flex-wrap:wrap; gap:8px 18px; font-size:14px; font-weight:700; padding-bottom:12px; border-bottom:1px solid var(--line)}
+.who span small{color:var(--ink3); font-weight:600; margin-right:6px}
+.scores{display:grid; grid-template-columns:repeat(auto-fit,minmax(140px,1fr)); gap:10px; margin:14px 0}
+.sc{border:1px solid var(--line); border-radius:11px; padding:12px; text-align:center; background:#fbfcfe}
+.sc b{display:block; font-size:24px; font-weight:800; color:var(--navy); letter-spacing:-.02em}
+.sc small{font-size:12px; color:var(--ink3)}
+.sc.total{background:var(--gold-soft); border-color:#ecdca0}
+.sc.total b{color:#8a6d10}
+.ansblk{margin-top:14px; border-top:1px solid var(--line); padding-top:12px}
+.ansblk h5{margin:0 0 5px; font-size:13px; font-weight:800; color:var(--navy3)}
+.ansblk p{margin:0 0 12px; font-size:13.5px; color:var(--ink); white-space:pre-wrap; background:#f7f9fc; border-radius:8px; padding:9px 11px}
+.matrix{display:grid; grid-template-columns:repeat(2,1fr); gap:8px; margin-top:12px; font-size:12.5px}
+.matrix div{border:1px solid var(--line); border-radius:9px; padding:9px}
+.matrix div b{display:block; font-size:12px; margin-bottom:4px}
+.matrix ul{margin:0; padding-left:16px} .matrix li{margin:1px 0}
+
+footer.foot{text-align:center; font-size:12.5px; color:var(--ink3); padding:22px 16px calc(env(safe-area-inset-bottom,0px) + 22px)}
+
+@media print{
+  header.top,.steps,.rowbtns,.hint,footer.foot,.noprint{display:none!important}
+  body{background:#fff} .wrap{padding:0}
+  #sumCard{box-shadow:none; border-color:#333}
+}
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="inner">
+    <p class="eyebrow">통합과학 · 화학 변화와 에너지</p>
+    <h1>에너지의 흡수와 방출, 무엇으로 설명할까?</h1>
+    <p class="sub">여러 현상을 <b>에너지의 이동 방향</b>과 <b>새로운 물질의 생성 여부</b>라는 두 가지 기준으로 나누어 보고, 그 까닭을 스스로 문장으로 설명해 봅시다.</p>
+  </div>
+</header>
+
+<div class="wrap">
+  <ol class="steps" id="steps">
+    <li data-s="0"><span class="n">1</span><span class="t">시작</span></li>
+    <li data-s="1"><span class="n">2</span><span class="t">개념 정리</span></li>
+    <li data-s="2"><span class="n">3</span><span class="t">현상 분류</span></li>
+    <li data-s="3"><span class="n">4</span><span class="t">근거 서술</span></li>
+    <li data-s="4"><span class="n">5</span><span class="t">요약 카드</span></li>
+  </ol>
+
+  <!-- ===== STEP 0 ===== -->
+  <section class="card" id="s0">
+    <h2><span class="badge">STEP 1</span>이름을 적고 과제를 골라 봅시다</h2>
+    <p class="lead">모든 활동은 이 기기 안에서만 진행되며, 마지막에 요약 카드로 정리됩니다.</p>
+    <div class="two">
+      <div class="field"><label for="inName">이름</label><input id="inName" type="text" placeholder="예) 김강경" autocomplete="off"></div>
+      <div class="field"><label for="inNo">학반·번호</label><input id="inNo" type="text" placeholder="예) 1학년 3반 12번" autocomplete="off"></div>
+    </div>
+    <div class="hr"></div>
+    <h2 style="font-size:16px">과제 수준 선택</h2>
+    <p class="lead">스스로 도전하고 싶은 쪽을 고르세요. 중간에 바꿀 수 있습니다.</p>
+    <div class="levels">
+      <button class="lv" id="lvBasic" aria-pressed="true"><b>기본 과제 · 현상 8개</b><small>교과서 대표 사례로 분류 규칙을 확실히 익힙니다. 서술 2문항.</small></button>
+      <button class="lv" id="lvAdv" aria-pressed="false"><b>심화 과제 · 현상 16개</b><small>용해·분해·중화 등 헷갈리는 사례까지 다룹니다. 서술 3문항.</small></button>
+    </div>
+    <div class="rowbtns"><button class="btn" id="go1">개념 정리 보기 →</button></div>
+  </section>
+
+  <!-- ===== STEP 1 ===== -->
+  <section class="card" id="s1" hidden>
+    <h2><span class="badge">STEP 2</span>두 가지 기준을 정리합시다</h2>
+    <p class="lead">아래 표는 <b>에너지가 어느 쪽으로 이동하는가</b>를 정리한 것입니다. 여기에 <b>새로운 물질이 생기는가</b>를 더하면 모든 현상을 네 칸으로 나눌 수 있습니다.</p>
+
+    <div class="tblwrap">
+      <table class="concept">
+        <thead><tr><th style="width:110px">구분</th><th>에너지의 이동</th><th>주변(계)의 온도</th></tr></thead>
+        <tbody>
+          <tr class="endo"><td class="rowhead">흡열 반응</td><td><span class="arrow">주변 &rarr; 물질</span></td><td class="endoT">낮아짐 (차가워짐)</td></tr>
+          <tr class="exo"><td class="rowhead">발열 반응</td><td><span class="arrow">주변 &larr; 물질</span></td><td class="exoT">높아짐 (따뜻해짐)</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="keys">
+      <div class="key c3"><h3>흡열 — 주변에서 에너지를 얻음</h3><p>물질이 주변의 에너지를 <b>흡수</b>하므로 주변은 에너지를 잃어 <b>온도가 낮아집니다</b>. 손으로 만지면 차갑게 느껴집니다.</p></div>
+      <div class="key c4"><h3>발열 — 주변으로 에너지를 내놓음</h3><p>물질이 에너지를 <b>방출</b>하므로 주변은 에너지를 얻어 <b>온도가 높아집니다</b>. 손으로 만지면 따뜻하게 느껴집니다.</p></div>
+      <div class="key c1"><h3>화학 변화 — 새로운 물질이 생김</h3><p>연소, 산화, 중화, 분해, 광합성처럼 <b>물질의 종류 자체가 달라집니다</b>. 원자의 배열이 바뀌어 성질이 다른 물질이 만들어집니다.</p></div>
+      <div class="key c2"><h3>물리 변화 — 물질의 종류는 그대로</h3><p>융해·기화·응결·응고·승화·용해처럼 <b>상태나 모양, 섞인 정도만 달라집니다</b>. 물질의 종류는 변하지 않습니다.</p></div>
+    </div>
+
+    <div class="hint"><b>기억할 판단 순서</b> ① 만졌을 때 차가워지나, 따뜻해지나? → 흡열/발열 ② 원래와 다른 새로운 물질이 생겼나? → 화학/물리<br>※ 얼음이 녹는 것도 에너지를 흡수하지만 <b>화학 반응은 아닙니다.</b> ‘흡열/발열’과 ‘화학/물리’는 서로 다른 기준입니다.</div>
+
+    <div class="rowbtns"><button class="btn ghost" data-back="0">← 이전</button><button class="btn" id="go2">현상 분류하러 가기 →</button></div>
+  </section>
+
+  <!-- ===== STEP 2 ===== -->
+  <section class="card" id="s2" hidden>
+    <h2><span class="badge">STEP 3</span>현상을 네 칸으로 분류해 봅시다</h2>
+    <p class="lead">왼쪽 현상 카드를 하나 누른 뒤, 알맞은 칸을 누르세요. 칸에 놓인 카드를 다시 누르면 되돌아옵니다.</p>
+    <div class="sortgrid">
+      <div class="pool">
+        <h3><span>분류할 현상</span><span id="poolCnt">0개</span></h3>
+        <div id="pool"></div>
+      </div>
+      <div class="quads" id="quads">
+        <div class="quad q-endo" data-q="endo-chem"><h4><span class="endoT">흡열</span> · <span style="color:var(--chem)">화학 변화</span></h4><p class="meta">에너지 흡수 + 새로운 물질 생성</p><div class="slots"></div></div>
+        <div class="quad q-endo" data-q="endo-phys"><h4><span class="endoT">흡열</span> · <span style="color:var(--phys)">물리 변화</span></h4><p class="meta">에너지 흡수 + 상태·섞임만 변화</p><div class="slots"></div></div>
+        <div class="quad q-exo" data-q="exo-chem"><h4><span class="exoT">발열</span> · <span style="color:var(--chem)">화학 변화</span></h4><p class="meta">에너지 방출 + 새로운 물질 생성</p><div class="slots"></div></div>
+        <div class="quad q-exo" data-q="exo-phys"><h4><span class="exoT">발열</span> · <span style="color:var(--phys)">물리 변화</span></h4><p class="meta">에너지 방출 + 상태·섞임만 변화</p><div class="slots"></div></div>
+      </div>
+    </div>
+    <div class="scoreline" id="sortScore" hidden></div>
+    <div class="rowbtns">
+      <button class="btn ghost" data-back="1">← 이전</button>
+      <button class="btn ghost sm" id="resetSort">다시 분류</button>
+      <span class="spacer"></span>
+      <button class="btn gold" id="checkSort">채점하고 해설 보기</button>
+      <button class="btn" id="go3" disabled>근거 서술하러 가기 →</button>
+    </div>
+  </section>
+
+  <!-- ===== STEP 3 ===== -->
+  <section class="card" id="s3" hidden>
+    <h2><span class="badge">STEP 4</span>왜 그런지 문장으로 설명해 봅시다</h2>
+    <p class="lead">아래 <b>문장 틀</b>을 참고하여, 반드시 <b>에너지의 이동 방향</b>, <b>주변의 온도 변화</b>, <b>새로운 물질의 생성 여부</b>가 드러나게 쓰세요.</p>
+    <div id="qlist"></div>
+    <div class="rowbtns">
+      <button class="btn ghost" data-back="2">← 이전</button>
+      <span class="spacer"></span>
+      <button class="btn gold" id="checkWrite">서술 점검하기</button>
+      <button class="btn" id="go4" disabled>요약 카드 만들기 →</button>
+    </div>
+  </section>
+
+  <!-- ===== STEP 4 ===== -->
+  <section class="card" id="s4" hidden style="background:transparent;border:0;box-shadow:none;padding:0">
+    <div id="sumCard">
+      <div class="sh">
+        <h3>에너지의 흡수와 방출 — 탐구 요약 카드</h3>
+        <p id="sumMeta">통합과학 · 강경고등학교</p>
+      </div>
+      <div class="sb">
+        <div class="who" id="sumWho"></div>
+        <div class="scores" id="sumScores"></div>
+        <div class="matrix" id="sumMatrix"></div>
+        <div class="ansblk" id="sumAns"></div>
+      </div>
+    </div>
+    <div class="rowbtns noprint">
+      <button class="btn ghost" data-back="3">← 이전</button>
+      <span class="spacer"></span>
+      <button class="btn ghost" id="copyBtn">텍스트 복사</button>
+      <button class="btn ghost" id="imgBtn">이미지로 저장</button>
+      <button class="btn gold" id="printBtn">인쇄 / PDF 저장</button>
+    </div>
+  </section>
+</div>
+
+<footer class="foot">통합과학 · 에너지의 흡수와 방출 탐구 웹앱 &middot; 강경고등학교</footer>
+<script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js" defer></script>
+<script>
+(function(){
+"use strict";
+
+/* ===================== DATA ===================== */
+var PHEN = [
+ {id:'p1', set:0, t:'얼음이 녹아 물이 된다', q:'endo-phys',
+  w:'융해. 주변에서 에너지를 흡수하여 고체 → 액체로 상태만 변할 뿐, 물질은 여전히 물(H₂O)이므로 물리 변화.'},
+ {id:'p2', set:0, t:'땀이 증발하면서 몸이 시원해진다', q:'endo-phys',
+  w:'기화. 물이 피부(주변)에서 에너지를 흡수해 수증기가 되므로 피부의 온도가 낮아진다. 물질의 종류는 그대로여서 물리 변화.'},
+ {id:'p3', set:0, t:'식물이 빛을 받아 광합성을 한다', q:'endo-chem',
+  w:'빛에너지를 흡수하여 이산화 탄소와 물로 포도당과 산소라는 새로운 물질을 만든다 → 흡열 + 화학 변화.'},
+ {id:'p4', set:0, t:'탄산수소 나트륨을 가열하면 분해된다', q:'endo-chem',
+  w:'열분해. 에너지를 흡수해 탄산 나트륨·물·이산화 탄소라는 새로운 물질이 생성된다 → 흡열 + 화학 변화.'},
+ {id:'p5', set:0, t:'손난로 속 철가루가 산소와 반응한다', q:'exo-chem',
+  w:'철의 산화. 에너지를 방출하여 주변(손)이 따뜻해지고, 산화 철이라는 새로운 물질이 생긴다 → 발열 + 화학 변화.'},
+ {id:'p6', set:0, t:'도시가스(메테인)가 연소한다', q:'exo-chem',
+  w:'연소. 에너지를 방출하고 이산화 탄소와 물이라는 새로운 물질이 생성된다 → 발열 + 화학 변화.'},
+ {id:'p7', set:0, t:'새벽에 풀잎에 이슬이 맺힌다', q:'exo-phys',
+  w:'응결. 수증기가 에너지를 방출하며 액체가 된다. 물질은 그대로 물이므로 물리 변화.'},
+ {id:'p8', set:0, t:'물이 얼어 얼음이 된다', q:'exo-phys',
+  w:'응고. 에너지를 주변으로 방출하며 액체 → 고체가 된다. 물질의 종류는 변하지 않으므로 물리 변화.'},
+
+ {id:'p9',  set:1, t:'아이스팩 속 질산 암모늄이 물에 녹는다', q:'endo-phys',
+  w:'용해. 주변의 에너지를 흡수해 차가워지지만, 질산 암모늄이 물에 섞였을 뿐 새로운 물질은 없다 → 흡열 + 물리 변화. (가장 헷갈리는 사례!)'},
+ {id:'p10', set:1, t:'드라이아이스가 승화한다', q:'endo-phys',
+  w:'승화. 에너지를 흡수해 고체 → 기체가 되지만 물질은 여전히 이산화 탄소 → 흡열 + 물리 변화.'},
+ {id:'p11', set:1, t:'수산화 바륨과 염화 암모늄을 섞는다', q:'endo-chem',
+  w:'주변의 에너지를 크게 흡수하여 비커 바닥의 물이 얼 정도로 차가워지고, 새로운 물질이 생성된다 → 흡열 + 화학 변화.'},
+ {id:'p12', set:1, t:'물을 전기 분해한다', q:'endo-chem',
+  w:'전기 에너지를 흡수하여 수소와 산소라는 새로운 물질로 나뉜다 → 흡열 + 화학 변화.'},
+ {id:'p13', set:1, t:'묽은 염산과 수산화 나트륨 수용액을 섞는다', q:'exo-chem',
+  w:'중화 반응. 에너지를 방출하여 용액의 온도가 높아지고, 물과 염화 나트륨이 생성된다 → 발열 + 화학 변화.'},
+ {id:'p14', set:1, t:'마그네슘 리본을 묽은 염산에 넣는다', q:'exo-chem',
+  w:'금속과 산의 반응. 수소 기체와 염화 마그네슘이 생기며 에너지를 방출한다 → 발열 + 화학 변화.'},
+ {id:'p15', set:1, t:'진한 황산을 물에 넣어 묽힌다', q:'exo-phys',
+  w:'용해. 많은 에너지를 방출해 매우 뜨거워지지만 황산이 물에 섞였을 뿐이므로 물리 변화. (발열이라고 모두 화학 변화는 아니다!)'},
+ {id:'p16', set:1, t:'겨울에 눈이 내리면 날씨가 포근해진다', q:'exo-phys',
+  w:'수증기·물이 얼음(눈)으로 상태가 변하며 에너지를 방출한다. 물질의 종류는 그대로 물 → 발열 + 물리 변화.'}
+];
+
+var QUADNAME = {
+ 'endo-chem':'흡열 · 화학 변화',
+ 'endo-phys':'흡열 · 물리 변화',
+ 'exo-chem' :'발열 · 화학 변화',
+ 'exo-phys' :'발열 · 물리 변화'
+};
+
+var QUESTIONS = [
+ { id:'w1', set:0,
+   title:'아이스팩을 주무르면 왜 차가워질까?',
+   ctx:'아이스팩 속에는 질산 암모늄 알갱이와 물이 따로 들어 있다. 주머니를 터뜨려 두 물질을 섞으면 곧 아이스팩이 매우 차가워진다.',
+   frame:'질산 암모늄이 물에 녹을 때 에너지는 <b>(　　　)에서 (　　　)(으)로</b> 이동하므로 <b>(　　　)</b> 반응이다. 따라서 주변의 온도는 <b>(　　　)</b>. 이때 <b>(　　　)</b>이 생성되지 않고 섞이기만 하므로 <b>(　　　)</b> 변화이다.',
+   model:'질산 암모늄이 물에 녹을 때 에너지가 주변에서 물질로 이동하는 흡열 과정이므로 주변의 온도가 낮아져 아이스팩이 차가워진다. 그러나 질산 암모늄이 물에 섞였을 뿐 새로운 물질이 생성되지 않고 물질의 종류가 변하지 않으므로 이 현상은 물리 변화이다.',
+   rubric:[
+     {label:'에너지 이동 방향 (주변 → 물질)', any:['주변에서물질','주변에서에너지','주변의에너지','주변→물질','주변->물질','주변에서흡수','에너지를흡수','에너지가흡수','열을흡수','열에너지를흡수','흡수하']},
+     {label:'흡열이라는 표현', any:['흡열']},
+     {label:'주변의 온도 변화 (낮아짐)', any:['온도가낮','온도는낮','낮아','내려가','떨어','차가','시원']},
+     {label:'새로운 물질이 생기지 않음', any:['새로운물질이생성되지않','새로운물질이생기지않','새로운물질이만들어지지않','새로운물질은생기지않','새로운물질이없','물질의종류가변하지않','물질의종류는변하지않','종류는그대로','종류가그대로','섞였을뿐','녹기만','용해']},
+     {label:'물리 변화라는 판단', any:['물리']}
+   ]},
+ { id:'w2', set:0,
+   title:'손난로는 왜 따뜻해질까?',
+   ctx:'흔들어 쓰는 손난로를 뜯으면 속의 철가루가 공기 중의 산소와 반응하면서 몇 시간 동안 따뜻해진다.',
+   frame:'철가루가 산소와 반응할 때 에너지는 <b>(　　　)에서 (　　　)(으)로</b> 이동하므로 <b>(　　　)</b> 반응이다. 따라서 주변의 온도는 <b>(　　　)</b>. 이때 <b>(　　　)</b>(이)라는 새로운 물질이 생성되므로 <b>(　　　)</b> 변화이다.',
+   model:'철가루가 산소와 반응할 때 에너지가 물질에서 주변으로 방출되는 발열 반응이므로 주변의 온도가 높아져 따뜻해진다. 또한 철이 산소와 결합하여 산화 철이라는 새로운 물질이 생성되므로 이 현상은 화학 변화이다.',
+   rubric:[
+     {label:'에너지 이동 방향 (물질 → 주변)', any:['물질에서주변','물질→주변','물질->주변','주변으로방출','주변에방출','에너지를방출','에너지가방출','열을방출','열에너지를방출','방출하','내놓','내보']},
+     {label:'발열이라는 표현', any:['발열']},
+     {label:'주변의 온도 변화 (높아짐)', any:['온도가높','온도는높','높아','올라','따뜻','더워','뜨거']},
+     {label:'새로운 물질이 생성됨', any:['새로운물질','산화철','산화되','산소와결합','산소와반응','다른물질이생성','성질이다른물질']},
+     {label:'화학 변화라는 판단', any:['화학']}
+   ]},
+ { id:'w3', set:1,
+   title:'같은 흡열인데 왜 하나는 물리 변화일까?',
+   ctx:'드라이아이스가 승화할 때와 탄산수소 나트륨을 가열할 때는 모두 주변의 온도를 낮춘다. 그러나 한 가지는 물리 변화, 다른 하나는 화학 변화이다.',
+   frame:'두 현상은 모두 에너지를 <b>(　　　)</b>하는 <b>(　　　)</b> 과정이다. 그러나 드라이아이스의 승화는 <b>(　　　)</b>만 달라지고 물질은 그대로 <b>(　　　)</b>이므로 <b>(　　　)</b> 변화이고, 탄산수소 나트륨의 가열은 <b>(　　　)</b>이 생성되므로 <b>(　　　)</b> 변화이다.',
+   model:'두 현상은 모두 주변에서 에너지를 흡수하는 흡열 과정이므로 주변의 온도가 낮아진다. 그러나 드라이아이스의 승화는 고체가 기체로 상태만 변할 뿐 물질의 종류는 여전히 이산화 탄소이므로 물리 변화이다. 반면 탄산수소 나트륨을 가열하면 탄산 나트륨, 물, 이산화 탄소라는 새로운 물질이 생성되므로 화학 변화이다. 즉 흡열·발열은 에너지의 이동 방향에 대한 구분이고, 화학·물리 변화는 새로운 물질의 생성 여부에 대한 구분이다.',
+   rubric:[
+     {label:'두 현상 모두 흡열임', any:['흡열','에너지를흡수','모두흡수']},
+     {label:'승화는 상태만 변함', any:['상태만','상태변화','고체에서기체','고체가기체','승화는물질','종류는변하지않','종류가변하지않','같은물질','이산화탄소그대로','그대로이산화탄소']},
+     {label:'승화 = 물리 변화', any:['물리']},
+     {label:'가열 시 새로운 물질 생성', any:['새로운물질','탄산나트륨','다른물질이생성','분해되어','성질이다른물질']},
+     {label:'열분해 = 화학 변화', any:['화학']},
+     {label:'두 기준이 서로 다름을 지적', any:['기준이다르','다른기준','서로다른기준','이동방향','생성여부','별개','구분하는기준']}
+   ]}
+];
+
+/* ===================== STATE ===================== */
+var S = { name:'', no:'', level:0, placed:{}, sorted:false, sortScore:0, sortTotal:0,
+          checked:false, wScore:0, wTotal:0, answers:{}, detail:[] };
+
+function $(s,r){ return (r||document).querySelector(s); }
+function $$(s,r){ return Array.prototype.slice.call((r||document).querySelectorAll(s)); }
+function esc(s){ return String(s).replace(/[&<>"]/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]; }); }
+function activePhen(){ return PHEN.filter(function(p){ return p.set<=S.level; }); }
+function activeQ(){ return QUESTIONS.filter(function(q){ return q.set<=S.level; }); }
+
+/* ===================== NAV ===================== */
+function show(n){
+  for(var i=0;i<5;i++){ var el=$('#s'+i); if(el) el.hidden = (i!==n); }
+  $$('#steps li').forEach(function(li){
+    var k=+li.dataset.s; li.classList.toggle('on', k===n); li.classList.toggle('done', k<n);
+  });
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+$$('[data-back]').forEach(function(b){ b.addEventListener('click', function(){ show(+b.dataset.back); }); });
+
+$('#lvBasic').addEventListener('click', function(){ setLevel(0); });
+$('#lvAdv').addEventListener('click', function(){ setLevel(1); });
+function setLevel(v){
+  S.level=v;
+  $('#lvBasic').setAttribute('aria-pressed', v===0?'true':'false');
+  $('#lvAdv').setAttribute('aria-pressed', v===1?'true':'false');
+  resetSort(); buildQuestions();
+}
+
+$('#go1').addEventListener('click', function(){
+  S.name = $('#inName').value.trim(); S.no = $('#inNo').value.trim();
+  if(!S.name){ $('#inName').focus(); $('#inName').style.borderColor='#c0392b'; return; }
+  $('#inName').style.borderColor='';
+  show(1);
+});
+$('#go2').addEventListener('click', function(){ renderSort(); show(2); });
+$('#go3').addEventListener('click', function(){ show(3); });
+$('#go4').addEventListener('click', function(){ buildSummary(); show(4); });
+
+/* ===================== SORT ACTIVITY ===================== */
+var selected = null;
+
+function resetSort(){
+  S.placed = {}; S.sorted=false; selected=null;
+  $('#sortScore').hidden = true; $('#go3').disabled = true; $('#checkSort').disabled = false;
+  renderSort();
+}
+$('#resetSort').addEventListener('click', resetSort);
+
+function renderSort(){
+  var list = activePhen();
+  var pool = $('#pool'); pool.innerHTML='';
+  var n=0;
+  list.forEach(function(p){
+    if(S.placed[p.id]) return;
+    n++;
+    var b=document.createElement('button');
+    b.className='phen'+(selected===p.id?' sel':'');
+    b.type='button'; b.dataset.id=p.id;
+    b.innerHTML = esc(p.t);
+    b.addEventListener('click', function(){
+      selected = (selected===p.id)? null : p.id;
+      renderSort();
+    });
+    pool.appendChild(b);
+  });
+  $('#poolCnt').textContent = n+'개';
+  if(n===0 && !S.sorted) pool.innerHTML='<p style="font-size:13px;color:var(--ink3);margin:6px 2px">모두 분류했습니다. 아래 <b>채점하고 해설 보기</b>를 누르세요.</p>';
+
+  $$('.quad').forEach(function(qd){
+    var key=qd.dataset.q;
+    qd.classList.toggle('armed', !!selected);
+    var slots=$('.slots',qd); slots.innerHTML='';
+    list.forEach(function(p){
+      if(S.placed[p.id]!==key) return;
+      var b=document.createElement('button'); b.type='button'; b.className='phen';
+      var html = esc(p.t);
+      if(S.sorted){
+        var ok = (p.q===key);
+        b.className += ok?' res-o':' res-x';
+        html = '<span class="mark">'+(ok?'○':'✕')+'</span>'+esc(p.t)
+             + '<span class="why">'+(ok?'':'<b>정답: '+QUADNAME[p.q]+'</b> — ')+esc(p.w)+'</span>';
+      }
+      b.innerHTML = html;
+      if(!S.sorted){
+        b.addEventListener('click', function(e){ e.stopPropagation(); delete S.placed[p.id]; renderSort(); });
+      }
+      slots.appendChild(b);
+    });
+    if(!S.sorted && !$('.drop',qd)){
+      var d=document.createElement('button'); d.type='button'; d.className='drop'; d.textContent='＋ 여기에 놓기';
+      qd.appendChild(d);
+    }
+    if(S.sorted){ var dd=$('.drop',qd); if(dd) dd.remove(); }
+  });
+}
+
+$('#quads').addEventListener('click', function(e){
+  if(S.sorted) return;
+  var qd = e.target.closest('.quad'); if(!qd) return;
+  if(!selected) return;
+  S.placed[selected] = qd.dataset.q;
+  selected = null;
+  renderSort();
+});
+
+$('#checkSort').addEventListener('click', function(){
+  var list = activePhen();
+  var unplaced = list.filter(function(p){ return !S.placed[p.id]; });
+  if(unplaced.length){
+    alert('아직 분류하지 않은 현상이 '+unplaced.length+'개 있습니다. 모두 배치한 뒤 채점하세요.');
+    return;
+  }
+  var right=0;
+  list.forEach(function(p){ if(S.placed[p.id]===p.q) right++; });
+  S.sorted=true; S.sortScore=right; S.sortTotal=list.length;
+  var pct = Math.round(right/list.length*100);
+  var msg = pct===100 ? '완벽합니다! 두 기준을 정확히 구분했습니다.'
+          : pct>=70 ? '잘했습니다. 틀린 카드의 해설을 읽고 기준을 다시 확인해 보세요.'
+          : '아직 두 기준이 섞여 있습니다. 해설을 꼼꼼히 읽고 ‘새로운 물질이 생겼는가’를 다시 따져 보세요.';
+  $('#sortScore').hidden=false;
+  $('#sortScore').innerHTML = '분류 결과 : <span style="color:var(--navy)">'+right+' / '+list.length+'</span> (정답률 '+pct+'%) &nbsp;— '+msg;
+  $('#go3').disabled=false;
+  $('#checkSort').disabled=true;
+  renderSort();
+});
+
+/* ===================== WRITING ACTIVITY ===================== */
+function buildQuestions(){
+  var box=$('#qlist'); box.innerHTML='';
+  activeQ().forEach(function(q,i){
+    var d=document.createElement('div'); d.className='q'; d.id='q_'+q.id;
+    d.innerHTML =
+      '<div class="qhead"><span class="qno">'+(i+1)+'</span><p class="qtext">'+esc(q.title)+'</p></div>'+
+      '<p class="ctx">'+esc(q.ctx)+'</p>'+
+      '<div class="frame"><b>문장 틀 ▸</b> '+q.frame+'</div>'+
+      '<textarea id="ta_'+q.id+'" placeholder="위 세 가지(에너지 이동 방향 · 주변의 온도 변화 · 새로운 물질 생성 여부)가 모두 드러나게 써 보세요."></textarea>'+
+      '<div class="cnt"><span id="cnt_'+q.id+'">0</span>자</div>'+
+      '<div class="chips" id="chips_'+q.id+'"></div>'+
+      '<div class="fb" id="fb_'+q.id+'"></div>';
+    box.appendChild(d);
+    var ta=$('#ta_'+q.id);
+    ta.addEventListener('input', function(){ $('#cnt_'+q.id).textContent = ta.value.trim().length; });
+    renderChips(q, null);
+  });
+  $('#go4').disabled = true; S.checked=false;
+}
+
+function renderChips(q, hits){
+  var c=$('#chips_'+q.id); if(!c) return;
+  c.innerHTML = q.rubric.map(function(r,idx){
+    var cls = hits ? (hits[idx] ? 'chip hit' : 'chip miss') : 'chip';
+    return '<span class="'+cls+'">'+(hits?(hits[idx]?'✓ ':'· '):'')+esc(r.label)+'</span>';
+  }).join('');
+}
+
+function norm(s){ return String(s).replace(/\s+/g,'').toLowerCase(); }
+
+function gradeOne(q, text){
+  var t = norm(text);
+  var hits = q.rubric.map(function(r){
+    return r.any.some(function(k){ return t.indexOf(norm(k))>=0; });
+  });
+  var got = hits.filter(Boolean).length;
+  return {hits:hits, got:got, total:q.rubric.length};
+}
+
+$('#checkWrite').addEventListener('click', function(){
+  var qs=activeQ(), sum=0, tot=0, det=[], tooShort=[];
+  qs.forEach(function(q){
+    var txt = $('#ta_'+q.id).value.trim();
+    S.answers[q.id]=txt;
+    var fb=$('#fb_'+q.id);
+    if(txt.length<20){
+      tooShort.push(q.title);
+      renderChips(q, null);
+      fb.className='fb show low';
+      fb.innerHTML='<b>아직 채점할 수 없습니다.</b> 20자 이상으로, 문장 틀의 빈칸을 모두 채워 완전한 문장으로 써 주세요.';
+      tot += q.rubric.length;
+      det.push({q:q, got:0, total:q.rubric.length, txt:txt, hits:q.rubric.map(function(){return false;})});
+      return;
+    }
+    var r = gradeOne(q, txt);
+    sum += r.got; tot += r.total;
+    renderChips(q, r.hits);
+    var miss = q.rubric.filter(function(_,i){ return !r.hits[i]; }).map(function(x){ return x.label; });
+    var lvl = r.got===r.total ? 'good' : (r.got>=Math.ceil(r.total*0.6) ? 'mid' : 'low');
+    var head = r.got===r.total ? '<b>완성도 높은 설명입니다 ('+r.got+'/'+r.total+')</b> 세 가지 근거가 모두 드러났습니다.'
+             : '<b>보완할 점이 있습니다 ('+r.got+'/'+r.total+')</b> 빠진 요소 : '+esc(miss.join(' / '));
+    fb.className='fb show '+lvl;
+    fb.innerHTML = head + '<div class="model"><b>모범 답안</b>'+esc(q.model)+'</div>';
+    det.push({q:q, got:r.got, total:r.total, txt:txt, hits:r.hits});
+  });
+  S.wScore=sum; S.wTotal=tot; S.detail=det; S.checked=true;
+  $('#go4').disabled = false;
+  if(tooShort.length){
+    $('#go4').disabled = false;
+  }
+  var first=$('#qlist .fb.show'); if(first) first.scrollIntoView({behavior:'smooth', block:'center'});
+});
+
+/* ===================== SUMMARY ===================== */
+function buildSummary(){
+  var d=new Date();
+  var dstr = d.getFullYear()+'. '+(d.getMonth()+1)+'. '+d.getDate();
+  $('#sumMeta').textContent = '통합과학 · 강경고등학교 · '+dstr+' · '+(S.level?'심화 과제':'기본 과제');
+  $('#sumWho').innerHTML =
+    '<span><small>이름</small>'+esc(S.name||'-')+'</span>'+
+    '<span><small>학반·번호</small>'+esc(S.no||'-')+'</span>';
+
+  var total = S.sortScore + S.wScore, totalMax = S.sortTotal + S.wTotal;
+  $('#sumScores').innerHTML =
+    '<div class="sc"><b>'+S.sortScore+' / '+S.sortTotal+'</b><small>현상 분류</small></div>'+
+    '<div class="sc"><b>'+S.wScore+' / '+S.wTotal+'</b><small>근거 서술 요소</small></div>'+
+    '<div class="sc total"><b>'+total+' / '+totalMax+'</b><small>합계</small></div>';
+
+  var groups={}; Object.keys(QUADNAME).forEach(function(k){ groups[k]=[]; });
+  activePhen().forEach(function(p){ groups[p.q].push(p.t); });
+  $('#sumMatrix').innerHTML = Object.keys(QUADNAME).map(function(k){
+    return '<div><b>'+QUADNAME[k]+'</b><ul>'+groups[k].map(function(t){ return '<li>'+esc(t)+'</li>'; }).join('')+'</ul></div>';
+  }).join('');
+
+  $('#sumAns').innerHTML = S.detail.map(function(x,i){
+    return '<h5>서술 '+(i+1)+'. '+esc(x.q.title)+' &nbsp;('+x.got+'/'+x.total+')</h5>'+
+           '<p>'+esc(x.txt||'(작성하지 않음)')+'</p>';
+  }).join('');
+}
+
+$('#printBtn').addEventListener('click', function(){ window.print(); });
+
+$('#copyBtn').addEventListener('click', function(){
+  var lines = ['[에너지의 흡수와 방출 탐구 요약]',
+    '이름: '+S.name+'   학반·번호: '+S.no,
+    '현상 분류: '+S.sortScore+'/'+S.sortTotal+'   근거 서술: '+S.wScore+'/'+S.wTotal, ''];
+  S.detail.forEach(function(x,i){
+    lines.push('서술 '+(i+1)+'. '+x.q.title+' ('+x.got+'/'+x.total+')');
+    lines.push(x.txt||'(작성하지 않음)'); lines.push('');
+  });
+  var txt=lines.join('\n');
+  function fallback(){
+    var ta=document.createElement('textarea'); ta.value=txt; ta.style.position='fixed'; ta.style.opacity='0';
+    document.body.appendChild(ta); ta.select();
+    try{ document.execCommand('copy'); }catch(e){}
+    document.body.removeChild(ta);
+  }
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(txt).then(function(){ flash('#copyBtn','복사되었습니다'); }, function(){ fallback(); flash('#copyBtn','복사되었습니다'); });
+  } else { fallback(); flash('#copyBtn','복사되었습니다'); }
+});
+
+$('#imgBtn').addEventListener('click', function(){
+  if(typeof html2canvas!=='function'){ flash('#imgBtn','인쇄 기능을 이용하세요'); return; }
+  flash('#imgBtn','만드는 중…');
+  html2canvas(document.getElementById('sumCard'), {backgroundColor:'#ffffff', scale:2}).then(function(cv){
+    var a=document.createElement('a');
+    a.download = '에너지흡수방출_'+(S.name||'학생')+'.png';
+    a.href = cv.toDataURL('image/png'); a.click();
+    flash('#imgBtn','저장되었습니다');
+  }).catch(function(){ flash('#imgBtn','실패 — 인쇄를 이용하세요'); });
+});
+
+function flash(sel,msg){
+  var b=$(sel), old=b.dataset.old||b.textContent;
+  b.dataset.old=old; b.textContent=msg;
+  setTimeout(function(){ b.textContent=b.dataset.old; }, 1800);
+}
+
+/* ===================== INIT ===================== */
+window.addEventListener('load', function(){
+  if(typeof html2canvas!=='function'){ var b=$('#imgBtn'); if(b) b.hidden=true; }
+});
+buildQuestions();
+renderSort();
+show(0);
+})();
+</script>
+</body>
+</html>
