@@ -1,0 +1,695 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>화성암 탄생 실험실</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=IBM+Plex+Mono:wght@500&family=IBM+Plex+Sans+KR:wght@400;500;700&display=swap">
+<style>
+/* Layout: projector-first teaching console. Header + tab rail, then one large 16:9 stage with a step rail beside it. */
+:root{
+  --bg:#EDEFF2; --surface:#FFFFFF; --stage:#F6F7F9; --ink:#1A2130; --muted:#5A6373; --line:#D2D7DF;
+  --navy:#1B2A4A; --on-navy:#FFFFFF; --magma:#D2461E; --magma-soft:#FBE4DA; --gold:#A97F0E; --gold-soft:#F7EDCF;
+  --sky:#DAE6F0; --focus:#2F6FE0;
+  --font-display:"Black Han Sans","IBM Plex Sans KR","Malgun Gothic",sans-serif;
+  --font-body:"IBM Plex Sans KR","Malgun Gothic","Apple SD Gothic Neo",sans-serif;
+  --font-num:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+  --r:14px;
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
+  --bg:#10131A; --surface:#1A1F29; --stage:#141921; --ink:#E7EAF0; --muted:#9BA4B4; --line:#2C3442;
+  --navy:#3A5590; --on-navy:#FFFFFF; --magma:#FF7448; --magma-soft:#3B2119; --gold:#E2B94A; --gold-soft:#332A12;
+  --sky:#1B2838; --focus:#7FA8FF; color-scheme:dark } }
+:root[data-theme="dark"]{
+  --bg:#10131A; --surface:#1A1F29; --stage:#141921; --ink:#E7EAF0; --muted:#9BA4B4; --line:#2C3442;
+  --navy:#3A5590; --on-navy:#FFFFFF; --magma:#FF7448; --magma-soft:#3B2119; --gold:#E2B94A; --gold-soft:#332A12;
+  --sky:#1B2838; --focus:#7FA8FF; color-scheme:dark }
+
+*{box-sizing:border-box}
+html,body{margin:0}
+[hidden]{display:none!important}
+body{background:var(--bg);color:var(--ink);font-family:var(--font-body);font-size:16px;line-height:1.55}
+.wrap{max-width:1280px;margin:0 auto;padding-block:20px 40px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:flex;flex-direction:column;gap:18px}
+header{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:12px}
+.eyebrow{font-size:13px;letter-spacing:.06em;color:var(--magma);font-weight:700}
+h1{font-family:var(--font-display);font-weight:400;font-size:clamp(28px,4vw,40px);line-height:1.1;margin:2px 0 0;text-wrap:balance}
+.hint{font-size:13px;color:var(--muted)}
+.hint kbd{font-family:var(--font-num);font-size:12px;border:1px solid var(--line);border-bottom-width:2px;border-radius:5px;padding:0 5px;background:var(--surface);color:var(--ink)}
+.head-right{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+
+nav{display:flex;flex-wrap:wrap;gap:10px 22px;align-items:center}
+.tabgroup{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.tabgroup .glabel{font-size:12px;color:var(--muted);letter-spacing:.04em;margin-right:4px;width:100%}
+.tab{font:inherit;font-weight:700;font-size:15px;padding:8px 14px;border-radius:999px;border:1px solid var(--line);background:var(--surface);color:var(--ink);cursor:pointer}
+.tab[aria-selected="true"]{background:var(--navy);border-color:var(--navy);color:var(--on-navy)}
+.tab:hover{border-color:var(--navy)}
+button:focus-visible,input:focus-visible{outline:3px solid var(--focus);outline-offset:2px}
+
+.btn{font:inherit;font-weight:700;font-size:15px;padding:9px 16px;border-radius:10px;border:1px solid var(--line);background:var(--surface);color:var(--ink);cursor:pointer;display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
+.btn.primary{background:var(--magma);border-color:var(--magma);color:#fff}
+.btn:hover{border-color:var(--ink)}
+.btn.primary:hover{filter:brightness(1.06);border-color:var(--magma)}
+.btn.ghost{background:transparent}
+
+.view{display:flex;flex-direction:column;gap:16px}
+
+/* ---------- cooling view ---------- */
+.controls{display:flex;flex-wrap:wrap;gap:12px 18px;align-items:center;justify-content:space-between}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:12px;overflow:hidden;background:var(--surface)}
+.seg button{font:inherit;font-weight:700;font-size:15px;padding:9px 14px;border:0;background:transparent;color:var(--ink);cursor:pointer;display:flex;flex-direction:column;align-items:center;line-height:1.25}
+.seg button small{font-weight:500;font-size:11.5px;color:var(--muted);font-family:var(--font-num)}
+.seg button[aria-checked="true"]{background:var(--navy);color:var(--on-navy)}
+.seg button[aria-checked="true"] small{color:var(--on-navy);opacity:.8}
+.seg button+button{border-left:1px solid var(--line)}
+.ctl-left{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.ctl-label{font-size:13px;color:var(--muted);font-weight:700}
+.prompt{font-size:clamp(17px,2vw,21px);font-weight:700;margin:0}
+.prompt em{font-style:normal;color:var(--magma)}
+
+.panels{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:14px;display:flex;flex-direction:column;gap:10px;min-width:0}
+.panel-head{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+.panel-head .tag{font-size:12px;font-weight:700;padding:2px 9px;border-radius:999px;background:var(--magma-soft);color:var(--magma)}
+.panel-head .tag.deep{background:var(--gold-soft);color:var(--gold)}
+.panel-head h3{margin:0;font-size:18px}
+canvas{display:block;width:100%;max-width:100%;border-radius:10px}
+.cv-cool{aspect-ratio:480/450}
+.readout{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:0}
+.readout div{background:var(--stage);border-radius:10px;padding:7px 10px;min-width:0}
+.readout dt{font-size:12px;color:var(--muted)}
+.readout dd{margin:0;font-family:var(--font-num);font-size:18px;font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.meter{height:5px;border-radius:3px;background:var(--line);margin-top:5px;overflow:hidden}
+.meter i{display:block;height:100%;background:var(--magma);width:100%}
+.result{display:flex;align-items:center;gap:14px;padding:10px 14px;border-radius:10px;background:var(--navy);color:var(--on-navy);min-height:64px}
+.result strong{font-family:var(--font-display);font-weight:400;font-size:30px;line-height:1}
+.result span{font-size:14.5px;line-height:1.4}
+.result.wait{background:var(--stage);color:var(--muted)}
+.result.wait strong{color:var(--muted);font-size:22px}
+
+.table-wrap{overflow-x:auto}
+table.cls{border-collapse:separate;border-spacing:6px;width:100%;min-width:560px}
+table.cls th,table.cls td{border-radius:10px;padding:9px 10px;text-align:center}
+table.cls thead th{background:var(--stage);font-size:14px}
+table.cls thead th button{font:inherit;font-weight:700;background:none;border:0;color:inherit;cursor:pointer;padding:0}
+table.cls thead th small{display:block;font-family:var(--font-num);font-weight:500;font-size:11.5px;color:var(--muted)}
+table.cls tbody th{background:var(--stage);font-size:14px;text-align:left;width:26%}
+table.cls tbody th small{display:block;font-weight:500;font-size:12px;color:var(--muted)}
+table.cls td{background:var(--stage);font-weight:700;font-size:17px;color:var(--muted)}
+table.cls .cur{background:var(--magma-soft);color:var(--ink)}
+table.cls td.done{background:var(--magma);color:#fff}
+
+/* ---------- structure view ---------- */
+.stage-wrap{display:grid;grid-template-columns:minmax(0,1fr) 310px;gap:16px;align-items:start}
+.stage-card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:12px;display:flex;flex-direction:column;gap:10px;min-width:0}
+.cv-stage{aspect-ratio:960/540}
+.transport{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.transport input[type=range]{flex:1 1 160px;min-width:120px;accent-color:var(--magma)}
+.steps{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:16px;display:flex;flex-direction:column;gap:12px;min-width:0}
+.steps h2{font-family:var(--font-display);font-weight:400;font-size:30px;margin:0;line-height:1.1}
+.steps .cause{display:inline-block;font-weight:700;font-size:14px;padding:3px 10px;border-radius:999px;background:var(--magma-soft);color:var(--magma);align-self:flex-start}
+.steps ol{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px}
+.steps li button{font:inherit;width:100%;text-align:left;display:grid;grid-template-columns:30px minmax(0,1fr);gap:4px 10px;align-items:start;padding:9px 10px;border-radius:10px;border:1px solid transparent;background:transparent;color:var(--ink);cursor:pointer}
+.steps li button:hover{border-color:var(--line)}
+.steps li .n{width:28px;height:28px;border-radius:50%;display:grid;place-items:center;font-family:var(--font-num);font-size:14px;background:var(--stage);color:var(--muted)}
+.steps li .tt{font-weight:700;font-size:16px;line-height:1.35;align-self:center}
+.steps li .dd{grid-column:2;font-size:14.5px;color:var(--muted);display:none}
+.steps li.on button{background:var(--stage);border-color:var(--line)}
+.steps li.on .n{background:var(--magma);color:#fff}
+.steps li.on .dd{display:block;color:var(--ink)}
+.steps li.past .n{background:var(--navy);color:var(--on-navy)}
+.key{border-radius:10px;background:var(--navy);color:var(--on-navy);padding:12px 14px;font-size:15px}
+.key b{display:block;font-size:17px;margin-bottom:2px}
+.src{font-size:12px;color:var(--muted)}
+
+@media (max-width:900px){ .stage-wrap{grid-template-columns:minmax(0,1fr)} }
+@media (max-width:720px){ .panels{grid-template-columns:minmax(0,1fr)} .readout dd{font-size:16px} }
+@media (prefers-reduced-motion: reduce){ *{scroll-behavior:auto} }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header>
+    <div>
+      <div class="eyebrow">지구과학Ⅱ · 마그마 생성과 화성암</div>
+      <h1>화성암 탄생 실험실</h1>
+    </div>
+    <div class="head-right">
+      <span class="hint" id="kbdHint"><kbd>Space</kbd> 재생 · <kbd>←</kbd><kbd>→</kbd> 단계 이동 · <kbd>R</kbd> 처음으로</span>
+      <button class="btn ghost" id="fsBtn" type="button">전체 화면</button>
+    </div>
+  </header>
+
+  <nav aria-label="장면 선택">
+    <div class="tabgroup" role="tablist">
+      <span class="glabel">화성암의 생성</span>
+      <button class="tab" role="tab" data-view="cool" id="tab-cool">식는 곳에 따라</button>
+    </div>
+    <div class="tabgroup" role="tablist">
+      <span class="glabel">지질 구조의 형성</span>
+      <button class="tab" role="tab" data-view="columnar" id="tab-columnar">주상 절리</button>
+      <button class="tab" role="tab" data-view="sheeting" id="tab-sheeting">판상 절리</button>
+      <button class="tab" role="tab" data-view="intrusion" id="tab-intrusion">관입</button>
+      <button class="tab" role="tab" data-view="xenolith" id="tab-xenolith">포획</button>
+    </div>
+  </nav>
+
+  <!-- ===== cooling ===== -->
+  <section class="view" id="view-cool">
+    <div class="controls">
+      <div class="ctl-left">
+        <span class="ctl-label">마그마 종류</span>
+        <div class="seg" role="radiogroup" aria-label="마그마 종류" id="compSeg"></div>
+      </div>
+      <div class="ctl-left">
+        <button class="btn primary" id="coolPlay" type="button">▶ 냉각 시작</button>
+        <button class="btn" id="coolReset" type="button">↺ 처음으로</button>
+      </div>
+    </div>
+    <p class="prompt" id="coolPrompt">같은 <em>현무암질 마그마</em>가 어디에서 식느냐에 따라 어떤 암석이 될까?</p>
+    <div class="panels">
+      <article class="panel" id="pDeep">
+        <div class="panel-head"><span class="tag deep">지하 깊은 곳</span><h3>천천히 식는다</h3></div>
+        <canvas class="cv-cool" id="cvDeep" aria-label="지하 깊은 곳에서 마그마가 식으며 결정이 자라는 모습"></canvas>
+        <dl class="readout">
+          <div><dt>온도</dt><dd data-k="temp">–</dd><div class="meter"><i data-k="meter"></i></div></div>
+          <div><dt>경과 시간 (어림)</dt><dd data-k="time">–</dd></div>
+          <div><dt>결정 수</dt><dd data-k="count">0</dd></div>
+        </dl>
+        <div class="result wait" data-k="result"><strong>?</strong><span>냉각이 끝나면 암석 이름이 나타납니다</span></div>
+      </article>
+      <article class="panel" id="pSurf">
+        <div class="panel-head"><span class="tag">지표 부근</span><h3>빨리 식는다</h3></div>
+        <canvas class="cv-cool" id="cvSurf" aria-label="지표 부근에서 용암이 식으며 결정이 생기는 모습"></canvas>
+        <dl class="readout">
+          <div><dt>온도</dt><dd data-k="temp">–</dd><div class="meter"><i data-k="meter"></i></div></div>
+          <div><dt>경과 시간 (어림)</dt><dd data-k="time">–</dd></div>
+          <div><dt>결정 수</dt><dd data-k="count">0</dd></div>
+        </dl>
+        <div class="result wait" data-k="result"><strong>?</strong><span>냉각이 끝나면 암석 이름이 나타납니다</span></div>
+      </article>
+    </div>
+    <div class="table-wrap">
+      <table class="cls" id="clsTable" aria-label="화성암 분류표"></table>
+    </div>
+    <p class="src">온도와 시간은 이해를 돕기 위한 어림값입니다. 기준: 교과서 116~117쪽 화성암 분류(그림 20).</p>
+  </section>
+
+  <!-- ===== structures ===== -->
+  <section class="view" id="view-structure" hidden>
+    <div class="stage-wrap">
+      <div class="stage-card">
+        <canvas class="cv-stage" id="cvStage" aria-label="지질 구조 형성 과정 애니메이션"></canvas>
+        <div class="transport">
+          <button class="btn" id="bPrev" type="button">◀ 이전</button>
+          <button class="btn primary" id="bNext" type="button">다음 단계 ▶</button>
+          <button class="btn" id="bPlay" type="button">⏵ 전체 재생</button>
+          <button class="btn" id="bReset" type="button">↺</button>
+          <input type="range" id="scrub" min="0" max="4" step="0.01" value="0" aria-label="진행 위치">
+        </div>
+      </div>
+      <aside class="steps">
+        <h2 id="sTitle">주상 절리</h2>
+        <span class="cause" id="sCause">원인: 수축</span>
+        <ol id="sSteps"></ol>
+        <div class="key" id="sKey"></div>
+      </aside>
+    </div>
+  </section>
+</div>
+
+<script>
+(() => {
+/* ---------- helpers ---------- */
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+const lerp=(a,b,t)=>a+(b-a)*t;
+const seg=(t,a,b)=>clamp((t-a)/(b-a),0,1);
+const ease=x=>x*x*(3-2*x);
+const bump=(t,a,b,f=.25)=>Math.max(0,Math.min(seg(t,a,a+f),1-seg(t,b-f,b)));
+const mix=(c1,c2,t)=>c1.map((v,i)=>Math.round(lerp(v,c2[i],t)));
+const rgb=c=>`rgb(${c[0]|0},${c[1]|0},${c[2]|0})`;
+function rng(seed){return function(){seed|=0;seed=seed+0x6D2B79F5|0;let t=Math.imul(seed^seed>>>15,1|seed);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+const reduceMotion=matchMedia('(prefers-reduced-motion: reduce)').matches;
+const FONT='"IBM Plex Sans KR","Malgun Gothic",sans-serif';
+
+const TOK={};
+function readTokens(){const cs=getComputedStyle(document.documentElement);['ink','muted','surface','stage','sky','line','magma','navy','gold'].forEach(k=>TOK[k]=cs.getPropertyValue('--'+k).trim());}
+readTokens();
+
+const stages=[];
+function makeStage(canvas,W,H,draw){
+  const ctx=canvas.getContext('2d');const st={canvas,ctx,W,H,scale:1};
+  st.render=()=>{ctx.setTransform(st.scale,0,0,st.scale,0,0);ctx.clearRect(0,0,W,H);draw(ctx);};
+  st.resize=()=>{const r=canvas.getBoundingClientRect();if(!r.width)return;const dpr=window.devicePixelRatio||1;const w=Math.round(r.width*dpr),h=Math.round(w*H/W);if(canvas.width!==w||canvas.height!==h){canvas.width=w;canvas.height=h;}st.scale=w/W;st.render();};
+  new ResizeObserver(st.resize).observe(canvas);stages.push(st);return st;
+}
+function rr(ctx,x,y,w,h,r){ctx.beginPath();ctx.moveTo(x+r,y);ctx.arcTo(x+w,y,x+w,y+h,r);ctx.arcTo(x+w,y+h,x,y+h,r);ctx.arcTo(x,y+h,x,y,r);ctx.arcTo(x,y,x+w,y,r);ctx.closePath();}
+function pill(ctx,text,x,y,o={}){
+  const a=o.alpha??1;if(a<=0)return;const size=o.size||18;
+  ctx.save();ctx.globalAlpha*=a;ctx.font=`700 ${size}px ${FONT}`;
+  const w=ctx.measureText(text).width+size*1.2,h=size*1.8;const x0=o.align==='left'?x:o.align==='right'?x-w:x-w/2;
+  rr(ctx,x0,y-h/2,w,h,h/2);ctx.fillStyle=o.fill||TOK.surface;ctx.fill();
+  if(o.border!==false){ctx.strokeStyle=o.border||TOK.line;ctx.lineWidth=1.5;ctx.stroke();}
+  ctx.fillStyle=o.color||TOK.ink;ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(text,x0+w/2,y+1);ctx.restore();
+  return {x0,w,h};
+}
+function text(ctx,s,x,y,o={}){ctx.save();ctx.globalAlpha*=(o.alpha??1);ctx.font=`${o.weight||700} ${o.size||17}px ${FONT}`;ctx.fillStyle=o.color||TOK.ink;ctx.textAlign=o.align||'left';ctx.textBaseline='middle';ctx.fillText(s,x,y);ctx.restore();}
+function arrow(ctx,x1,y1,x2,y2,o={}){
+  const a0=o.alpha??1;if(a0<=0)return;const head=o.head||14,col=o.color||'#E0552B';
+  ctx.save();ctx.globalAlpha*=a0;ctx.strokeStyle=col;ctx.fillStyle=col;ctx.lineWidth=o.width||5;ctx.lineCap='round';
+  const a=Math.atan2(y2-y1,x2-x1);ctx.beginPath();ctx.moveTo(x1,y1);ctx.lineTo(x2-Math.cos(a)*head*.7,y2-Math.sin(a)*head*.7);ctx.stroke();
+  ctx.beginPath();ctx.moveTo(x2,y2);ctx.lineTo(x2-Math.cos(a-.5)*head,y2-Math.sin(a-.5)*head);ctx.lineTo(x2-Math.cos(a+.5)*head,y2-Math.sin(a+.5)*head);ctx.closePath();ctx.fill();ctx.restore();
+}
+function leader(ctx,x1,y1,x2,y2,alpha){if(alpha<=0)return;ctx.save();ctx.globalAlpha*=alpha;ctx.strokeStyle=TOK.ink;ctx.lineWidth=2;ctx.setLineDash([5,4]);ctx.beginPath();ctx.moveTo(x1,y1);ctx.lineTo(x2,y2);ctx.stroke();ctx.setLineDash([]);ctx.fillStyle=TOK.ink;ctx.beginPath();ctx.arc(x2,y2,4,0,7);ctx.fill();ctx.restore();}
+
+const HOT=[255,126,30],MID=[212,70,28],CRUST=[56,46,42],BASALT=[66,65,69],IGN=[78,78,86];
+
+/* granite texture */
+const graniteCanvas=(()=>{const c=document.createElement('canvas');c.width=c.height=180;const g=c.getContext('2d');const r=rng(7);g.fillStyle='#D6B3A1';g.fillRect(0,0,180,180);
+  for(let i=0;i<340;i++){const x=r()*180,y=r()*180,s=2+r()*6,k=r();g.fillStyle=k<.17?'#2A2421':k<.45?'#F2EDE7':k<.7?'#B7B3B1':'#E3A48C';g.beginPath();g.ellipse(x,y,s,s*(.45+r()*.6),r()*3,0,7);g.fill();}return c;})();
+const granitePat=document.createElement('canvas').getContext('2d').createPattern(graniteCanvas,'repeat');
+function setPat(dx,dy){try{granitePat.setTransform(new DOMMatrix([1,0,0,1,dx,dy]));}catch(e){}}
+
+/* =====================================================
+   1. COOLING COMPARISON
+   ===================================================== */
+const COMPS={
+  basaltic:{label:'현무암질',sio2:'SiO₂ 52% 이하',T:[1200,1000],deep:'반려암',surf:'현무암',glass:[30,28,29],dark:.62,ves:12,
+    minerals:[{n:'사장석',c:[202,199,191],w:.45,asp:2.6},{n:'휘석',c:[38,40,38],w:.47,asp:1.4},{n:'감람석',c:[82,96,52],w:.08,asp:1.1}]},
+  andesitic:{label:'안산암질',sio2:'SiO₂ 52~63%',T:[1050,850],deep:'섬록암',surf:'안산암',glass:[70,68,68],dark:.78,ves:6,
+    minerals:[{n:'사장석',c:[216,213,205],w:.55,asp:2.4},{n:'각섬석',c:[32,32,32],w:.3,asp:2.1},{n:'휘석',c:[58,60,58],w:.1,asp:1.3},{n:'흑운모',c:[48,38,28],w:.05,asp:1.2}]},
+  rhyolitic:{label:'유문암질',sio2:'SiO₂ 63% 이상',T:[850,700],deep:'화강암',surf:'유문암',glass:[190,176,170],dark:.93,ves:3,
+    minerals:[{n:'석영',c:[188,193,198],w:.3,asp:1.1},{n:'정장석',c:[226,168,148],w:.35,asp:1.5},{n:'사장석',c:[238,236,230],w:.25,asp:2},{n:'흑운모',c:[26,23,21],w:.1,asp:1.3}]}
+};
+const GW=120,GH=70,DUR=8;
+function pick(ms,r){let x=r(),acc=0;for(const m of ms){acc+=m.w;if(x<=acc)return m;}return ms[ms.length-1];}
+
+class CoolPanel{
+  constructor(mode,canvas,root){
+    this.mode=mode;this.deep=mode==='deep';this.root=root;
+    this.off=document.createElement('canvas');this.off.width=GW;this.off.height=GH;this.octx=this.off.getContext('2d');this.img=this.octx.createImageData(GW,GH);
+    this.el=k=>root.querySelector(`[data-k="${k}"]`);
+    this.stage=makeStage(canvas,480,450,ctx=>this.draw(ctx));
+  }
+  reset(comp){
+    this.comp=comp;this.p=0;this.done=false;this.cells=new Int16Array(GW*GH).fill(-1);this.seeds=[];
+    const r=rng(this.deep?11:23);this.noise=new Float32Array(GW*GH).map(()=>(r()-.5)*14);
+    const N=this.deep?42:620;this.speed=this.deep?20:5.4;const nucEnd=this.deep?.55:.3;
+    this.plan=[];for(let i=0;i<N;i++){const m=pick(comp.minerals,r);const sh=(r()-.5)*18;
+      this.plan.push({x:r()*GW,y:r()*GH,pt:nucEnd*Math.pow(r(),this.deep?1:.8),ang:r()*Math.PI,asp:1+(m.asp-1)*(.6+r()*.5),col:m.c.map(v=>clamp(v+sh,0,255))});}
+    this.plan.sort((a,b)=>a.pt-b.pt);this.next=0;
+    if(!this.deep){for(let v=0;v<comp.ves;v++){const cx=r()*GW,cy=r()*GH,rad=1.2+r()*2.2;
+      for(let y=Math.floor(cy-rad);y<=cy+rad;y++)for(let x=Math.floor(cx-rad);x<=cx+rad;x++){if(x<0||y<0||x>=GW||y>=GH)continue;if((x-cx)**2+(y-cy)**2<=rad*rad)this.cells[y*GW+x]=-2;}}}
+    this.paint();this.ui();this.stage.render();
+  }
+  step(p){
+    this.p=p;
+    while(this.next<this.plan.length&&this.plan[this.next].pt<=p){const s=this.plan[this.next++];const idx=s.y|0;const c=this.cells[(Math.min(GH-1,s.y|0))*GW+(Math.min(GW-1,s.x|0))];if(c!==-1&&idx>=0)continue;s.id=this.seeds.length;this.seeds.push(s);}
+    const cells=this.cells;
+    for(const s of this.seeds){if(s.full)continue;const rad=(p-s.pt)*this.speed+.6;const R=rad*s.asp;
+      const x0=Math.max(0,Math.floor(s.x-R)),x1=Math.min(GW-1,Math.ceil(s.x+R)),y0=Math.max(0,Math.floor(s.y-R)),y1=Math.min(GH-1,Math.ceil(s.y+R));
+      const c=Math.cos(s.ang),sn=Math.sin(s.ang);let melt=false;
+      for(let y=y0;y<=y1;y++)for(let x=x0;x<=x1;x++){const i=y*GW+x;if(cells[i]!==-1)continue;const dx=x+.5-s.x,dy=y+.5-s.y;const u=dx*c+dy*sn,v=-dx*sn+dy*c;
+        if((u/s.asp)**2+v*v<=rad*rad)cells[i]=s.id;else melt=true;}
+      if(!melt&&R>3)s.full=true;}
+    if(p>=1&&!this.done)this.finish();
+    this.paint();this.ui();this.stage.render();
+  }
+  finish(){
+    this.done=true;const cells=this.cells;
+    for(let i=0;i<cells.length;i++){if(cells[i]!==-1)continue;
+      if(this.deep){const x=i%GW+.5,y=(i/GW|0)+.5;let best=0,bd=1e9;for(const s of this.seeds){const d=(s.x-x)**2+(s.y-y)**2;if(d<bd){bd=d;best=s.id;}}cells[i]=best;}
+      else cells[i]=-3;}
+  }
+  paint(){
+    const d=this.img.data,cells=this.cells,comp=this.comp,p=this.p;const k=this.deep?1:comp.dark,edge=this.deep?.82:.9;
+    const melt=mix([255,150,52],[178,64,26],ease(Math.min(1,p*1.1)));const now=performance.now()/300;
+    for(let y=0;y<GH;y++)for(let x=0;x<GW;x++){const i=y*GW+x,v=cells[i],n=this.noise[i];let r,g,b;
+      if(v===-1){const fl=Math.sin(x*.7+y*.5+now)*10;r=melt[0]+n+fl;g=melt[1]+n*.6+fl*.5;b=melt[2];}
+      else if(v===-2){r=24;g=19;b=19;}
+      else if(v===-3){const gl=comp.glass;r=gl[0]+n*.5;g=gl[1]+n*.5;b=gl[2]+n*.5;}
+      else{const s=this.seeds[v];r=s.col[0]*k+n*.6;g=s.col[1]*k+n*.6;b=s.col[2]*k+n*.6;
+        const rt=x<GW-1?cells[i+1]:v,bt=y<GH-1?cells[i+GW]:v;if(rt!==v||bt!==v){r*=edge;g*=edge;b*=edge;}}
+      const o=i*4;d[o]=r;d[o+1]=g;d[o+2]=b;d[o+3]=255;}
+    this.octx.putImageData(this.img,0,0);
+    // average rock color for mini map
+    if(this.seeds.length){let ar=0,ag=0,ab=0;for(const s of this.seeds){ar+=s.col[0];ag+=s.col[1];ab+=s.col[2];}const L=this.seeds.length;this.rock=[ar/L*k,ag/L*k,ab/L*k];}
+  }
+  draw(ctx){
+    const p=this.p,W=480;const rockC=this.rock||[80,80,80];const stateC=mix(mix([255,140,40],[200,70,30],p),rockC,ease(seg(p,.35,1)));
+    // mini cross-section
+    ctx.save();rr(ctx,0,0,W,150,10);ctx.clip();
+    ctx.fillStyle=TOK.sky;ctx.fillRect(0,0,W,48);
+    const bands=['#B99E7A','#A68A6B','#917862','#7C6654'];bands.forEach((c,i)=>{ctx.fillStyle=c;ctx.fillRect(0,48+i*25.5,W,26);});
+    if(this.deep){
+      ctx.fillStyle=rgb(stateC);ctx.beginPath();ctx.ellipse(240,122,82,21,0,0,7);ctx.fill();
+      ctx.strokeStyle='rgba(0,0,0,.35)';ctx.lineWidth=1.5;ctx.stroke();
+      pill(ctx,'지하 깊은 곳 · 수 km',240,84,{size:15});
+    }else{
+      ctx.strokeStyle='rgba(255,120,40,.7)';ctx.lineWidth=4;ctx.beginPath();ctx.moveTo(240,150);ctx.lineTo(240,24);ctx.stroke();
+      ctx.fillStyle='#6E5A4B';ctx.beginPath();ctx.moveTo(170,49);ctx.lineTo(228,16);ctx.lineTo(252,16);ctx.lineTo(310,49);ctx.closePath();ctx.fill();
+      ctx.fillStyle=rgb(stateC);ctx.beginPath();ctx.moveTo(250,18);ctx.quadraticCurveTo(290,30,300,42);ctx.lineTo(410,42);ctx.quadraticCurveTo(420,47,410,52);ctx.lineTo(260,52);ctx.quadraticCurveTo(270,36,244,22);ctx.closePath();ctx.fill();
+      pill(ctx,'지표 부근 · 용암',120,92,{size:15});
+    }
+    ctx.restore();
+    // magnifier guides
+    ctx.save();ctx.strokeStyle=TOK.muted;ctx.lineWidth=1.3;ctx.setLineDash([4,4]);ctx.beginPath();
+    if(this.deep){ctx.moveTo(160,124);ctx.lineTo(4,166);ctx.moveTo(320,124);ctx.lineTo(476,166);}else{ctx.moveTo(300,52);ctx.lineTo(4,166);ctx.moveTo(410,52);ctx.lineTo(476,166);}
+    ctx.stroke();ctx.restore();
+    // texture
+    ctx.save();rr(ctx,0,166,W,280,10);ctx.clip();ctx.imageSmoothingEnabled=false;ctx.drawImage(this.off,0,166,W,280);ctx.restore();
+    ctx.save();rr(ctx,0,166,W,280,10);ctx.strokeStyle=TOK.line;ctx.lineWidth=2;ctx.stroke();ctx.restore();
+    pill(ctx,'확대해 본 모습',12,188,{size:13,align:'left'});
+  }
+  ui(){
+    const c=this.comp,p=this.p;const T=Math.round(lerp(c.T[0],c.T[1],p));
+    this.el('temp').textContent=`${T.toLocaleString('ko-KR')}°C`;this.el('meter').style.width=`${Math.round(lerp(100,12,p))}%`;
+    this.el('time').textContent=this.deep?`${Math.round(p*100000).toLocaleString('ko-KR')}년`:`${Math.round(p*20)}일`;
+    this.el('count').textContent=this.seeds.length.toLocaleString('ko-KR');
+    const res=this.el('result');
+    if(this.done){res.className='result';const name=this.deep?c.deep:c.surf;
+      const desc=this.deep?'조립질 · 결정이 크다 → 천천히 식었다':'세립질 · 결정이 작다 → 빨리 식었다';
+      const extra=!this.deep&&c===COMPS.basaltic?'<br>검은 구멍은 화산 가스가 빠져나간 자리':'';
+      res.innerHTML=`<strong>${name}</strong><span>${desc}${extra}</span>`;}
+    else{res.className='result wait';res.innerHTML=`<strong>?</strong><span>${p>0?'결정이 자라는 중…':'냉각이 끝나면 암석 이름이 나타납니다'}</span>`;}
+  }
+}
+
+const deepP=new CoolPanel('deep',document.getElementById('cvDeep'),document.getElementById('pDeep'));
+const surfP=new CoolPanel('surf',document.getElementById('cvSurf'),document.getElementById('pSurf'));
+const cool={comp:'basaltic',p:0,running:false,last:0};
+const compSeg=document.getElementById('compSeg');
+Object.entries(COMPS).forEach(([k,c])=>{const b=document.createElement('button');b.type='button';b.setAttribute('role','radio');b.id='comp-'+k;b.dataset.k=k;b.innerHTML=`${c.label}<small>${c.sio2}</small>`;b.onclick=()=>setComp(k);compSeg.appendChild(b);});
+const playB=document.getElementById('coolPlay');
+function buildTable(){
+  const t=document.getElementById('clsTable');const keys=Object.keys(COMPS);const done=deepP.done;
+  let h='<thead><tr><th>구분</th>'+keys.map(k=>`<th class="${k===cool.comp?'cur':''}"><button type="button" data-k="${k}">${COMPS[k].label}<small>${COMPS[k].sio2}</small></button></th>`).join('')+'</tr></thead><tbody>';
+  h+='<tr><th>화산암<small>세립질 · 지표 부근에서 빨리 식음</small></th>'+keys.map(k=>`<td class="${k===cool.comp?(done?'done':'cur'):''}">${COMPS[k].surf}</td>`).join('')+'</tr>';
+  h+='<tr><th>심성암<small>조립질 · 지하 깊은 곳에서 천천히 식음</small></th>'+keys.map(k=>`<td class="${k===cool.comp?(done?'done':'cur'):''}">${COMPS[k].deep}</td>`).join('')+'</tr></tbody>';
+  t.innerHTML=h;t.querySelectorAll('thead button').forEach(b=>b.onclick=()=>setComp(b.dataset.k));
+}
+function coolUI(){
+  compSeg.querySelectorAll('button').forEach(b=>b.setAttribute('aria-checked',b.dataset.k===cool.comp));
+  playB.textContent=cool.running?'❚❚ 일시 정지':cool.p>=1?'▶ 다시 보기':cool.p>0?'▶ 이어서':'▶ 냉각 시작';
+  document.getElementById('coolPrompt').innerHTML=`같은 <em>${COMPS[cool.comp].label} 마그마</em>가 어디에서 식느냐에 따라 어떤 암석이 될까?`;
+  buildTable();
+}
+function coolReset(){cool.running=false;cool.p=0;deepP.reset(COMPS[cool.comp]);surfP.reset(COMPS[cool.comp]);coolUI();}
+function setComp(k){cool.comp=k;coolReset();}
+function coolTick(now){
+  if(!cool.running)return;const dt=Math.min(.05,(now-cool.last)/1000);cool.last=now;
+  cool.p=Math.min(1,cool.p+dt/DUR);deepP.step(cool.p);surfP.step(cool.p);
+  if(cool.p>=1){cool.running=false;coolUI();return;}
+  requestAnimationFrame(coolTick);
+}
+function coolToggle(){
+  if(cool.running){cool.running=false;coolUI();return;}
+  if(cool.p>=1)coolReset();
+  if(reduceMotion){cool.p=1;deepP.step(1);surfP.step(1);coolUI();return;}
+  cool.running=true;cool.last=performance.now();coolUI();requestAnimationFrame(coolTick);
+}
+playB.onclick=coolToggle;document.getElementById('coolReset').onclick=coolReset;
+
+/* =====================================================
+   2. STRUCTURE SCENES
+   ===================================================== */
+const SW=960,SH=540;
+
+/* --- columnar jointing --- */
+const COL=(()=>{
+  const SX=30,SWd=440,SY=78,SHt=420,top=236,bot=386,th=bot-top;
+  const TX=500,TY=78,TW=430,TH=420;
+  const r=rng(5);
+  const cracks=[];for(let k=1;k<10;k++){const x=SX+k*44+(r()-.5)*12;const pts=[];for(let y=0;y<=th/2+2;y+=10)pts.push((r()-.5)*5);cracks.push({x,pts});}
+  // hex network (pointy-top), shared jittered vertices on a lattice
+  const R=36,hw=Math.sqrt(3)*R,verts=new Map(),cells=[],edges=new Map();
+  const V=(x,y)=>{const k=Math.round((x-TX)/(hw/2))+','+Math.round((y-TY)/(R/2));if(!verts.has(k))verts.set(k,[x+(r()-.5)*R*.4,y+(r()-.5)*R*.4]);return verts.get(k);};
+  for(let row=-1;row*1.5*R<TH+2*R;row++)for(let col=-1;col*hw<TW+2*hw;col++){
+    const cx=TX+col*hw+(row&1?hw/2:0),cy=TY+row*1.5*R;const pts=[];
+    for(let k=0;k<6;k++){const a=Math.PI/180*(60*k-30);pts.push(V(cx+R*Math.cos(a),cy+R*Math.sin(a)));}
+    const c={pts,shade:r(),cx:pts.reduce((s,p)=>s+p[0],0)/6,cy:pts.reduce((s,p)=>s+p[1],0)/6};cells.push(c);
+    for(let k=0;k<6;k++){const a=pts[k],b=pts[(k+1)%6];const key=[a,b].map(p=>p[0].toFixed(1)+':'+p[1].toFixed(1)).sort().join('|');if(!edges.has(key))edges.set(key,[a,b]);}
+  }
+  const lava=(ctx,x0,x1,y0,y1)=>{const f=Math.max(x0+30,x1);ctx.beginPath();ctx.moveTo(x0-5,y0);ctx.lineTo(f-26,y0);ctx.quadraticCurveTo(f+6,y0,f+6,(y0+y1)/2);ctx.quadraticCurveTo(f+6,y1,f-26,y1);ctx.lineTo(x0-5,y1);ctx.closePath();};
+  return {
+    id:'columnar',title:'주상 절리',cause:'원인: 수축',
+    key:'<b>빨리 식으며 줄어든다 → 기둥</b>지표에서 빨리 식는 용암(현무암)에서 잘 생긴다. 예: 제주 중문·대포 해안, 한탄강',
+    steps:[
+      ['용암이 흘러 퍼진다','지표로 분출한 뜨거운 현무암질 용암이 넓고 평평하게 흘러 퍼진다.'],
+      ['윗면과 아랫면부터 식는다','공기와 닿은 윗면, 땅과 닿은 아랫면부터 열을 빼앗기며 굳어 간다.'],
+      ['식으면서 부피가 줄어든다','굳은 용암이 수축하면서 여러 곳에 수축 중심이 생기고, 그 사이가 갈라지기 시작한다.'],
+      ['다각형 기둥이 된다','틈이 서로 이어져 위에서 보면 육각형에 가까운 다각형, 옆에서 보면 기둥 모양이 된다.']],
+    draw(ctx,t){
+      ctx.fillStyle=TOK.stage;ctx.fillRect(0,0,SW,SH);
+      text(ctx,'옆에서 본 모습 (단면)',SX,50,{size:18,color:TOK.muted});text(ctx,'위에서 본 모습',TX,50,{size:18,color:TOK.muted});
+      const s=ease(seg(t,0,1)),c=seg(t,1,2),sol=seg(t,2,2.7),f=ease(seg(t,2,3)),fin=seg(t,3,3.6);
+      const core=mix(HOT,MID,c*.7);
+      /* side view */
+      ctx.save();rr(ctx,SX,SY,SWd,SHt,14);ctx.clip();
+      ctx.fillStyle=TOK.sky;ctx.fillRect(SX,SY,SWd,SHt);ctx.fillStyle='#8C7457';ctx.fillRect(SX,bot,SWd,SY+SHt-bot);
+      ctx.fillStyle='rgba(0,0,0,.12)';for(let i=0;i<40;i++){ctx.fillRect(SX+(i*97%SWd),bot+12+(i*37%90),5,3);}
+      const front=SX+(SWd+40)*s;
+      if(s>0){
+        lava(ctx,SX,front,top,bot);ctx.save();ctx.shadowColor='rgba(255,110,30,.7)';ctx.shadowBlur=(1-c)*24;ctx.fillStyle=rgb(core);ctx.fill();ctx.restore();
+        ctx.save();lava(ctx,SX,front,top,bot);ctx.clip();
+        const d=th/2*ease(c);
+        if(d>0){let g=ctx.createLinearGradient(0,top,0,top+d+12);g.addColorStop(0,rgb(CRUST));g.addColorStop(Math.max(0,d/(d+12)),rgb(CRUST));g.addColorStop(1,`rgba(${core},0)`.replace('rgba(','rgba('));
+          ctx.fillStyle=rgb(CRUST);ctx.fillRect(SX,top,SWd+60,d);ctx.fillRect(SX,bot-d,SWd+60,d);}
+        if(sol>0){ctx.globalAlpha=sol;ctx.fillStyle=rgb(BASALT);ctx.fillRect(SX,top,SWd+60,th);ctx.globalAlpha=1;}
+        if(fin>0){cracks.forEach((cr,i)=>{if(i%2)return;const nx=cracks[i+1]?cracks[i+1].x:SX+SWd;ctx.fillStyle=`rgba(255,255,255,${.07*fin})`;ctx.fillRect(cr.x,top,nx-cr.x,th);});}
+        if(f>0){ctx.strokeStyle='#141110';ctx.lineWidth=3;ctx.lineJoin='round';
+          cracks.forEach(cr=>{const L=th/2*f+1;ctx.beginPath();cr.pts.forEach((dx,j)=>{const y=j*10;if(y>L)return;j?ctx.lineTo(cr.x+dx,top+y):ctx.moveTo(cr.x+dx,top+y);});ctx.stroke();
+            ctx.beginPath();cr.pts.forEach((dx,j)=>{const y=j*10;if(y>L)return;j?ctx.lineTo(cr.x-dx,bot-y):ctx.moveTo(cr.x-dx,bot-y);});ctx.stroke();});}
+        ctx.restore();
+      }
+      const ha=bump(t,1,2.3,.3);
+      [110,250,390].forEach(x=>arrow(ctx,x,top-8,x,top-78,{alpha:ha,color:'#E0552B'}));
+      [180,320].forEach(x=>arrow(ctx,x,bot+6,x,bot+56,{alpha:ha,color:'#E0552B'}));
+      pill(ctx,'열을 빼앗긴다',SX+SWd/2,SY+36,{alpha:ha,size:17});
+      pill(ctx,'뜨거운 용암',SX+SWd/2,(top+bot)/2,{alpha:bump(t,.35,1.4,.3),size:17});
+      pill(ctx,'다각형 기둥',SX+SWd/2,SY+40,{alpha:seg(t,3.2,3.6),size:18,fill:TOK.navy,color:'#fff',border:false});
+      ctx.restore();
+      /* top view */
+      ctx.save();rr(ctx,TX,TY,TW,TH,14);ctx.clip();
+      ctx.fillStyle='#8C7457';ctx.fillRect(TX,TY,TW,TH);
+      const tf=TX+(TW+40)*s;
+      if(s>0){
+        ctx.save();ctx.beginPath();ctx.moveTo(TX-5,TY);ctx.lineTo(tf-40,TY);ctx.quadraticCurveTo(tf+10,TY+TH/2,tf-40,TY+TH);ctx.lineTo(TX-5,TY+TH);ctx.closePath();ctx.clip();
+        const tc=seg(t,1,1.8);ctx.fillStyle=rgb(mix(mix(HOT,MID,tc),CRUST,ease(tc)));ctx.fillRect(TX,TY,TW,TH);
+        if(sol>0){ctx.globalAlpha=sol;ctx.fillStyle=rgb(BASALT);ctx.fillRect(TX,TY,TW,TH);ctx.globalAlpha=1;}
+        if(fin>0){cells.forEach(cl=>{ctx.beginPath();cl.pts.forEach((p,i)=>i?ctx.lineTo(p[0],p[1]):ctx.moveTo(p[0],p[1]));ctx.closePath();ctx.fillStyle=`rgba(${cl.shade>.5?'255,255,255':'0,0,0'},${.09*fin*Math.abs(cl.shade-.5)*2})`;ctx.fill();});}
+        if(f>0){ctx.strokeStyle='#141110';ctx.lineWidth=3.2;ctx.lineCap='round';ctx.beginPath();
+          edges.forEach(([a,b])=>{const mx=(a[0]+b[0])/2,my=(a[1]+b[1])/2;ctx.moveTo(mx+(a[0]-mx)*f,my+(a[1]-my)*f);ctx.lineTo(mx+(b[0]-mx)*f,my+(b[1]-my)*f);});ctx.stroke();}
+        const ca=bump(t,2,3.5,.3);
+        if(ca>0){ctx.globalAlpha=ca;cells.forEach(cl=>{if(cl.cx<TX||cl.cx>TX+TW||cl.cy<TY||cl.cy>TY+TH)return;
+            ctx.fillStyle='#FFD166';ctx.beginPath();ctx.arc(cl.cx,cl.cy,3.5,0,7);ctx.fill();
+            for(let k=0;k<3;k++){const a=k*2.094+.5;arrow(ctx,cl.cx+Math.cos(a)*20,cl.cy+Math.sin(a)*20,cl.cx+Math.cos(a)*8,cl.cy+Math.sin(a)*8,{color:'#FFD166',width:2.2,head:6});}});
+          ctx.globalAlpha=1;}
+        ctx.restore();
+      }
+      pill(ctx,'수축 중심 → 그 사이가 갈라짐',TX+TW/2,TY+TH-34,{alpha:bump(t,2.1,3.4,.3),size:17});
+      pill(ctx,'육각형에 가까운 다각형',TX+TW/2,TY+TH-34,{alpha:seg(t,3.3,3.7),size:18,fill:TOK.navy,color:'#fff',border:false});
+      ctx.restore();
+    }
+  };
+})();
+
+/* --- sheeting joints --- */
+const SHEET={
+  id:'sheeting',title:'판상 절리',cause:'원인: 팽창 (압력 감소)',
+  key:'<b>누르던 힘이 사라져 부푼다 → 판</b>지하 깊은 곳에서 생긴 심성암(화강암)에서 잘 생긴다. 예: 서울 북한산, 설악산 울산바위',
+  steps:[
+    ['지하 깊은 곳에서 화강암이 생긴다','마그마가 지하 깊은 곳에서 천천히 식어 화강암이 된다. 위에 쌓인 암석이 큰 압력으로 누르고 있다.'],
+    ['융기하고 침식된다','땅이 솟아오르고(융기), 위의 암석이 깎여 나가면서(침식) 화강암이 지표에 드러난다.'],
+    ['누르던 압력이 줄어 팽창한다','위에서 누르던 암석이 사라지자 화강암이 바깥쪽으로 부풀어 오른다.'],
+    ['표면과 나란한 판 모양으로 갈라진다','팽창한 화강암이 지표면과 나란하게, 양파 껍질처럼 판 모양으로 갈라진다.']],
+  draw(ctx,t){
+    const surfY=200,cx=480,rx=320,ry=210;
+    const u=ease(seg(t,1,2))*330,ex=ease(seg(t,2,3)),sc=1+.025*ex,topY=430-u,cy=topY+ry;
+    ctx.fillStyle=TOK.sky;ctx.fillRect(0,0,SW,SH);
+    // strata moving up with uplift, removed above surface (erosion)
+    ctx.save();ctx.beginPath();ctx.rect(0,surfY,SW,SH-surfY);ctx.clip();
+    const cols=['#B59A78','#9C8468','#C3AE8C','#8A735C','#A88F72'];
+    for(let i=0;i<30;i++){const y0=surfY+i*46-u;if(y0>SH)break;if(y0+46<surfY)continue;ctx.fillStyle=cols[i%5];ctx.fillRect(0,y0,SW,47);}
+    ctx.restore();
+    ctx.fillStyle='#6E8F4E';ctx.fillRect(0,surfY-4,SW,5);
+    // granite body
+    const m=seg(t,0,.9);
+    ctx.save();ctx.translate(cx,cy);ctx.scale(sc,sc);ctx.beginPath();ctx.ellipse(0,0,rx,ry,0,0,Math.PI*2);ctx.restore();
+    ctx.save();ctx.shadowColor='rgba(255,110,30,.8)';ctx.shadowBlur=(1-m)*30;ctx.fillStyle=rgb(mix(HOT,MID,m));ctx.fill();ctx.restore();
+    ctx.save();ctx.globalAlpha=m;setPat(0,-u);ctx.fillStyle=granitePat;ctx.fill();ctx.restore();
+    ctx.save();ctx.strokeStyle='rgba(40,25,20,.45)';ctx.lineWidth=2;ctx.stroke();ctx.restore();
+    // sheeting cracks
+    const span=Math.PI/2-.32;
+    ctx.save();ctx.translate(cx,cy);ctx.scale(sc,sc);ctx.beginPath();ctx.ellipse(0,0,rx,ry,0,0,Math.PI*2);ctx.restore();ctx.save();ctx.clip();
+    [14,32,54,80].forEach((d,i)=>{const f=ease(seg(t,3+i*.14,3.5+i*.14));if(f<=0)return;
+      ctx.strokeStyle='#3A2C28';ctx.lineWidth=3.2;ctx.beginPath();ctx.ellipse(cx,cy,rx*sc-d,ry*sc-d,0,1.5*Math.PI-span*f,1.5*Math.PI+span*f);ctx.stroke();
+      ctx.strokeStyle='rgba(255,255,255,.35)';ctx.lineWidth=1.2;ctx.beginPath();ctx.ellipse(cx,cy,rx*sc-d-2.5,ry*sc-d-2.5,0,1.5*Math.PI-span*f,1.5*Math.PI+span*f);ctx.stroke();});
+    ctx.restore();
+    // pressure arrows from overburden
+    const ob=topY-surfY;const pa=t<2.2?clamp((ob-40)/120,0,1)*(1-seg(t,1.9,2.2)):0;
+    if(pa>0){[380,480,580].forEach(x=>arrow(ctx,x,surfY+10,x,topY-14,{alpha:pa,color:'#1B2A4A',width:6,head:16}));
+      pill(ctx,'위에서 누르는 암석의 압력',480,surfY+ob*.45,{alpha:pa,size:17});}
+    pill(ctx,'천천히 식는 마그마 → 화강암',480,topY+100,{alpha:bump(t,0,1.25,.3),size:18});
+    // uplift + erosion
+    const ua=bump(t,1,2.2,.3);arrow(ctx,90,500,90,330,{alpha:ua,color:'#E0552B',width:8,head:22});pill(ctx,'융기',90,300,{alpha:ua,size:18});
+    pill(ctx,'침식: 위의 암석이 깎여 나감',760,surfY-30,{alpha:ua,size:17});
+    // expansion arrows
+    const ea=bump(t,2,3.4,.3);
+    if(ea>0){[-135,-112,-90,-68,-45].forEach(deg=>{const a=deg*Math.PI/180;const px=cx+rx*sc*Math.cos(a),py=cy+ry*sc*Math.sin(a);let nx=Math.cos(a)/rx,ny=Math.sin(a)/ry;const L=Math.hypot(nx,ny);nx/=L;ny/=L;
+      arrow(ctx,px+nx*8,py+ny*8,px+nx*50,py+ny*50,{alpha:ea,color:'#E0552B',width:5});});
+      pill(ctx,'누르던 힘이 사라져 팽창',480,34,{alpha:ea,size:18});}
+    pill(ctx,'판상 절리',cx+200,topY+70,{alpha:seg(t,3.4,3.8),size:19,fill:TOK.navy,color:'#fff',border:false});
+    pill(ctx,'예: 북한산 인수봉',cx+200,topY+110,{alpha:seg(t,3.5,3.9),size:15});
+  }
+};
+
+/* --- intrusion --- */
+const INTR=(()=>{
+  const LY=[424,348,272,196,120],LH=76;const LC=['#B08C68','#CDB78E','#9D8E7B','#D6C59D','#A9967D'];
+  const r=rng(9);const marks=LY.map(()=>Array.from({length:70},()=>[r()*960,r()*LH,r()]));
+  const dk=[[410,500],[470,500],[590,168],[540,168]];
+  const edgeX=(side,y)=>{const a=side?dk[1]:dk[0],b=side?dk[2]:dk[3];return lerp(a[0],b[0],(a[1]-y)/(a[1]-b[1]));};
+  function dikePath(ctx,top){ctx.beginPath();ctx.moveTo(dk[0][0],dk[0][1]+2);ctx.lineTo(dk[1][0],dk[1][1]+2);ctx.lineTo(edgeX(1,top),top);ctx.quadraticCurveTo((edgeX(0,top)+edgeX(1,top))/2,top-16,edgeX(0,top),top);ctx.closePath();}
+  function sillPath(ctx,len){const y=310,x0=edgeX(1,y)-4,x1=x0+len;ctx.beginPath();ctx.moveTo(x0,y-12);ctx.lineTo(x1-12,y-12);ctx.quadraticCurveTo(x1+4,y,x1-12,y+12);ctx.lineTo(x0,y+12);ctx.closePath();}
+  return {
+    id:'intrusion',title:'관입',cause:'뚫고 들어온 쪽이 나중',
+    key:'<b>관입당한 지층 → 관입암</b>뚫고 들어온 관입암이 뚫린 지층보다 나중에 생겼다.',
+    steps:[
+      ['지층이 먼저 쌓여 있다','지층이 차례로 쌓인다. 아래 지층일수록 먼저 쌓였다.'],
+      ['마그마가 틈을 따라 들어온다','지층을 가로질러 들어가면 암맥, 지층 사이로 나란히 들어가면 암상이라고 한다.'],
+      ['식어서 관입암이 된다','들어온 마그마가 지하에서 식어 굳는다. 맞닿은 주변 암석은 열을 받아 변하기도 한다.'],
+      ['누가 먼저일까?','지층이 먼저 있었고, 그 지층을 뚫고 들어온 관입암이 나중에 생겼다.']],
+    draw(ctx,t){
+      ctx.fillStyle=TOK.sky;ctx.fillRect(0,0,SW,SH);ctx.fillStyle='#6E5E50';ctx.fillRect(0,500,SW,40);
+      LY.forEach((y,i)=>{const a=seg(t,i*.2,i*.2+.2);if(a<=0)return;const yo=y-(1-ease(a))*30;ctx.save();ctx.globalAlpha=a;ctx.fillStyle=LC[i];ctx.fillRect(0,yo,SW,LH+1);
+        ctx.fillStyle='rgba(60,40,25,.28)';marks[i].forEach(([x,yy,k])=>{if(i%2)ctx.fillRect(x,yo+yy,2.5,2.5);else ctx.fillRect(x,yo+yy,9,1.6);});ctx.restore();
+        pill(ctx,`지층 ${i+1}`,64,yo+LH/2,{alpha:a,size:14});});
+      const f=ease(seg(t,1,1.75)),g=ease(seg(t,1.45,2)),cf=ease(seg(t,2,2.8)),baked=seg(t,2,2.8);
+      const top=500-f*332;const len=g*330;const col=rgb(mix(HOT,IGN,cf));
+      if(f>0){
+        if(baked>0){ctx.save();ctx.strokeStyle=`rgba(70,40,25,${.5*baked})`;ctx.lineWidth=14;ctx.lineJoin='round';dikePath(ctx,top);ctx.stroke();if(len>0){sillPath(ctx,len);ctx.stroke();}ctx.restore();}
+        ctx.save();ctx.shadowColor='rgba(255,110,30,.85)';ctx.shadowBlur=(1-cf)*26;ctx.fillStyle=col;dikePath(ctx,top);ctx.fill();if(len>0){sillPath(ctx,len);ctx.fill();}ctx.restore();
+        if(cf>0){ctx.save();ctx.globalAlpha=cf*.6;ctx.fillStyle='rgba(255,255,255,.12)';for(let i=0;i<60;i++){const y=500-((i*53)%330),x=edgeX(0,y)+((i*29)%40)+8;if(y>top)ctx.fillRect(x,y,3,3);}ctx.restore();}
+      }
+      arrow(ctx,edgeX(1,top)+40,Math.min(470,top+120),edgeX(1,top)+40,Math.min(470,top+120)-90,{alpha:bump(t,1,1.9,.25),color:'#E0552B'});
+      pill(ctx,'마그마',edgeX(1,Math.max(top,200))+90,Math.max(top,200)+30,{alpha:bump(t,1.05,2,.25),size:17});
+      pill(ctx,'열을 받아 변한 부분',300,450,{alpha:bump(t,2.2,3.3,.3),size:16});
+      const la=seg(t,2.9,3.3);
+      leader(ctx,660,90,575,200,la);pill(ctx,'암맥: 지층을 가로지름',660,90,{alpha:la,size:17,align:'left'});
+      leader(ctx,800,250,760,306,la);pill(ctx,'암상: 지층과 나란함',800,250,{alpha:la,size:17,align:'left'});
+      const oa=seg(t,3.3,3.7);
+      pill(ctx,'먼저',220,462,{alpha:oa,size:17,fill:TOK.gold,color:'#fff',border:false});
+      pill(ctx,'나중',505,412,{alpha:oa,size:17,fill:'#E0552B',color:'#fff',border:false});
+      pill(ctx,'생성 순서:  지층  →  관입암',300,40,{alpha:oa,size:20,fill:TOK.navy,color:'#fff',border:false});
+    }
+  };
+})();
+
+/* --- xenolith --- */
+const XENO=(()=>{
+  const BC=['#8D9087','#A5A89D','#777A73','#B1B3A8'],BH=34;
+  const left=y=>lerp(300,360,(540-y)/350),right=y=>lerp(660,600,(540-y)/350);
+  function conduit(ctx,top){const tt=Math.max(top,190);ctx.beginPath();ctx.moveTo(300,545);ctx.lineTo(left(tt),tt);ctx.quadraticCurveTo(480,tt-100,right(tt),tt);ctx.lineTo(660,545);ctx.closePath();}
+  const r=rng(3);
+  const F=[[322,292,420,334],[634,252,548,300],[480,128,468,236],[318,428,402,452],[650,385,560,430]].map(([x,y,tx,ty],i)=>{
+    const pts=[];const n=6;for(let k=0;k<n;k++){const a=k/n*Math.PI*2+r()*.5;const d=22+r()*12;pts.push([Math.cos(a)*d,Math.sin(a)*d*.85]);}
+    return {x,y,tx,ty,rot:(r()-.5)*1.6,pts,i};});
+  function poly(ctx,pts){ctx.beginPath();pts.forEach((p,i)=>i?ctx.lineTo(p[0],p[1]):ctx.moveTo(p[0],p[1]));ctx.closePath();}
+  return {
+    id:'xenolith',title:'포획',cause:'갇힌 쪽이 먼저',
+    key:'<b>포획암 → 포획한 화성암</b>마그마 속에 갇힌 포획암이 그것을 품은 화성암보다 먼저 생겼다.',
+    steps:[
+      ['마그마가 밀고 올라온다','마그마가 주변 암석을 밀어내며 위로 올라온다.'],
+      ['주변 암석 조각이 떨어진다','깨진 주변 암석 조각이 떨어져 마그마 속으로 들어간다.'],
+      ['마그마가 식어 굳는다','조각은 녹지 않고 그대로 갇힌다. 이렇게 갇힌 암석 조각이 포획암이다.'],
+      ['누가 먼저일까?','포획암(주변 암석)이 먼저 있었고, 그것을 품은 화성암이 나중에 생겼다.']],
+    draw(ctx,t){
+      for(let y=0;y<SH;y+=BH){ctx.fillStyle=BC[(y/BH)%4];ctx.fillRect(0,y,SW,BH+1);}
+      const top=lerp(560,190,ease(seg(t,0,1)));const cf=ease(seg(t,2,2.8));const mcol=rgb(mix(HOT,MID,.15));
+      // holes left by detached fragments
+      F.forEach(fr=>{const mv=seg(t,1.15+fr.i*.12,1.75+fr.i*.05);if(mv<=0)return;ctx.save();ctx.translate(fr.x,fr.y);poly(ctx,fr.pts.map(p=>[p[0]*1.08,p[1]*1.08]));ctx.restore();ctx.fillStyle=mcol;ctx.fill();if(cf>0){ctx.save();ctx.globalAlpha=cf;setPat(0,0);ctx.fillStyle=granitePat;ctx.fill();ctx.restore();}});
+      if(top<545){conduit(ctx,top);ctx.save();ctx.shadowColor='rgba(255,110,30,.85)';ctx.shadowBlur=(1-cf)*30;ctx.fillStyle=mcol;ctx.fill();ctx.restore();
+        if(cf>0){ctx.save();ctx.globalAlpha=cf;setPat(0,0);ctx.fillStyle=granitePat;ctx.fill();ctx.restore();}
+        ctx.save();ctx.strokeStyle='rgba(40,25,20,.35)';ctx.lineWidth=2;ctx.stroke();ctx.restore();}
+      // fragments
+      F.forEach(fr=>{const ca=seg(t,1+fr.i*.08,1.2+fr.i*.08),mv=ease(seg(t,1.15+fr.i*.12,1.75+fr.i*.05));
+        if(ca<=0)return;const x=lerp(fr.x,fr.tx,mv),y=lerp(fr.y,fr.ty,mv),rot=fr.rot*mv;
+        ctx.save();ctx.translate(x,y);ctx.rotate(rot);poly(ctx,fr.pts);
+        if(mv>0){ctx.save();ctx.clip();for(let ly=-50;ly<50;ly+=2){const wy=fr.y+ly;ctx.fillStyle=BC[Math.floor(wy/BH)%4];ctx.fillRect(-50,ly,100,2.2);}ctx.restore();}
+        ctx.strokeStyle=`rgba(20,15,12,${.75*ca})`;ctx.lineWidth=2.6;ctx.setLineDash(mv>0?[]:[6,4]);ctx.stroke();ctx.setLineDash([]);ctx.restore();});
+      pill(ctx,'주변 암석',110,60,{size:17});
+      pill(ctx,'마그마',480,Math.min(500,top+90),{alpha:bump(t,.25,1.3,.3),size:18});
+      arrow(ctx,780,500,780,330,{alpha:bump(t,.1,1.2,.3),color:'#E0552B',width:7,head:20});
+      pill(ctx,'깨진 암석 조각이 떨어짐',790,200,{alpha:bump(t,1.05,2.2,.3),size:17});
+      const la=seg(t,2.9,3.3);
+      leader(ctx,760,300,F[1].tx+18,F[1].ty,la);pill(ctx,'포획암',760,300,{alpha:la,size:19,align:'left'});
+      pill(ctx,'화성암 (마그마가 굳은 암석)',480,505,{alpha:la,size:17});
+      const oa=seg(t,3.3,3.7);
+      pill(ctx,'먼저',880,300,{alpha:oa,size:16,fill:TOK.gold,color:'#fff',border:false});
+      pill(ctx,'나중',600,390,{alpha:oa,size:16,fill:'#E0552B',color:'#fff',border:false});
+      pill(ctx,'생성 순서:  포획암  →  화성암',480,130,{alpha:oa,size:20,fill:TOK.navy,color:'#fff',border:false});
+    }
+  };
+})();
+
+const SCENES={columnar:COL,sheeting:SHEET,intrusion:INTR,xenolith:XENO};
+const STEP_SEC=2.8;
+const P={scene:COL,t:0,target:0,last:0,raf:0};
+const sStage=makeStage(document.getElementById('cvStage'),SW,SH,ctx=>P.scene.draw(ctx,P.t));
+const scrub=document.getElementById('scrub'),stepsOl=document.getElementById('sSteps');
+function curStep(){const n=P.scene.steps.length;return P.t<=0?0:clamp(Math.ceil(P.t-1e-6)-1,0,n-1);}
+function renderS(){sStage.render();scrub.value=P.t;const k=curStep();
+  stepsOl.querySelectorAll('li').forEach((li,i)=>{li.classList.toggle('on',i===k);li.classList.toggle('past',i<k||(P.t>=i+1&&i!==k));});
+  document.getElementById('bPlay').textContent=P.raf?'❚❚ 멈춤':'⏵ 전체 재생';}
+function setScene(id){
+  P.scene=SCENES[id];P.t=0;P.target=0;if(P.raf){cancelAnimationFrame(P.raf);P.raf=0;}
+  document.getElementById('sTitle').textContent=P.scene.title;document.getElementById('sCause').textContent=P.scene.cause;document.getElementById('sKey').innerHTML=P.scene.key;
+  scrub.max=P.scene.steps.length;
+  stepsOl.innerHTML=P.scene.steps.map(([tt,dd],i)=>`<li><button type="button" id="step-${i}" data-i="${i}"><span class="n">${i+1}</span><span class="tt">${tt}</span><span class="dd">${dd}</span></button></li>`).join('');
+  stepsOl.querySelectorAll('button').forEach(b=>b.onclick=()=>{const i=+b.dataset.i;P.t=i;go(i+1);});
+  renderS();
+}
+function loop(now){const dt=Math.min(.05,(now-P.last)/1000);P.last=now;const dir=Math.sign(P.target-P.t);P.t+=dir*dt/STEP_SEC;
+  if(dir===0||(dir>0&&P.t>=P.target)||(dir<0&&P.t<=P.target)){P.t=P.target;P.raf=0;}else P.raf=requestAnimationFrame(loop);renderS();}
+function go(target){P.target=clamp(target,0,P.scene.steps.length);if(reduceMotion){P.t=P.target;renderS();return;}if(!P.raf){P.last=performance.now();P.raf=requestAnimationFrame(loop);}renderS();}
+function next(){if(P.raf){P.t=P.target;}go(Math.floor(P.t+1e-6)+1);}
+function prev(){if(P.raf){cancelAnimationFrame(P.raf);P.raf=0;}P.t=Math.max(0,Math.ceil(P.t-1e-6)-2);go(P.t+1);}
+function playAll(){if(P.raf){cancelAnimationFrame(P.raf);P.raf=0;P.target=P.t;renderS();return;}if(P.t>=P.scene.steps.length)P.t=0;go(P.scene.steps.length);}
+function resetS(){if(P.raf){cancelAnimationFrame(P.raf);P.raf=0;}P.t=0;P.target=0;renderS();}
+document.getElementById('bNext').onclick=next;document.getElementById('bPrev').onclick=prev;document.getElementById('bPlay').onclick=playAll;document.getElementById('bReset').onclick=resetS;
+scrub.oninput=()=>{if(P.raf){cancelAnimationFrame(P.raf);P.raf=0;}P.t=P.target=+scrub.value;renderS();};
+
+/* ---------- views ---------- */
+const VIEWS=['cool','columnar','sheeting','intrusion','xenolith'];let view='cool';
+function show(v){if(!VIEWS.includes(v))v='cool';view=v;
+  document.querySelectorAll('.tab').forEach(b=>b.setAttribute('aria-selected',b.dataset.view===v));
+  document.getElementById('view-cool').hidden=v!=='cool';document.getElementById('view-structure').hidden=v==='cool';
+  if(v!=='cool'){if(P.scene.id!==v)setScene(v);}
+  try{history.replaceState(null,'','#'+v);}catch(e){}
+  requestAnimationFrame(()=>stages.forEach(s=>s.resize()));}
+document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>show(b.dataset.view));
+
+document.addEventListener('keydown',e=>{
+  const tag=(e.target.tagName||'').toLowerCase();if(tag==='input')return;
+  if(e.key===' '){if(tag==='button')return;e.preventDefault();view==='cool'?coolToggle():playAll();}
+  else if(e.key==='ArrowRight'&&view!=='cool'){e.preventDefault();next();}
+  else if(e.key==='ArrowLeft'&&view!=='cool'){e.preventDefault();prev();}
+  else if(e.key==='r'||e.key==='R'){view==='cool'?coolReset():resetS();}
+});
+document.getElementById('fsBtn').onclick=()=>{try{const d=document;if(d.fullscreenElement)d.exitFullscreen();else{const p=d.documentElement.requestFullscreen?.();p&&p.catch&&p.catch(()=>{});}}catch(e){}};
+
+/* theme */
+const rerender=()=>{readTokens();stages.forEach(s=>s.render());};
+matchMedia('(prefers-color-scheme: dark)').addEventListener('change',rerender);
+new MutationObserver(rerender).observe(document.documentElement,{attributes:true,attributeFilter:['data-theme']});
+if(document.fonts&&document.fonts.ready)document.fonts.ready.then(rerender);
+
+setScene('columnar');coolReset();show((location.hash||'').slice(1));
+})();
+</script>
+</body>
+</html>
