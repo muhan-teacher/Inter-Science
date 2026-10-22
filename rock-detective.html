@@ -1,0 +1,323 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>지형 탐정 단서집</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=IBM+Plex+Mono:wght@500&family=IBM+Plex+Sans+KR:wght@400;500;700&display=swap">
+<style>
+/* Layout: a casebook. Case tabs A-D on top, then a case file: header, three clue cards, and a 3-frame story card. Answers stay sealed until the group opens them. */
+:root{
+  --bg:#ECEEF1; --surface:#FFFFFF; --sunk:#F4F5F7; --ink:#1A2130; --muted:#5A6373; --line:#D3D8DF;
+  --navy:#1B2A4A; --on-navy:#FFFFFF; --magma:#CF4520; --magma-soft:#FBE3D8; --gold:#9A740C; --gold-soft:#F6ECCC;
+  --seal:#E6E9EE; --sky:#DAE6F0; --focus:#2F6FE0;
+  --font-display:"Black Han Sans","IBM Plex Sans KR","Malgun Gothic",sans-serif;
+  --font-body:"IBM Plex Sans KR","Malgun Gothic","Apple SD Gothic Neo",sans-serif;
+  --font-num:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
+  --bg:#10131A; --surface:#1A1F29; --sunk:#141921; --ink:#E7EAF0; --muted:#9BA4B4; --line:#2C3442;
+  --navy:#3A5590; --on-navy:#FFFFFF; --magma:#FF7448; --magma-soft:#3B2119; --gold:#E2B94A; --gold-soft:#332A12;
+  --seal:#222936; --sky:#1B2838; --focus:#7FA8FF; color-scheme:dark } }
+:root[data-theme="dark"]{
+  --bg:#10131A; --surface:#1A1F29; --sunk:#141921; --ink:#E7EAF0; --muted:#9BA4B4; --line:#2C3442;
+  --navy:#3A5590; --on-navy:#FFFFFF; --magma:#FF7448; --magma-soft:#3B2119; --gold:#E2B94A; --gold-soft:#332A12;
+  --seal:#222936; --sky:#1B2838; --focus:#7FA8FF; color-scheme:dark }
+*{box-sizing:border-box}
+html,body{margin:0}
+[hidden]{display:none!important}
+body{background:var(--bg);color:var(--ink);font-family:var(--font-body);font-size:16px;line-height:1.6}
+.wrap{max-width:1080px;margin:0 auto;padding-block:20px 48px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:flex;flex-direction:column;gap:18px}
+.eyebrow{font-size:13px;letter-spacing:.06em;color:var(--magma);font-weight:700}
+h1{font-family:var(--font-display);font-weight:400;font-size:clamp(30px,5vw,42px);line-height:1.1;margin:2px 0 6px}
+.lede{margin:0;color:var(--muted);max-width:62ch}
+.rule{display:inline-flex;gap:8px;align-items:center;font-size:14px;font-weight:700;padding:6px 12px;border-radius:999px;background:var(--gold-soft);color:var(--gold);margin-top:10px}
+
+.cases{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px}
+.case-tab{font:inherit;text-align:left;padding:10px 12px;border-radius:12px;border:1px solid var(--line);background:var(--surface);color:var(--ink);cursor:pointer;display:flex;gap:10px;align-items:center;min-width:0}
+.case-tab .L{font-family:var(--font-display);font-size:24px;line-height:1;width:38px;height:38px;border-radius:10px;display:grid;place-items:center;background:var(--sunk);color:var(--navy);flex:none}
+.case-tab .nm{font-weight:700;font-size:15px;line-height:1.3;min-width:0}
+.case-tab .nm small{display:block;font-weight:500;font-size:12px;color:var(--muted)}
+.case-tab[aria-selected="true"]{background:var(--navy);border-color:var(--navy);color:var(--on-navy)}
+.case-tab[aria-selected="true"] .L{background:var(--magma);color:#fff}
+.case-tab[aria-selected="true"] small{color:var(--on-navy);opacity:.8}
+.case-tab:hover{border-color:var(--navy)}
+button:focus-visible{outline:3px solid var(--focus);outline-offset:2px}
+
+.file{display:flex;flex-direction:column;gap:14px}
+.file-head{display:flex;gap:16px;align-items:center;flex-wrap:wrap;background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:16px 18px}
+.file-head .big{font-family:var(--font-display);font-size:56px;line-height:1;color:var(--magma);flex:none}
+.file-head h2{font-family:var(--font-display);font-weight:400;font-size:clamp(26px,4vw,34px);margin:0;line-height:1.15}
+.file-head p{margin:2px 0 0;color:var(--muted)}
+.file-head .meta{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.chip{font-size:12.5px;font-weight:700;padding:3px 10px;border-radius:999px;background:var(--sunk);color:var(--muted)}
+
+.clues{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:16px;display:flex;flex-direction:column;gap:10px;min-width:0}
+.card h3{margin:0;font-size:17px;display:flex;align-items:center;gap:8px}
+.card h3 .k{font-family:var(--font-num);font-size:12px;padding:2px 8px;border-radius:6px;background:var(--navy);color:var(--on-navy)}
+.card ul{margin:0;padding-left:1.1em;display:flex;flex-direction:column;gap:4px}
+.card .q{margin:0;padding:10px 12px;border-radius:10px;background:var(--gold-soft);color:var(--ink);font-size:15px}
+.card .q b{color:var(--gold)}
+dl.facts{margin:0;display:grid;grid-template-columns:auto minmax(0,1fr);gap:6px 12px;font-size:15px}
+dl.facts dt{color:var(--muted);font-weight:700;font-size:13.5px;padding-top:2px}
+dl.facts dd{margin:0}
+.seal{font:inherit;font-weight:700;font-size:15px;width:100%;padding:12px;border-radius:10px;border:1.5px dashed var(--muted);background:var(--seal);color:var(--ink);cursor:pointer;margin-top:auto}
+.seal:hover{border-style:solid}
+.answer{border-radius:10px;padding:12px 14px;background:var(--navy);color:var(--on-navy);margin-top:auto}
+.answer strong{font-family:var(--font-display);font-weight:400;font-size:26px;display:block;line-height:1.15;margin-bottom:4px}
+.answer p{margin:0;font-size:14.5px}
+
+.story{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:16px;display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,1fr);gap:18px}
+.story h3{margin:0 0 4px;font-size:19px}
+.story .tag{font-size:12.5px;font-weight:700;color:var(--magma)}
+canvas{display:block;width:100%;max-width:100%;aspect-ratio:480/300;border-radius:12px;background:var(--sunk)}
+.frames{display:flex;gap:6px;margin-top:10px;flex-wrap:wrap}
+.frames button{font:inherit;font-weight:700;font-size:14.5px;padding:8px 14px;border-radius:999px;border:1px solid var(--line);background:var(--surface);color:var(--ink);cursor:pointer}
+.frames button[aria-pressed="true"]{background:var(--magma);border-color:var(--magma);color:#fff}
+.cut{display:flex;flex-direction:column;gap:10px}
+.cut .qq{font-size:20px;font-weight:700;margin:0;line-height:1.35}
+.cut .hint{margin:0;font-size:15px;color:var(--muted);padding-left:12px;border-left:3px solid var(--line)}
+
+.guide{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.opts{display:flex;flex-wrap:wrap;gap:6px}
+.opt{font:inherit;font-weight:700;font-size:14.5px;padding:9px 13px;border-radius:10px;border:1px solid var(--line);background:var(--sunk);color:var(--ink);cursor:pointer;text-align:left}
+.opt[aria-pressed="true"]{background:var(--navy);color:var(--on-navy);border-color:var(--navy)}
+.opt small{display:block;font-weight:500;font-size:12px;opacity:.8}
+.result{border-radius:10px;padding:12px 14px;background:var(--sunk);color:var(--muted);min-height:72px}
+.result.on{background:var(--navy);color:var(--on-navy)}
+.result strong{font-family:var(--font-display);font-weight:400;font-size:26px;display:block;line-height:1.15}
+.small{font-size:12.5px;color:var(--muted)}
+@media (max-width:900px){.clues{grid-template-columns:minmax(0,1fr)}.story{grid-template-columns:minmax(0,1fr)}.cases{grid-template-columns:repeat(2,minmax(0,1fr))}.guide{grid-template-columns:minmax(0,1fr)}}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header>
+    <div class="eyebrow">지구과학Ⅱ · 마그마 생성과 화성암 · 탐정 활동</div>
+    <h1>지형 탐정 단서집</h1>
+    <p class="lede">우리 모둠의 사건 현장을 고르고, 단서를 읽으며 활동지 ④를 채우세요. 교과서 120쪽 사진과 함께 보면 더 잘 보입니다.</p>
+    <span class="rule">규칙: 먼저 모둠이 추리해서 적고, 그다음에 봉인을 여세요</span>
+  </header>
+
+  <nav class="cases" role="tablist" aria-label="사건 현장" id="caseTabs"></nav>
+
+  <main id="caseView" class="file"></main>
+  <section id="guideView" hidden></section>
+
+  <p class="small">출처: 교과서 116~120쪽, 화성시 화성지질공원(우음도), 국립공원공단(북한산), 한탄강 세계지질공원 안내 자료. 그림은 이해를 돕기 위한 모식도입니다.</p>
+</div>
+
+<script>
+(() => {
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+const lerp=(a,b,t)=>a+(b-a)*t;
+function rng(seed){return function(){seed|=0;seed=seed+0x6D2B79F5|0;let t=Math.imul(seed^seed>>>15,1|seed);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+const FONT='"IBM Plex Sans KR","Malgun Gothic",sans-serif';
+const TOK={};function readTokens(){const cs=getComputedStyle(document.documentElement);['ink','muted','surface','sunk','sky','line','navy'].forEach(k=>TOK[k]=cs.getPropertyValue('--'+k).trim());}readTokens();
+
+function rr(ctx,x,y,w,h,r){ctx.beginPath();ctx.moveTo(x+r,y);ctx.arcTo(x+w,y,x+w,y+h,r);ctx.arcTo(x+w,y+h,x,y+h,r);ctx.arcTo(x,y+h,x,y,r);ctx.arcTo(x,y,x+w,y,r);ctx.closePath();}
+function pill(ctx,text,x,y,o={}){const size=o.size||15;ctx.save();ctx.font=`700 ${size}px ${FONT}`;const w=ctx.measureText(text).width+size*1.2,h=size*1.8;const x0=o.align==='left'?x:o.align==='right'?x-w:x-w/2;
+  rr(ctx,x0,y-h/2,w,h,h/2);ctx.fillStyle=o.fill||TOK.surface;ctx.fill();if(o.border!==false){ctx.strokeStyle=TOK.line;ctx.lineWidth=1.3;ctx.stroke();}
+  ctx.fillStyle=o.color||TOK.ink;ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(text,x0+w/2,y+1);ctx.restore();}
+function arrow(ctx,x1,y1,x2,y2,o={}){const head=o.head||11,col=o.color||'#E0552B';ctx.save();ctx.strokeStyle=col;ctx.fillStyle=col;ctx.lineWidth=o.width||4;ctx.lineCap='round';
+  const a=Math.atan2(y2-y1,x2-x1);ctx.beginPath();ctx.moveTo(x1,y1);ctx.lineTo(x2-Math.cos(a)*head*.7,y2-Math.sin(a)*head*.7);ctx.stroke();
+  ctx.beginPath();ctx.moveTo(x2,y2);ctx.lineTo(x2-Math.cos(a-.5)*head,y2-Math.sin(a-.5)*head);ctx.lineTo(x2-Math.cos(a+.5)*head,y2-Math.sin(a+.5)*head);ctx.closePath();ctx.fill();ctx.restore();}
+const graniteCanvas=(()=>{const c=document.createElement('canvas');c.width=c.height=140;const g=c.getContext('2d');const r=rng(7);g.fillStyle='#D6B3A1';g.fillRect(0,0,140,140);
+  for(let i=0;i<230;i++){const x=r()*140,y=r()*140,s=1.6+r()*4.5,k=r();g.fillStyle=k<.17?'#2A2421':k<.45?'#F2EDE7':k<.7?'#B7B3B1':'#E3A48C';g.beginPath();g.ellipse(x,y,s,s*(.45+r()*.6),r()*3,0,7);g.fill();}return c;})();
+const GRAN=document.createElement('canvas').getContext('2d').createPattern(graniteCanvas,'repeat');
+const HOT='#FF7A1E',BAS='#3F3E43',STRATA=['#B99E7A','#A68A6B','#C4AF8D','#917862','#AE9476'];
+function strata(ctx,y0,w=480,h=300,bh=34){for(let i=0;y0+i*bh<h;i++){ctx.fillStyle=STRATA[i%5];ctx.fillRect(0,y0+i*bh,w,bh+1);}}
+function sky(ctx,h){ctx.fillStyle=TOK.sky;ctx.fillRect(0,0,480,h);}
+function glow(ctx,fn,color=HOT){ctx.save();ctx.shadowColor='rgba(255,110,30,.8)';ctx.shadowBlur=22;ctx.fillStyle=color;fn();ctx.fill();ctx.restore();}
+function columns(ctx,x0,x1,y0,y1,step=22,seed=4){const r=rng(seed);ctx.save();ctx.strokeStyle='#121010';ctx.lineWidth=2.4;for(let x=x0+step*.6;x<x1;x+=step+(r()-.5)*6){ctx.beginPath();ctx.moveTo(x,y0);for(let y=y0;y<=y1;y+=12)ctx.lineTo(x+(r()-.5)*3,y);ctx.stroke();}ctx.restore();}
+function gneiss(ctx,seed=2){for(let i=-2;i<16;i++){ctx.fillStyle=i%2?'#5E6166':'#C9C7C0';ctx.beginPath();const y=i*22;ctx.moveTo(0,y);for(let x=0;x<=480;x+=10)ctx.lineTo(x,y+Math.sin(x/38+i*.7)*9);for(let x=480;x>=0;x-=10)ctx.lineTo(x,y+22+Math.sin(x/38+(i+1)*.7)*9);ctx.closePath();ctx.fill();}}
+function frag(ctx,x,y,s,rot,seed){const r=rng(seed);ctx.save();ctx.translate(x,y);ctx.rotate(rot);ctx.beginPath();for(let k=0;k<6;k++){const a=k/6*6.283+r()*.4,d=s*(.75+r()*.4);k?ctx.lineTo(Math.cos(a)*d,Math.sin(a)*d*.8):ctx.moveTo(Math.cos(a)*d,Math.sin(a)*d*.8);}ctx.closePath();
+  ctx.save();ctx.clip();for(let i=-6;i<6;i++){ctx.fillStyle=i%2?'#5E6166':'#C9C7C0';ctx.fillRect(-s*1.5,i*s/4,s*3,s/4+.5);}ctx.restore();ctx.strokeStyle='rgba(0,0,0,.5)';ctx.lineWidth=1.5;ctx.stroke();ctx.restore();}
+function dikePath(ctx){ctx.beginPath();ctx.moveTo(150,310);ctx.lineTo(240,310);ctx.lineTo(350,-10);ctx.lineTo(270,-10);ctx.closePath();}
+
+/* ---------------- case data ---------------- */
+const CASES=[
+{id:'bukhansan',L:'A',name:'서울 북한산',sub:'인수봉 · 백운대',
+ brief:'서울 북쪽에 우뚝 솟은 거대한 흰 바위산. 지하 깊은 곳에서 만들어진 암석이 어떻게 해발 800 m가 넘는 산꼭대기에 있을까?',
+ chips:['교과서 120쪽 A','국립공원'],
+ rock:{obs:['멀리서 보면 밝은 흰색~분홍빛','가까이 보면 맨눈으로 보이는 굵은 알갱이가 빽빽하다','흰색·분홍색·회색 알갱이 사이에 검은 점(흑운모)이 박혀 있다'],
+   q:'색으로는 마그마의 종류를, 알갱이 크기로는 식은 장소를 알 수 있다. 어떤 암석일까?',
+   ans:'화강암',why:'밝은 색 → SiO₂가 많은 유문암질 마그마. 굵은 결정 → 지하 깊은 곳에서 천천히 식은 심성암.'},
+ str:{obs:['산 전체가 둥근 돔 모양의 한 덩어리 바위','바위 표면과 나란하게, 양파 껍질처럼 판판한 틈이 나 있다','틈을 따라 바위 껍질이 얇게 떨어져 나간 자국'],
+   q:'틈이 바위 표면과 나란하다. 식을 때 생긴 틈일까, 식은 뒤에 생긴 틈일까?',
+   ans:'판상 절리',why:'위를 누르던 암석이 침식으로 사라지면서 압력이 줄어 화강암이 팽창해 표면과 나란하게 갈라졌다.'},
+ facts:[['시대','중생대 쥐라기에 마그마가 관입해 굳음'],['위치','서울·경기 북한산 국립공원 (백운대 836 m)'],['주변','화강암 지반이 오랫동안 융기하고 침식됨'],['생각','지하 깊은 곳에서 생긴 암석이 지금은 산꼭대기에 있다. 그사이에 무슨 일이 있었을까?']],
+ cuts:[
+  {q:'마그마는 어디서 왔을까?',hint:'밝은 색 암석이 되는 마그마는 SiO₂가 많다. 맨틀보다 대륙 지각이 녹을 때 이런 마그마가 생긴다.',ans:'중생대에 대륙 지각의 암석이 녹아 SiO₂가 많은 유문암질 마그마가 생겼고, 지하 깊은 곳으로 관입했다.'},
+  {q:'어디서, 어떻게 식었을까?',hint:'결정이 굵다는 것은 식는 데 시간이 오래 걸렸다는 뜻이다.',ans:'지하 깊은 곳에서 아주 오랜 시간 천천히 식어 굵은 결정의 화강암이 되었다. 그 뒤 땅이 융기하고 위의 암석이 침식되었다.'},
+  {q:'왜 지금 이런 모습일까?',hint:'위에서 누르던 암석이 사라지면 화강암에는 어떤 힘의 변화가 생길까?',ans:'누르던 압력이 줄자 화강암이 팽창해 표면과 나란한 판상 절리가 생겼고, 풍화와 침식으로 둥근 돔 모양의 바위산이 되었다.'}],
+ draw:[
+  ctx=>{sky(ctx,70);strata(ctx,70);glow(ctx,()=>{ctx.beginPath();ctx.ellipse(240,235,140,62,0,0,7);});pill(ctx,'대륙 지각이 녹은 마그마',240,235,{size:15});pill(ctx,'지하 깊은 곳',70,100,{size:13});},
+  ctx=>{sky(ctx,70);ctx.save();ctx.globalAlpha=.35;strata(ctx,70);ctx.restore();ctx.save();ctx.beginPath();ctx.rect(0,140,480,160);ctx.clip();strata(ctx,140);ctx.restore();
+    ctx.beginPath();ctx.ellipse(240,235,140,62,0,0,7);ctx.fillStyle=GRAN;ctx.fill();ctx.strokeStyle='rgba(0,0,0,.3)';ctx.stroke();
+    arrow(ctx,40,280,40,170,{width:6,head:16});pill(ctx,'융기',40,152,{size:13});pill(ctx,'침식으로 깎여 나감',300,100,{size:14});pill(ctx,'천천히 식어 화강암',240,235,{size:14});},
+  ctx=>{sky(ctx,300);ctx.save();ctx.beginPath();ctx.rect(0,200,480,100);ctx.clip();strata(ctx,200);ctx.restore();ctx.fillStyle='#6E8F4E';ctx.fillRect(0,197,480,4);
+    ctx.save();ctx.beginPath();ctx.ellipse(240,330,170,240,0,0,7);ctx.fillStyle=GRAN;ctx.fill();ctx.clip();ctx.strokeStyle='#3A2C28';ctx.lineWidth=2.6;[12,28,46].forEach(d=>{ctx.beginPath();ctx.ellipse(240,330,170-d,240-d,0,Math.PI*1.18,Math.PI*1.82);ctx.stroke();});ctx.restore();
+    [[-1,0],[-.6,-.8],[.6,-.8],[1,0]].slice(1,3).forEach(([dx,dy])=>arrow(ctx,240+dx*120,150+dy*60,240+dx*150,120+dy*80,{width:4}));
+    pill(ctx,'압력 감소 → 팽창 → 판상 절리',240,40,{size:14});}]},
+{id:'hantan',L:'B',name:'경기 연천 한탄강',sub:'현무암 협곡',
+ brief:'강을 따라 검은 절벽이 길게 이어지는 협곡. 근처에 화산이 없는데 왜 용암이 굳은 암석이 있을까?',
+ chips:['교과서 120쪽 B','유네스코 세계지질공원'],
+ rock:{obs:['검은색~짙은 회색','맨눈으로는 알갱이가 거의 보이지 않는다','작은 구멍이 숭숭 뚫려 있는 돌이 많다'],
+   q:'어두운 색, 보이지 않는 알갱이, 작은 구멍. 세 단서를 모두 설명할 수 있는 암석은?',
+   ans:'현무암',why:'어두운 색 → SiO₂가 적은 현무암질 마그마. 작은 결정 → 지표에서 빨리 식은 화산암. 구멍은 화산 가스가 빠져나간 자리.'},
+ str:{obs:['강가 절벽에 세로로 줄지어 선 기둥들','기둥의 단면은 4~6각형의 다각형','절벽 위쪽은 평평한 들판(용암 대지)'],
+   q:'기둥 모양 틈은 용암이 식을 때 부피가 어떻게 변해서 생겼을까?',
+   ans:'주상 절리',why:'두꺼운 용암이 식으면서 수축해 다각형 기둥 모양으로 갈라졌다.'},
+ facts:[['시대','신생대 제4기, 약 50만~13만 년 전 용암 분출'],['분출 장소','북한 평강·오리산 일대 (한탄강 상류)'],['흐름','용암이 옛 강 골짜기를 따라 흘러 내려와 메움'],['생각','화산이 없는 연천에 현무암 절벽이 생긴 까닭은?']],
+ cuts:[
+  {q:'마그마는 어디서 왔을까?',hint:'어두운 색 현무암은 맨틀에서 바로 올라온 마그마가 만든다.',ans:'맨틀에서 올라온 SiO₂가 적은 현무암질 마그마가 북쪽 평강·오리산 일대에서 지표로 분출했다.'},
+  {q:'어디서, 어떻게 식었을까?',hint:'용암은 흘러가다가 낮은 곳을 메운다. 결정이 작다는 것은?',ans:'용암이 옛 한탄강 골짜기를 따라 흘러와 메운 뒤 지표에서 빨리 식었다. 식으면서 수축해 주상 절리가 생겼다.'},
+  {q:'왜 지금 이런 모습일까?',hint:'용암이 강을 메운 뒤에도 강물은 계속 흐른다.',ans:'강물이 다시 현무암을 깊이 깎아 협곡이 생기면서 절벽에 주상 절리가 드러났다.'}],
+ draw:[
+  ctx=>{sky(ctx,300);ctx.fillStyle='#9C8468';ctx.beginPath();ctx.moveTo(0,110);ctx.lineTo(130,110);ctx.quadraticCurveTo(240,260,350,110);ctx.lineTo(480,110);ctx.lineTo(480,300);ctx.lineTo(0,300);ctx.closePath();ctx.fill();
+    glow(ctx,()=>{ctx.beginPath();ctx.moveTo(130,118);ctx.quadraticCurveTo(240,262,350,118);ctx.lineTo(350,118);ctx.closePath();});pill(ctx,'북쪽에서 흘러온 용암이 골짜기를 메움',240,60,{size:14});},
+  ctx=>{sky(ctx,300);ctx.fillStyle='#9C8468';ctx.beginPath();ctx.moveTo(0,110);ctx.lineTo(130,110);ctx.quadraticCurveTo(240,260,350,110);ctx.lineTo(480,110);ctx.lineTo(480,300);ctx.lineTo(0,300);ctx.closePath();ctx.fill();
+    ctx.save();ctx.beginPath();ctx.moveTo(130,112);ctx.quadraticCurveTo(240,262,350,112);ctx.closePath();ctx.fillStyle=BAS;ctx.fill();ctx.clip();columns(ctx,130,350,100,200,20);ctx.restore();
+    [180,240,300].forEach(x=>arrow(ctx,x,104,x,58,{width:3.5}));pill(ctx,'식으며 수축 → 주상 절리',240,30,{size:14});},
+  ctx=>{sky(ctx,300);ctx.fillStyle='#9C8468';ctx.beginPath();ctx.moveTo(0,110);ctx.lineTo(130,110);ctx.quadraticCurveTo(240,260,350,110);ctx.lineTo(480,110);ctx.lineTo(480,300);ctx.lineTo(0,300);ctx.closePath();ctx.fill();
+    ctx.save();ctx.beginPath();ctx.moveTo(130,112);ctx.quadraticCurveTo(240,262,350,112);ctx.closePath();ctx.fillStyle=BAS;ctx.fill();ctx.clip();columns(ctx,130,350,100,200,20);ctx.restore();
+    ctx.fillStyle=TOK.sky;ctx.beginPath();ctx.moveTo(212,110);ctx.lineTo(220,205);ctx.lineTo(262,205);ctx.lineTo(270,110);ctx.closePath();ctx.fill();ctx.fillStyle='#4A8FC4';ctx.fillRect(219,193,44,12);
+    pill(ctx,'강물이 다시 깎아 협곡 절벽',240,50,{size:14});}]},
+{id:'uumdo',L:'C',name:'경기 화성 우음도',sub:'화성 지질공원',
+ brief:'시화호 간척지 안의 옛 섬. 바위에 줄무늬가 있는 암석과, 그 줄무늬를 끊고 지나가는 밝은 암석이 함께 있다.',
+ chips:['교과서 120쪽 C','국가지질공원'],
+ rock:{obs:['바탕 암석: 밝은 띠와 어두운 띠가 번갈아 나타나는 줄무늬','줄무늬를 가로지르는 밝은 색 암석: 맨눈에 보이는 굵은 알갱이','밝은 암석 속에 줄무늬 암석 조각이 들어 있는 곳도 있다'],
+   q:'이 현장에는 암석이 두 종류다. 줄무늬 암석과 밝은 암석은 각각 무엇일까?',
+   ans:'화강암 + 편마암',why:'밝고 굵은 결정 → 지하에서 천천히 식은 화강암(화성암). 줄무늬 바탕 → 오래전 열과 압력으로 변한 편마암(변성암).'},
+ str:{obs:['밝은 암석이 줄무늬 암석을 띠처럼 가로질러 뻗어 있다','밝은 암석 속에 각진 줄무늬 암석 조각이 박혀 있다'],
+   q:'뚫고 들어온 쪽과 갇힌 쪽이 있다. 두 구조의 이름과 생긴 순서는?',
+   ans:'관입 · 포획',why:'마그마가 편마암 틈을 뚫고 들어와(관입, 암맥) 굳었고, 그때 떨어진 편마암 조각이 갇혔다(포획). 편마암이 먼저, 화강암이 나중.'},
+ facts:[['편마암','약 18억 5천만 년 전, 선캄브리아 시대'],['화강암 암맥','약 1억 7천만 년 전, 중생대 쥐라기'],['위치','경기 화성시 송산면, 화성 국가지질공원'],['생각','두 암석의 나이 차이로 무엇을 알 수 있을까?']],
+ cuts:[
+  {q:'마그마는 어디서 왔을까?',hint:'편마암은 마그마가 아니라 원래 있던 암석이다. 마그마가 만든 것은 어느 쪽일까?',ans:'중생대 쥐라기에 대륙 지각이 녹아 생긴 화강암질 마그마가 아주 오래된 편마암 속으로 올라왔다.'},
+  {q:'어디서, 어떻게 식었을까?',hint:'뚫고 들어온 마그마가 주변 암석을 깨뜨리면?',ans:'마그마가 편마암의 틈을 뚫고 들어오면서 편마암 조각을 떼어 품었고, 지하에서 천천히 식어 화강암 암맥이 되었다.'},
+  {q:'왜 지금 이런 모습일까?',hint:'지하에서 굳은 암석이 지표에서 보이려면?',ans:'오랜 세월 융기와 침식으로 지표에 드러나, 편마암을 가로지르는 화강암(관입)과 그 속의 편마암 조각(포획암)이 보이게 되었다.'}],
+ draw:[
+  ctx=>{gneiss(ctx);pill(ctx,'약 18억 년 전 만들어진 편마암',240,40,{size:14});},
+  ctx=>{gneiss(ctx);glow(ctx,()=>dikePath(ctx));frag(ctx,232,200,18,.5,3);frag(ctx,272,110,15,-.4,8);arrow(ctx,205,295,250,165,{width:5,color:'#FFF3E0'});pill(ctx,'마그마가 뚫고 들어오며 조각을 품음',240,30,{size:14});},
+  ctx=>{gneiss(ctx);dikePath(ctx);ctx.fillStyle=GRAN;ctx.fill();ctx.strokeStyle='rgba(0,0,0,.35)';ctx.stroke();frag(ctx,232,200,18,.5,3);frag(ctx,272,110,15,-.4,8);
+    pill(ctx,'화강암 암맥 (관입)',395,250,{size:14});pill(ctx,'포획암',140,200,{size:14});pill(ctx,'먼저 편마암 → 나중 화강암',240,30,{size:14,fill:TOK.navy,color:'#fff',border:false});}]},
+{id:'jungmun',L:'D',name:'제주 중문·대포 해안',sub:'주상절리대',
+ brief:'바닷가를 따라 약 1 km 이어진 검은 돌기둥 절벽. 기둥 높이가 30~40 m에 이른다.',
+ chips:['교과서 120쪽 D','천연기념물'],
+ rock:{obs:['검은색~짙은 회색','맨눈으로는 알갱이가 거의 보이지 않는다','제주도 곳곳에서 흔히 보는 돌과 같은 종류'],
+   q:'제주도의 돌담 돌과 같은 암석이다. 색과 알갱이 크기로 확인해 보자.',
+   ans:'현무암',why:'어두운 색 → SiO₂가 적은 현무암질 마그마. 작은 결정 → 지표에서 빨리 식은 화산암.'},
+ str:{obs:['해안 절벽에 높이 30~40 m의 돌기둥이 빽빽하다','위에서 보면 기둥 윗면이 4~6각형'],
+   q:'B 한탄강과 같은 구조다. 두 곳 모두 용암이 식을 때 어떤 일이 일어났을까?',
+   ans:'주상 절리',why:'약 1,100 °C의 두꺼운 용암이 식으면서 수축해 다각형 기둥 모양으로 갈라졌다.'},
+ facts:[['시대','신생대 제4기 제주도 화산 활동'],['위치','제주 서귀포시 중문동~대포동 해안 약 1 km'],['용암','약 1,100 °C의 두꺼운 현무암질 용암이 흘러나옴'],['생각','바다와 맞닿은 곳에서 기둥이 특히 잘 보이는 까닭은?']],
+ cuts:[
+  {q:'마그마는 어디서 왔을까?',hint:'제주도는 판의 경계에서 떨어진 곳에 있는 화산섬이다.',ans:'판의 경계가 아닌 곳에서 맨틀 물질이 올라와 생긴 현무암질 마그마가 분출했다. 열점과 비슷한 원리로 설명하기도 한다.'},
+  {q:'어디서, 어떻게 식었을까?',hint:'용암이 바닷가까지 흘러와 두껍게 쌓였다.',ans:'지표로 흘러나온 두꺼운 용암이 해안에서 빨리 식으며 수축해 주상 절리가 생겼다.'},
+  {q:'왜 지금 이런 모습일까?',hint:'바닷가 절벽을 계속 때리는 것은?',ans:'파도가 용암 대지의 가장자리를 깎아 내면서 절벽이 생기고, 그 단면에 주상 절리가 드러났다.'}],
+ draw:[
+  ctx=>{sky(ctx,300);ctx.fillStyle='#3E7FB8';ctx.fillRect(320,190,160,110);ctx.fillStyle='#7C6654';ctx.beginPath();ctx.moveTo(0,300);ctx.lineTo(0,150);ctx.lineTo(70,70);ctx.lineTo(100,70);ctx.lineTo(190,170);ctx.lineTo(330,190);ctx.lineTo(330,300);ctx.closePath();ctx.fill();
+    glow(ctx,()=>{ctx.beginPath();ctx.moveTo(95,74);ctx.lineTo(190,160);ctx.lineTo(330,176);ctx.lineTo(330,192);ctx.lineTo(186,176);ctx.lineTo(88,80);ctx.closePath();});pill(ctx,'화산에서 흘러나온 현무암질 용암',250,40,{size:14});},
+  ctx=>{sky(ctx,300);ctx.fillStyle='#3E7FB8';ctx.fillRect(340,190,140,110);ctx.fillStyle='#7C6654';ctx.fillRect(0,230,340,70);
+    ctx.fillStyle=BAS;ctx.fillRect(0,110,340,120);ctx.save();ctx.beginPath();ctx.rect(0,110,340,120);ctx.clip();columns(ctx,0,340,110,230,24,9);ctx.restore();
+    [80,170,260].forEach(x=>arrow(ctx,x,104,x,60,{width:3.5}));pill(ctx,'두꺼운 용암이 식으며 수축',240,34,{size:14});},
+  ctx=>{sky(ctx,300);ctx.fillStyle='#3E7FB8';ctx.fillRect(270,200,210,100);ctx.fillStyle='#7C6654';ctx.fillRect(0,230,270,70);
+    ctx.fillStyle=BAS;ctx.fillRect(0,110,270,120);ctx.save();ctx.beginPath();ctx.rect(0,110,270,120);ctx.clip();columns(ctx,0,270,110,230,24,9);ctx.restore();
+    ctx.strokeStyle='#E8F3FB';ctx.lineWidth=3;[0,1,2].forEach(i=>{ctx.beginPath();ctx.arc(330+i*45,210,16,Math.PI,0);ctx.stroke();});arrow(ctx,420,180,290,180,{width:5,color:'#2F6FB0'});
+    pill(ctx,'파도가 깎아 기둥이 드러남',240,50,{size:14});}]}
+];
+
+/* ---------------- render case ---------------- */
+const tabs=document.getElementById('caseTabs'),view=document.getElementById('caseView'),guide=document.getElementById('guideView');
+const opened={};let cur=null,frame=0,canvasCtx=null;
+const esc=s=>s.replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+CASES.forEach(c=>{tabs.insertAdjacentHTML('beforeend',`<button class="case-tab" role="tab" id="tab-${c.id}" data-id="${c.id}"><span class="L">${c.L}</span><span class="nm">${c.name}<small>${c.sub}</small></span></button>`);});
+tabs.insertAdjacentHTML('beforeend',`<button class="case-tab" role="tab" id="tab-guide" data-id="guide"><span class="L">?</span><span class="nm">판별 도우미<small>암석·구조 찾기</small></span></button>`);
+tabs.querySelectorAll('.case-tab').forEach(b=>b.onclick=()=>show(b.dataset.id));
+
+function sealBtn(key,label){return opened[key]?null:`<button class="seal" type="button" data-seal="${key}">${label}</button>`;}
+function renderCase(c){
+  const k=s=>c.id+':'+s;
+  const ansBox=(part)=>opened[k(part)]?`<div class="answer"><strong>${c[part].ans}</strong><p>${c[part].why}</p></div>`:sealBtn(k(part),part==='rock'?'봉인 열기: 암석 이름 확인':'봉인 열기: 구조 이름 확인');
+  view.innerHTML=`
+  <div class="file-head"><span class="big">${c.L}</span><div style="min-width:0;flex:1 1 260px"><h2>${c.name}</h2><p>${c.brief}</p><div class="meta">${c.chips.map(x=>`<span class="chip">${x}</span>`).join('')}</div></div></div>
+  <div class="clues">
+    <article class="card"><h3><span class="k">단서 1</span>암석 관찰</h3><ul>${c.rock.obs.map(o=>`<li>${o}</li>`).join('')}</ul><p class="q"><b>추리</b> ${c.rock.q}</p>${ansBox('rock')}</article>
+    <article class="card"><h3><span class="k">단서 2</span>구조 관찰</h3><ul>${c.str.obs.map(o=>`<li>${o}</li>`).join('')}</ul><p class="q"><b>추리</b> ${c.str.q}</p>${ansBox('str')}</article>
+    <article class="card"><h3><span class="k">단서 3</span>현장 기록</h3><dl class="facts">${c.facts.map(([a,b])=>`<dt>${a}</dt><dd>${b}</dd>`).join('')}</dl></article>
+  </div>
+  <section class="story">
+    <div><span class="tag">심화 미션</span><h3>지형의 탄생 3컷 이야기</h3><canvas id="cv" aria-label="${c.name} 형성 과정 모식도"></canvas>
+      <div class="frames">${c.cuts.map((x,i)=>`<button type="button" id="cut-${i}" data-f="${i}" aria-pressed="${i===frame}">${i+1}컷</button>`).join('')}</div></div>
+    <div class="cut" id="cutBox"></div>
+  </section>`;
+  view.querySelectorAll('[data-seal]').forEach(b=>b.onclick=()=>{opened[b.dataset.seal]=true;const y=window.scrollY;renderCase(c);window.scrollTo(0,y);});
+  view.querySelectorAll('.frames button').forEach(b=>b.onclick=()=>{frame=+b.dataset.f;view.querySelectorAll('.frames button').forEach(x=>x.setAttribute('aria-pressed',x===b));renderCut(c);drawFrame();});
+  const cv=document.getElementById('cv');canvasCtx={cv,ctx:cv.getContext('2d')};new ResizeObserver(drawFrame).observe(cv);
+  renderCut(c);drawFrame();
+}
+function renderCut(c){
+  const x=c.cuts[frame],key=c.id+':cut'+frame;const box=document.getElementById('cutBox');
+  box.innerHTML=`<p class="qq">${frame+1}컷. ${x.q}</p><p class="hint">힌트: ${x.hint}</p>`+(opened[key]?`<div class="answer"><strong>${frame+1}컷 이야기</strong><p>${x.ans}</p></div>`:`<button class="seal" type="button" data-cut="${key}">봉인 열기: ${frame+1}컷 이야기 확인</button>`);
+  const b=box.querySelector('[data-cut]');if(b)b.onclick=()=>{opened[key]=true;renderCut(c);};
+}
+function drawFrame(){
+  if(!canvasCtx||!cur||cur==='guide')return;const {cv,ctx}=canvasCtx;const r=cv.getBoundingClientRect();if(!r.width)return;const dpr=window.devicePixelRatio||1;
+  const w=Math.round(r.width*dpr),h=Math.round(w*300/480);if(cv.width!==w||cv.height!==h){cv.width=w;cv.height=h;}
+  ctx.setTransform(w/480,0,0,w/480,0,0);ctx.clearRect(0,0,480,300);ctx.save();rr(ctx,0,0,480,300,12);ctx.clip();
+  CASES.find(c=>c.id===cur).draw[frame](ctx);ctx.restore();
+}
+
+/* ---------------- guide ---------------- */
+const G={color:null,size:null};
+const ROCKS={dark:{fine:'현무암',coarse:'반려암',mg:'현무암질 마그마 (SiO₂ 52% 이하)'},mid:{fine:'안산암',coarse:'섬록암',mg:'안산암질 마그마 (SiO₂ 52~63%)'},light:{fine:'유문암',coarse:'화강암',mg:'유문암질 마그마 (SiO₂ 63% 이상)'}};
+const STRUCT=[
+  {k:'col',t:'기둥처럼 세로로 갈라졌다',s:'단면이 다각형',n:'주상 절리',w:'용암이 지표에서 빨리 식으며 수축해서 생긴다. 주로 현무암.'},
+  {k:'sheet',t:'표면과 나란하게 판판하게 갈라졌다',s:'양파 껍질 모양',n:'판상 절리',w:'위를 누르던 암석이 침식되어 압력이 줄면서 팽창해 생긴다. 주로 화강암.'},
+  {k:'intr',t:'다른 암석이 띠처럼 가로지른다',s:'뚫고 들어온 모양',n:'관입',w:'마그마가 주변 암석의 틈을 뚫고 들어와 굳었다. 가로지르면 암맥, 나란하면 암상. 뚫고 들어온 쪽이 나중.'},
+  {k:'xen',t:'암석 속에 다른 암석 조각이 박혀 있다',s:'갇힌 덩어리',n:'포획',w:'마그마가 주변 암석 조각을 품은 채 굳었다. 갇힌 포획암이 먼저.'}];
+let gStruct=null;
+function renderGuide(){
+  const rock=G.color&&G.size?ROCKS[G.color]:null;
+  guide.innerHTML=`<div class="guide">
+   <article class="card"><h3><span class="k">도우미 1</span>암석 이름 찾기</h3>
+    <p class="small" style="margin:0">① 암석의 전체 색은?</p>
+    <div class="opts">${[['dark','어두운 색','검은색~짙은 회색'],['mid','중간 색','회색'],['light','밝은 색','흰색·분홍빛']].map(([k,a,b])=>`<button class="opt" type="button" id="c-${k}" data-c="${k}" aria-pressed="${G.color===k}">${a}<small>${b}</small></button>`).join('')}</div>
+    <p class="small" style="margin:0">② 알갱이(결정)가 맨눈에 보이나요?</p>
+    <div class="opts">${[['fine','거의 안 보인다','결정이 작다'],['coarse','잘 보인다','결정이 크다']].map(([k,a,b])=>`<button class="opt" type="button" id="s-${k}" data-s="${k}" aria-pressed="${G.size===k}">${a}<small>${b}</small></button>`).join('')}</div>
+    <div class="result ${rock?'on':''}">${rock?`<strong>${rock[G.size]}</strong>${rock.mg}에서, ${G.size==='fine'?'지표 부근에서 빨리 식은 화산암':'지하 깊은 곳에서 천천히 식은 심성암'}`:'두 가지를 모두 고르면 암석 이름이 나타납니다.'}</div>
+   </article>
+   <article class="card"><h3><span class="k">도우미 2</span>지질 구조 찾기</h3>
+    <p class="small" style="margin:0">사진 속 암석이 어떤 모양인가요?</p>
+    <div class="opts" style="flex-direction:column">${STRUCT.map(x=>`<button class="opt" type="button" id="st-${x.k}" data-st="${x.k}" aria-pressed="${gStruct===x.k}">${x.t}<small>${x.s}</small></button>`).join('')}</div>
+    <div class="result ${gStruct?'on':''}">${gStruct?(x=>`<strong>${x.n}</strong>${x.w}`)(STRUCT.find(x=>x.k===gStruct)):'모양을 고르면 구조 이름과 생긴 원인이 나타납니다.'}</div>
+   </article></div>`;
+  guide.querySelectorAll('[data-c]').forEach(b=>b.onclick=()=>{G.color=b.dataset.c;renderGuide();});
+  guide.querySelectorAll('[data-s]').forEach(b=>b.onclick=()=>{G.size=b.dataset.s;renderGuide();});
+  guide.querySelectorAll('[data-st]').forEach(b=>b.onclick=()=>{gStruct=b.dataset.st;renderGuide();});
+}
+
+function show(id){
+  const ids=CASES.map(c=>c.id).concat('guide');if(!ids.includes(id))id=CASES[0].id;
+  if(cur!==id)frame=0;cur=id;
+  tabs.querySelectorAll('.case-tab').forEach(b=>b.setAttribute('aria-selected',b.dataset.id===id));
+  view.hidden=id==='guide';guide.hidden=id!=='guide';
+  if(id==='guide')renderGuide();else renderCase(CASES.find(c=>c.id===id));
+  try{history.replaceState(null,'','#'+id);}catch(e){}
+}
+const rerender=()=>{readTokens();drawFrame();};
+matchMedia('(prefers-color-scheme: dark)').addEventListener('change',rerender);
+new MutationObserver(rerender).observe(document.documentElement,{attributes:true,attributeFilter:['data-theme']});
+if(document.fonts&&document.fonts.ready)document.fonts.ready.then(rerender);
+show((location.hash||'').slice(1));
+})();
+</script>
+</body>
+</html>
