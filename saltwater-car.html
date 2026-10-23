@@ -1,3 +1,9 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#2B8AD8">
 <title>소금물 자동차 탐험대</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -31,7 +37,14 @@ body{background:var(--sec-soft);color:var(--ink);font-family:var(--font-body);fo
   padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));
   padding-bottom:calc(96px + env(safe-area-inset-bottom,0px));transition:background .3s}
 body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--sec)}
-.wrap{max-width:560px;margin:0 auto}
+.wrap{max-width:860px;margin:0 auto}
+/* 큰 화면(태블릿·PC·TV)에서는 화면 전체를 비율대로 키워 꽉 차게 */
+@media (min-width:700px){html{zoom:1.25}}
+@media (min-width:1000px){html{zoom:1.55}}
+@media (min-width:1400px){html{zoom:1.8}}
+@media (min-width:1900px){html{zoom:2.2}}
+nav.tabs>.tab{max-width:220px}
+nav.tabs{justify-content:center}
 header{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;margin:0 calc(-1 * max(16px,env(safe-area-inset-left,0px)));
   padding:10px max(16px,env(safe-area-inset-right,0px)) 12px max(16px,env(safe-area-inset-left,0px));background:var(--sec);color:#fff;border-radius:0 0 24px 24px;
   display:flex;align-items:center;gap:10px;transition:background .3s}
@@ -129,6 +142,9 @@ nav.tabs{position:fixed;left:0;right:0;bottom:0;z-index:6;background:var(--surfa
 @keyframes burst{0%{transform:translate(-50%,-50%) scale(.3);opacity:0}30%{opacity:1;transform:translate(-50%,-50%) scale(1.2)}100%{opacity:0;transform:translate(-50%,-140%) scale(1)}}
 @media (prefers-reduced-motion: reduce){*{transition:none!important;animation:none!important}.burst{display:none}}
 </style>
+</head>
+<body>
+
 
 <div class="wrap">
 <header>
@@ -469,3 +485,6 @@ const pl=$('#pledge');pl.value=store.get('pledge','');pl.oninput=()=>store.set('
 render();
 go(store.get('tab','v-learn'));
 </script>
+
+</body>
+</html>
