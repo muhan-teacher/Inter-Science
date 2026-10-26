@@ -88,6 +88,7 @@ textarea:focus,button:focus-visible{outline:3px solid var(--gold);outline-offset
 .btn{border:0;background:var(--navy);color:var(--surface);border-radius:6px;padding:9px 16px;font:inherit;font-weight:700;cursor:pointer}
 .btn.ghost{background:none;color:var(--navy);border:1px solid var(--navy)}
 .btn:disabled{opacity:.45;cursor:not-allowed}
+a.btn{text-decoration:none;display:inline-block}
 .model{border-left:4px solid var(--good);background:var(--bg);padding:10px 14px;border-radius:0 6px 6px 0;margin:0}
 .model b{color:var(--good)}
 .board{display:grid;grid-template-columns:1fr 1fr;gap:12px}
@@ -157,8 +158,8 @@ body{margin:0}
   <textarea id="my-text" placeholder="예) 은행나무 가로수가 많은 길은 여름에 그늘이 생겨 기온이 낮아졌다."></textarea>
   <h3 style="font-size:1.15rem">나의 해석 모음</h3>
   <div class="out" id="out"></div>
-  <div class="row"><button class="btn" id="copy" type="button">해석 모음 복사하기</button><span class="toast" id="toast" role="status"></span></div>
-  <p class="src" style="margin:0">복사한 내용은 패들렛이나 활동지에 붙여 넣어 모둠 발표 자료로 쓴다.</p>
+  <div class="row"><button class="btn" id="copy" type="button">해석 모음 복사하기</button><a class="btn ghost" id="padlet" href="https://padlet.com/1128jje923_1/2-1-1-s024upp2dqiviu1717zp" target="_blank" rel="noopener">패들렛에 공유하기</a><span class="toast" id="toast" role="status"></span></div>
+  <p class="src" style="margin:0">해석 모음을 복사한 뒤 「패들렛에 공유하기」를 눌러 붙여 넣는다. 활동지에도 옮겨 적어 모둠 발표 자료로 쓴다.</p>
 </section>
 </div>
 
