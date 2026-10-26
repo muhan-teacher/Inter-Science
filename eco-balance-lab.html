@@ -1,0 +1,292 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>생태계 평형 탐구소</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Do+Hyeon&family=IBM+Plex+Sans+KR:wght@400;500;700&display=swap">
+<style>
+/* 레이아웃: 상단 질문 띠 → 탐구 정거장 3개 탭 → 정거장별 조작 패널 → 나의 정리 노트 */
+:root{
+  --bg:#f5f6f9; --surface:#ffffff; --ink:#18213a; --muted:#5b6478; --line:#dde1ea;
+  --navy:#1f2f5c; --gold:#c9962b; --gold-soft:#f6ecd3;
+  --prod:#5b8a2f; --prod-soft:#e8f2dc; --c1:#d39b1f; --c1-soft:#fbf0d4; --c2:#2f7a8c; --c2-soft:#e0f0f3; --c3:#8a4f9e; --c3-soft:#f1e6f5;
+  --good:#2e7d4f; --bad:#b4472f;
+  --f-display:"Do Hyeon","IBM Plex Sans KR",sans-serif;
+  --f-body:"IBM Plex Sans KR","Apple SD Gothic Neo","Malgun Gothic",sans-serif;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#10152a; --surface:#1a2140; --ink:#e9ecf5; --muted:#a3abc2; --line:#2e3760;
+  --navy:#9fb3ee; --gold:#e3b856; --gold-soft:#3a3220;
+  --prod:#a6d27a; --prod-soft:#24361a; --c1:#f0c45a; --c1-soft:#3a3018; --c2:#7cc6d6; --c2-soft:#183842; --c3:#d3a2e3; --c3-soft:#33203b;
+  --good:#7fd6a0; --bad:#f19b85; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#10152a; --surface:#1a2140; --ink:#e9ecf5; --muted:#a3abc2; --line:#2e3760;
+  --navy:#9fb3ee; --gold:#e3b856; --gold-soft:#3a3220;
+  --prod:#a6d27a; --prod-soft:#24361a; --c1:#f0c45a; --c1-soft:#3a3018; --c2:#7cc6d6; --c2-soft:#183842; --c3:#d3a2e3; --c3-soft:#33203b;
+  --good:#7fd6a0; --bad:#f19b85; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:16px;line-height:1.6;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:20px 48px}
+.wrap{max-width:1040px;margin:0 auto;display:grid;gap:20px}
+h1,h2,h3{font-family:var(--f-display);font-weight:400;margin:0;text-wrap:balance;letter-spacing:.01em}
+header{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:12px;border-bottom:3px solid var(--navy);padding-bottom:12px}
+header h1{font-size:2.2rem;color:var(--navy);line-height:1.1}
+.by{font-size:.85rem;color:var(--muted)}
+.eyebrow{font-size:.78rem;letter-spacing:.08em;color:var(--gold);font-weight:700;margin:0}
+.question{background:var(--surface);border:1px solid var(--line);border-left:6px solid var(--gold);border-radius:6px;padding:16px 18px;display:grid;gap:6px}
+.question p{margin:0}
+.tabs{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.tab{border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:8px;padding:10px 12px;text-align:left;font:inherit;cursor:pointer;display:grid;gap:2px;position:relative}
+.tab b{font-size:1rem}
+.tab small{color:var(--muted);font-size:.8rem}
+.tab .k{font-family:var(--f-display);color:var(--gold);font-size:1.1rem}
+.tab[aria-selected="true"]{border-color:var(--navy);box-shadow:inset 0 -4px 0 var(--navy)}
+.tab.done::after{content:"완료";position:absolute;top:8px;right:10px;font-size:.7rem;font-weight:700;color:var(--good)}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:20px;display:grid;gap:18px}
+.panel h2{font-size:1.6rem;color:var(--navy)}
+.lead{margin:0;max-width:68ch}
+.src{font-size:.78rem;color:var(--muted)}
+.step{display:grid;gap:8px}
+.step h3{font-size:1.15rem}
+.step h3 .n{color:var(--gold);margin-right:6px}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{border:1px solid var(--line);background:var(--bg);color:var(--ink);border-radius:999px;padding:6px 14px;font:inherit;font-size:.95rem;cursor:pointer}
+.chip:hover{border-color:var(--navy)}
+.chip:disabled{opacity:.35;cursor:default}
+.chip[aria-pressed="true"]{background:var(--navy);color:var(--surface);border-color:var(--navy)}
+.chip.right{background:var(--good);border-color:var(--good);color:var(--surface)}
+.chip.wrong{border-color:var(--bad);color:var(--bad)}
+.fb{margin:0;font-size:.92rem;min-height:1.4em}
+.fb.ok{color:var(--good)} .fb.no{color:var(--bad)}
+.btn{border:0;background:var(--navy);color:var(--surface);border-radius:6px;padding:9px 16px;font:inherit;font-weight:700;cursor:pointer}
+.btn.ghost{background:none;color:var(--navy);border:1px solid var(--navy)}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.row{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+button:focus-visible,textarea:focus,input:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+/* 1. 먹이 사슬 */
+.chain{display:flex;flex-wrap:wrap;align-items:stretch;gap:6px}
+.slot{min-width:104px;flex:1 1 104px;border:2px dashed var(--line);border-radius:8px;padding:8px;text-align:center;display:grid;gap:2px;align-content:center;min-height:84px}
+.slot .ico{font-size:1.6rem;line-height:1}
+.slot .lv{font-size:.75rem;color:var(--muted)}
+.slot.filled{border-style:solid}
+.slot.l0{border-color:var(--prod);background:var(--prod-soft)} .slot.l1{border-color:var(--c1);background:var(--c1-soft)}
+.slot.l2{border-color:var(--c2);background:var(--c2-soft)} .slot.l3{border-color:var(--c3);background:var(--c3-soft)} .slot.l4{border-color:var(--navy);background:var(--gold-soft)}
+.arrow{align-self:center;color:var(--gold);font-family:var(--f-display);font-size:1.3rem}
+.note{background:var(--bg);border-radius:8px;padding:12px 14px;margin:0}
+/* 2. 피라미드 */
+.pyr{display:grid;gap:6px;justify-items:center;padding:8px 0}
+.lvl{display:grid;grid-template-columns:110px 1fr 120px;align-items:center;gap:10px;width:100%;cursor:pointer;border:0;background:none;font:inherit;color:inherit;padding:2px 0;text-align:left}
+.lvl .bar{height:34px;border-radius:4px;justify-self:center;min-width:3px;transition:width .4s ease}
+.lvl .nm{font-weight:700;font-size:.9rem}
+.lvl .val{font-variant-numeric:tabular-nums;font-size:.9rem;text-align:right}
+.ratio{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.ratio div{background:var(--bg);border-radius:8px;padding:10px;display:grid;gap:4px}
+.ratio label{font-size:.85rem;font-weight:700}
+.ratio input{width:100%}
+.ratio output{font-variant-numeric:tabular-nums;font-size:.9rem}
+.ratio .ans{font-size:.85rem;color:var(--good);min-height:1.3em}
+/* 3. 시뮬레이터 */
+.sim{display:grid;grid-template-columns:1.1fr 1fr;gap:16px}
+.stage{background:var(--bg);border-radius:10px;padding:14px;display:grid;gap:8px;align-content:start}
+.stage .pyr{gap:4px}
+.trow{display:grid;grid-template-columns:90px 1fr 46px;gap:8px;align-items:center;width:100%}
+.trow .bar{height:30px;border-radius:4px;justify-self:center;transition:width .5s ease}
+.trow .nm{font-size:.85rem;font-weight:700}
+.trow .v{font-size:.8rem;color:var(--muted);text-align:right;font-variant-numeric:tabular-nums}
+.base{position:relative}
+.timeline{display:flex;gap:4px;flex-wrap:wrap}
+.timeline span{width:26px;height:6px;border-radius:3px;background:var(--line)}
+.timeline span.on{background:var(--gold)}
+.pred{display:grid;gap:10px;align-content:start}
+.pred .ev{background:var(--gold-soft);border-radius:8px;padding:10px 12px;margin:0}
+.updown{display:flex;gap:8px}
+.updown .chip{font-size:1.05rem;padding:6px 16px}
+.verdict{border-radius:8px;padding:12px;margin:0;font-weight:700}
+.verdict.ok{background:var(--prod-soft);color:var(--good)} .verdict.no{background:var(--c3-soft);color:var(--bad)}
+textarea{width:100%;min-height:80px;border:1px solid var(--line);border-radius:6px;padding:10px;font:inherit;background:var(--surface);color:var(--ink);resize:vertical}
+.out{white-space:pre-wrap;background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:12px;font-size:.88rem;max-height:260px;overflow:auto}
+.toast{font-size:.9rem;color:var(--good)}
+@media (max-width:720px){.tabs{grid-template-columns:1fr}.sim{grid-template-columns:1fr}.ratio{grid-template-columns:1fr}.lvl{grid-template-columns:84px 1fr 96px} header h1{font-size:1.8rem}}
+@media (prefers-reduced-motion:reduce){.lvl .bar,.trow .bar{transition:none}}
+[hidden]{display:none!important}
+body{margin:0}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <div>
+    <p class="eyebrow">통합과학 · 생태계 평형</p>
+    <h1>생태계 평형 탐구소</h1>
+  </div>
+  <div class="by">(made by. 무한쌤)</div>
+</header>
+
+<section class="question" aria-label="오늘의 질문">
+  <p class="eyebrow">오늘의 질문</p>
+  <p><b>참새가 사라지자 메뚜기가 늘어난 까닭은 무엇일까?</b> 세 정거장을 차례로 돌며 생태계의 상태를 나타내는 개념을 탐구해 보자.</p>
+</section>
+
+<div class="tabs" role="tablist" aria-label="탐구 정거장">
+  <button class="tab" role="tab" id="tab-chain" aria-selected="true" data-t="chain"><span class="k">정거장 1</span><b>먹이 사슬과 영양단계</b><small>누가 누구를 먹을까?</small></button>
+  <button class="tab" role="tab" id="tab-pyr" aria-selected="false" data-t="pyr"><span class="k">정거장 2</span><b>생태 피라미드</b><small>위로 갈수록 왜 줄어들까?</small></button>
+  <button class="tab" role="tab" id="tab-sim" aria-selected="false" data-t="sim"><span class="k">정거장 3</span><b>생태계 평형 시뮬레이터</b><small>한 생물이 줄면 어떻게 될까?</small></button>
+</div>
+
+<section class="panel" id="panel" role="tabpanel" aria-live="polite"></section>
+
+<section class="panel" aria-label="나의 정리 노트">
+  <h2>나의 정리 노트</h2>
+  <label for="sum" class="lead">세 정거장을 마쳤으면 오늘의 질문에 내 말로 답해 보자. (영양단계, 먹이 관계, 개체수, 생태계 평형 중 2개 이상의 용어 사용)</label>
+  <textarea id="sum" placeholder="참새가 사라지자 메뚜기가 늘어난 까닭은 ..."></textarea>
+  <div class="out" id="out"></div>
+  <div class="row"><button class="btn" id="copy" type="button">정리 노트 복사하기</button><span class="toast" id="toast" role="status"></span></div>
+</section>
+</div>
+
+<script>
+const $=id=>document.getElementById(id);
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const KEY="eco-balance-v1";
+let st={tab:"chain",chain:[],role:null,pmode:"energy",guess:[15,15,15],revealed:false,why:null,scen:"temp",step:0,picks:{},score:{temp:[0,0],over:[0,0]},sum:""};
+try{const s=JSON.parse(localStorage.getItem(KEY)||"null");if(s)st=Object.assign(st,s)}catch(e){}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(st))}catch(e){}}
+
+/* ---------- 정거장 1 ---------- */
+const ORGS=[{n:"매",i:"🦅"},{n:"벼",i:"🌾"},{n:"뱀",i:"🐍"},{n:"메뚜기",i:"🦗"},{n:"개구리",i:"🐸"}];
+const ANSWER=["벼","메뚜기","개구리","뱀","매"];
+const LV=["생산자","1차 소비자","2차 소비자","3차 소비자","4차 소비자"];
+function chainView(){
+  const done=st.chain.length===5, ok=done&&st.chain.every((x,i)=>x===ANSWER[i]);
+  const slots=[0,1,2,3,4].map(i=>{const n=st.chain[i],o=ORGS.find(x=>x.n===n);
+    return `${i?'<span class="arrow" aria-hidden="true">→</span>':''}<div class="slot ${n?'filled l'+i:''}"><span class="ico">${o?o.i:'?'}</span><b>${n||'&nbsp;'}</b><span class="lv">${LV[i]}</span></div>`}).join("");
+  return `<h2>먹이 사슬과 영양단계</h2>
+  <p class="lead">교과서 76쪽 먹이그물에 나오는 생물 다섯이다. <b>먹히는 생물 → 먹는 생물</b> 순서로 눌러 먹이 사슬을 완성하자. 화살표는 에너지가 이동하는 방향이다.</p>
+  <div class="step"><h3><span class="n">①</span>먹이 사슬 잇기</h3>
+   <div class="chips">${ORGS.map(o=>`<button type="button" class="chip" data-org="${o.n}" ${st.chain.includes(o.n)||done?'disabled':''}>${o.i} ${o.n}</button>`).join("")}
+   <button type="button" class="chip" id="reset-chain">다시 하기</button></div>
+   <div class="chain">${slots}</div>
+   ${done?(ok?`<p class="fb ok">완성! 생산자가 만든 양분과 에너지가 먹이 관계를 따라 상위 영양단계로 이동한다.</p>`:`<p class="fb no">순서를 다시 생각해 보자. 스스로 양분을 만드는 생물에서 시작하고, 먹는 쪽이 오른쪽에 온다.</p>`):'<p class="fb"></p>'}
+  </div>
+  ${ok?`<div class="step"><h3><span class="n">②</span>먹이 사슬 vs 먹이그물</h3>
+   <p class="lead">실제 생태계에서 개구리는 메뚜기만 먹을까? 메뚜기를 먹는 생물이 개구리 하나뿐일까? 여러 먹이 사슬이 그물처럼 얽힌 것이 <b>먹이그물</b>이다. 먹이그물이 복잡할수록 생태계에 어떤 점이 좋을까?</p>
+   <div class="chips">${[["a","한 생물이 줄어도 다른 먹이로 대신할 수 있어 생태계가 더 안정하다"],["b","먹이가 많아 모든 생물의 개체수가 끝없이 늘어난다"],["c","에너지가 상위 영양단계로 이동하지 않는다"]].map(([k,t])=>`<button type="button" class="chip ${st.role===k?(k==='a'?'right':'wrong'):''}" data-role="${k}" aria-pressed="${st.role===k}">${t}</button>`).join("")}</div>
+   ${st.role?(st.role==='a'?`<p class="fb ok">맞아요. 먹이그물이 복잡하면 생태계평형이 잘 유지된다.</p>`:`<p class="fb no">다시 생각해 보자. 먹이가 사라졌을 때 다른 먹이가 있는 생물은 어떻게 될까?</p>`):'<p class="fb"></p>'}
+  </div>`:""}
+  <p class="src">교과서 76쪽 그림 Ⅱ-5 먹이그물</p>`;
+}
+
+/* ---------- 정거장 2 ---------- */
+const PYR={energy:{unit:"kcal/m²·년",v:[20810,3368,383,21],title:"에너지피라미드"},count:{unit:"개체/m²",v:[1500000,200000,90000,1],title:"개체수피라미드"}};
+const PL=["생산자","1차 소비자","2차 소비자","3차 소비자"],PC=["--prod","--c1","--c2","--c3"];
+function pyrView(){
+  const d=PYR[st.pmode],max=d.v[0];
+  const rows=[3,2,1,0].map(i=>`<div class="lvl"><span class="nm" style="color:var(${PC[i]})">${PL[i]}</span><span class="bar" style="width:${Math.max(.6,d.v[i]/max*100)}%;background:var(${PC[i]})"></span><span class="val">${d.v[i].toLocaleString()}</span></div>`).join("");
+  const real=[1,2,3].map(i=>PYR.energy.v[i]/PYR.energy.v[i-1]*100);
+  const ratio=[0,1,2].map(i=>`<div><label for="g${i}">${PL[i]} → ${PL[i+1]}</label><input type="range" id="g${i}" min="1" max="100" value="${st.guess[i]}" ${st.revealed?'disabled':''}><output>내 예상 ${st.guess[i]}%</output><span class="ans">${st.revealed?`실제 약 ${real[i].toFixed(1)}%`:''}</span></div>`).join("");
+  const whys=[["a","각 영양단계의 생물이 세포호흡으로 생명 활동에 쓰고, 일부는 열로 방출되기 때문"],["b","에너지가 먹히는 순간 사라져 없어지기 때문"],["c","상위 영양단계의 생물은 몸집이 커서 에너지가 필요 없기 때문"]];
+  return `<h2>생태 피라미드</h2>
+  <p class="lead">생산자에서 상위 영양단계로 갈수록 에너지양과 개체수는 어떻게 달라질까? 막대 길이는 실제 값에 비례한다.</p>
+  <div class="row" role="group" aria-label="피라미드 종류"><button type="button" class="chip" data-p="energy" aria-pressed="${st.pmode==='energy'}">에너지피라미드</button><button type="button" class="chip" data-p="count" aria-pressed="${st.pmode==='count'}">개체수피라미드</button><span class="src">단위: ${d.unit}</span></div>
+  <div class="pyr">${rows}</div>
+  <div class="step"><h3><span class="n">①</span>예상하기: 다음 영양단계로 전달되는 에너지는 몇 %일까?</h3>
+   <div class="ratio">${ratio}</div>
+   <div class="row"><button class="btn" type="button" id="reveal" ${st.revealed?'disabled':''}>에너지피라미드 값으로 확인하기</button></div>
+   ${st.revealed?`<p class="fb ok">생산자 에너지의 겨우 약 ${(21/20810*100).toFixed(1)}%만 3차 소비자에게 도달한다.</p>`:''}
+  </div>
+  ${st.revealed?`<div class="step"><h3><span class="n">②</span>설명하기: 상위 영양단계로 갈수록 에너지양이 줄어드는 까닭은? <span class="src">(힌트: 생명 활동)</span></h3>
+   <div class="chips">${whys.map(([k,t])=>`<button type="button" class="chip ${st.why===k?(k==='a'?'right':'wrong'):''}" data-why="${k}" aria-pressed="${st.why===k}">${t}</button>`).join("")}</div>
+   ${st.why?(st.why==='a'?`<p class="fb ok">맞아요. 에너지는 사라지지 않고 생명 활동에 쓰이거나 열로 빠져나가, 다음 단계로 전달되는 양이 점점 줄어든다. 그래서 상위 영양단계로 갈수록 개체수도 대체로 줄어든다.</p>`:`<p class="fb no">에너지는 없어지지 않는다. 각 단계의 생물이 살아가는 데 무엇이 필요할지 생각해 보자.</p>`):'<p class="fb"></p>'}
+  </div>`:""}
+  <p class="src">교과서 77쪽 그림 Ⅱ-6 영양단계와 생태피라미드 (출처: Biology, 2021)</p>`;
+}
+
+/* ---------- 정거장 3 ---------- */
+const SC={
+ temp:{name:"2차 소비자의 일시적 감소",intro:"안정된 생태계에서 2차 소비자를 무분별하게 사냥해 개체수가 일시적으로 줄었다.",
+  states:[[100,100,100],[100,100,40],[100,150,40],[65,150,85],[65,90,85],[100,100,100]],
+  ev:["평형이 유지된 상태","2차 소비자를 무분별하게 사냥 → 2차 소비자 감소","2차 소비자가 줄었다. 그러면 1차 소비자는?","1차 소비자가 늘었다. 그러면 생산자와 2차 소비자는?","2차 소비자가 늘었다. 그러면 1차 소비자는?","1차 소비자가 줄었다. 그러면 생산자는?"],
+  ask:[null,null,[1],[0,2],[1],[0]],
+  lab:["평형이 유지된 상태","2차 소비자 감소","1차 소비자 증가","생산자 감소 · 2차 소비자 증가","1차 소비자 감소","생산자 증가 → 평형 회복"],
+  end:"생태계가 회복할 수 있는 정도의 변화였기 때문에 먹이 관계를 통해 각 생물의 개체수가 원래대로 돌아왔다. 이것이 생태계평형의 회복이다."},
+ over:{name:"논의 참새를 계속 사냥한다면",intro:"논 생태계 [벼 → 메뚜기 → 참새]에서 사람들이 참새를 지나치게, 그리고 계속 사냥했다.",
+  names:["벼","메뚜기","참새"],
+  states:[[100,100,100],[100,100,15],[100,190,15],[35,190,15],[35,80,10]],
+  ev:["평형이 유지된 상태","참새를 지나치게 사냥 → 참새 급감","참새가 거의 사라졌다. 그러면 메뚜기는?","메뚜기가 크게 늘었다. 그러면 벼는?","벼가 크게 줄고 참새 사냥은 계속된다. 그러면 메뚜기는?"],
+  ask:[null,null,[1],[0],[1]],
+  lab:["평형이 유지된 상태","참새 급감","메뚜기 급증","벼 급감","메뚜기 감소 · 벼와 참새는 회복 못 함"],
+  end:"참새 사냥이 계속되어 회복 능력을 넘어섰다. 메뚜기는 먹이가 부족해 줄었지만 벼도 참새도 회복하지 못했다. 평형이 깨진 생태계는 원래대로 돌아가기 어렵다. 실제로 이런 일이 있었던 나라에서는 식량 생산이 오히려 줄었다."}
+};
+const SL=["생산자","1차 소비자","2차 소비자"];
+function simView(){
+  const s=SC[st.scen],k=st.step,cur=s.states[k],names=s.names||SL,last=k===s.states.length-1;
+  const ask=s.ask[k+1]; const pk=st.picks[st.scen+k]||{};
+  const allPicked=ask?ask.every(i=>pk[i]):true;
+  const rows=[2,1,0].map(i=>`<div class="trow"><span class="nm" style="color:var(${PC[i]})">${names[i]}</span><span class="bar" style="width:${cur[i]/2}%;background:var(${PC[i]})"></span><span class="v">${cur[i]}</span></div>`).join("");
+  const sc=st.score[st.scen];
+  let right="";
+  if(last){right=`<p class="verdict ${st.scen==='temp'?'ok':'no'}">${st.scen==='temp'?'평형 회복':'평형이 깨짐'}</p><p class="lead">${s.end}</p><p class="src">내 예상 적중: ${sc[0]} / ${sc[1]}</p><div class="row"><button class="btn ghost" type="button" id="sim-reset">처음부터</button>${st.scen==='temp'?'<button class="btn" type="button" data-scen="over">다음 시나리오: 참새를 계속 사냥한다면</button>':'<button class="btn" type="button" data-scen="temp">교과서 시나리오 다시 보기</button>'}</div>`}
+  else if(!ask){right=`<p class="ev">${s.ev[k+1]}</p><div class="row"><button class="btn" type="button" id="next">다음 단계</button></div>`}
+  else{const nxt=s.states[k+1];
+    right=`<p class="ev"><b>예상하기</b> ${s.ev[k+1]}</p>`+ask.map(i=>`<div class="step"><b style="color:var(${PC[i]})">${names[i]}</b><div class="updown">${["증가","감소"].map(d=>{const sel=pk[i]===d;return `<button type="button" class="chip" data-pred="${i}" data-d="${d}" aria-pressed="${sel}">${d==='증가'?'↑ 증가':'↓ 감소'}</button>`}).join("")}</div></div>`).join("")+
+    `<div class="row"><button class="btn" type="button" id="next" ${allPicked?'':'disabled'}>확인하고 다음 단계로</button></div>`}
+  return `<h2>생태계 평형 시뮬레이터</h2>
+  <div class="row" role="group" aria-label="시나리오">${Object.entries(SC).map(([key,v])=>`<button type="button" class="chip" data-scen="${key}" aria-pressed="${st.scen===key}">${v.name}</button>`).join("")}</div>
+  <p class="lead">${s.intro} 단계마다 <b>먼저 예상</b>하고 확인하자. 막대는 처음 개체수를 100으로 놓은 상대값이다.</p>
+  <div class="sim"><div class="stage"><div class="timeline">${s.states.map((_,i)=>`<span class="${i<=k?'on':''}"></span>`).join("")}</div><b>${s.lab[k]}</b><div class="pyr">${rows}</div></div>
+  <div class="pred">${right}${st.lastFb?`<p class="fb ${st.lastFb.ok?'ok':'no'}">${st.lastFb.t}</p>`:''}</div></div>
+  <p class="src">교과서 77쪽 그림 Ⅱ-7 생태계평형 회복 과정을 바탕으로 한 단순 모형 (수치는 이해를 돕기 위한 예시)</p>`;
+}
+
+/* ---------- 공통 ---------- */
+const VIEWS={chain:chainView,pyr:pyrView,sim:simView};
+function isDone(t){if(t==="chain")return st.role==="a";if(t==="pyr")return st.why==="a";return !!(st.fin&&st.fin.temp)}
+function renderOut(){
+  const L=[];
+  if(st.chain.length===5)L.push(`[먹이 사슬] ${st.chain.join(" → ")}${st.chain.every((x,i)=>x===ANSWER[i])?"":" (다시 확인 필요)"}`);
+  if(st.revealed)L.push(`[에너지 전달 예상] ${st.guess.map(g=>g+"%").join(", ")} → 실제 약 16.2%, 11.4%, 5.5%`);
+  if(st.why)L.push(`[에너지가 줄어드는 까닭] ${st.why==="a"?"생명 활동(세포호흡)에 쓰이고 열로 방출되기 때문":"다시 생각해 보기"}`);
+  ["temp","over"].forEach(k=>{if(st.score[k][1])L.push(`[시뮬레이터: ${SC[k].name}] 예상 적중 ${st.score[k][0]}/${st.score[k][1]}`)});
+  if(st.sum.trim())L.push(`[오늘의 질문에 대한 나의 답] ${st.sum.trim()}`);
+  $("out").textContent=L.length?L.join("\n"):"정거장 활동을 하면 여기에 기록이 모인다.";
+}
+function render(){
+  document.querySelectorAll(".tab").forEach(b=>{b.setAttribute("aria-selected",String(b.dataset.t===st.tab));b.classList.toggle("done",isDone(b.dataset.t))});
+  $("panel").innerHTML=VIEWS[st.tab](); renderOut(); save();
+}
+document.addEventListener("click",e=>{
+  const b=e.target.closest("button"); if(!b)return;
+  if(b.dataset.t){st.tab=b.dataset.t;st.lastFb=null;render();return}
+  if(b.dataset.org){if(st.chain.length<5)st.chain.push(b.dataset.org);render();return}
+  if(b.id==="reset-chain"){st.chain=[];st.role=null;render();return}
+  if(b.dataset.role){st.role=b.dataset.role;render();return}
+  if(b.dataset.p){st.pmode=b.dataset.p;render();return}
+  if(b.id==="reveal"){st.revealed=true;st.pmode="energy";render();return}
+  if(b.dataset.why){st.why=b.dataset.why;render();return}
+  if(b.dataset.scen){st.scen=b.dataset.scen;st.step=0;st.lastFb=null;Object.keys(st.picks).filter(k=>k.startsWith(b.dataset.scen)).forEach(k=>delete st.picks[k]);st.score[b.dataset.scen]=[0,0];render();return}
+  if(b.dataset.pred){const key=st.scen+st.step;st.picks[key]=Object.assign({},st.picks[key],{[b.dataset.pred]:b.dataset.d});render();return}
+  if(b.id==="sim-reset"){const k=st.scen;st.step=0;st.lastFb=null;Object.keys(st.picks).filter(x=>x.startsWith(k)).forEach(x=>delete st.picks[x]);st.score[k]=[0,0];render();return}
+  if(b.id==="next"){const s=SC[st.scen],k=st.step,ask=s.ask[k+1];
+    if(ask){const pk=st.picks[st.scen+k],nm=s.names||SL;let good=0;
+      const parts=ask.map(i=>{const real=s.states[k+1][i]>s.states[k][i]?"증가":"감소";if(pk[i]===real)good++;return `${nm[i]} ${real}`});
+      st.score[st.scen][0]+=good;st.score[st.scen][1]+=ask.length;
+      st.lastFb={ok:good===ask.length,t:(good===ask.length?"예상 적중! ":"실제로는 ")+parts.join(", ")+(good===ask.length?"":" — 먹이 관계로 다시 따져 보자.")};
+    } else st.lastFb=null;
+    st.step=Math.min(k+1,s.states.length-1);if(st.step===s.states.length-1){st.fin=Object.assign({},st.fin,{[st.scen]:true})}render();return}
+  if(b.id==="copy"){const t=$("out").textContent;const ok=()=>{$("toast").textContent="복사했어요."};
+    const fail=()=>{const r=document.createRange();r.selectNodeContents($("out"));const sel=getSelection();sel.removeAllRanges();sel.addRange(r);$("toast").textContent="자동 복사가 막혀 있어요. 선택된 글을 Ctrl+C로 복사하세요."};
+    try{navigator.clipboard.writeText(t).then(ok,fail)}catch(err){fail()}}
+});
+document.addEventListener("input",e=>{
+  const m=e.target.id.match(/^g(\d)$/); if(m){st.guess[+m[1]]=+e.target.value;e.target.nextElementSibling.textContent=`내 예상 ${e.target.value}%`;save();return}
+  if(e.target.id==="sum"){st.sum=e.target.value;renderOut();save()}
+});
+$("sum").value=st.sum||"";
+render();
+</script>
+
+</body>
+</html>
