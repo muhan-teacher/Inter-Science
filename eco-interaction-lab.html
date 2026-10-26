@@ -1,0 +1,284 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>생물과 환경 탐구소</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Do+Hyeon&family=IBM+Plex+Sans+KR:wght@400;500;700&display=swap">
+<style>
+/* 레이아웃: 상단 질문 띠 → 사례 카드 격자 → 선택한 카드를 펼치는 탐구 패널 → 두 방향 분류 보드 → 나의 해석 모음 */
+:root{
+  --bg:#f5f6f9; --surface:#ffffff; --ink:#18213a; --muted:#5b6478; --line:#dde1ea;
+  --navy:#1f2f5c; --gold:#c9962b; --gold-soft:#f6ecd3;
+  --env:#2f7a8c; --env-soft:#e0f0f3; --bio:#5b8a2f; --bio-soft:#e8f2dc;
+  --good:#2e7d4f; --bad:#b4472f;
+  --f-display:"Do Hyeon","IBM Plex Sans KR",sans-serif;
+  --f-body:"IBM Plex Sans KR","Apple SD Gothic Neo","Malgun Gothic",sans-serif;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#10152a; --surface:#1a2140; --ink:#e9ecf5; --muted:#a3abc2; --line:#2e3760;
+  --navy:#9fb3ee; --gold:#e3b856; --gold-soft:#3a3220;
+  --env:#7cc6d6; --env-soft:#183842; --bio:#a6d27a; --bio-soft:#24361a;
+  --good:#7fd6a0; --bad:#f19b85; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#10152a; --surface:#1a2140; --ink:#e9ecf5; --muted:#a3abc2; --line:#2e3760;
+  --navy:#9fb3ee; --gold:#e3b856; --gold-soft:#3a3220;
+  --env:#7cc6d6; --env-soft:#183842; --bio:#a6d27a; --bio-soft:#24361a;
+  --good:#7fd6a0; --bad:#f19b85; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:16px;line-height:1.6;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:20px 48px}
+.wrap{max-width:1040px;margin:0 auto;display:grid;gap:22px}
+h1,h2,h3{font-family:var(--f-display);font-weight:400;margin:0;text-wrap:balance;letter-spacing:.01em}
+header{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:12px;border-bottom:3px solid var(--navy);padding-bottom:12px}
+header h1{font-size:2.2rem;color:var(--navy);line-height:1.1}
+header .by{font-size:.85rem;color:var(--muted)}
+.eyebrow{font-size:.78rem;letter-spacing:.08em;color:var(--gold);font-weight:700}
+.question{background:var(--surface);border:1px solid var(--line);border-left:6px solid var(--gold);border-radius:6px;padding:16px 18px;display:grid;gap:6px}
+.question p{margin:0}
+.steps{display:flex;flex-wrap:wrap;gap:8px;margin:0;padding:0;list-style:none;font-size:.9rem;color:var(--muted)}
+.steps li{background:var(--bg);border:1px solid var(--line);border-radius:999px;padding:2px 10px}
+.toolbar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between}
+.mode{display:inline-flex;border:1px solid var(--line);border-radius:999px;overflow:hidden;background:var(--surface)}
+.mode button{border:0;background:none;padding:6px 14px;font:inherit;font-size:.9rem;color:var(--muted);cursor:pointer}
+.mode button[aria-pressed="true"]{background:var(--navy);color:var(--surface)}
+.progress{font-size:.9rem;color:var(--muted);font-variant-numeric:tabular-nums}
+.progress b{color:var(--ink)}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
+.card{position:relative;text-align:left;border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:8px;padding:12px;font:inherit;cursor:pointer;display:grid;gap:4px;min-height:96px}
+.card:hover{border-color:var(--navy)}
+.card[aria-current="true"]{outline:3px solid var(--gold);outline-offset:-1px}
+.card .ico{font-size:1.6rem;line-height:1}
+.card .nm{font-weight:700;font-size:.95rem}
+.card .tag{font-size:.75rem;color:var(--muted)}
+.card.done{background:var(--gold-soft)}
+.card.done::after{content:"해결";position:absolute;top:8px;right:8px;font-size:.7rem;font-weight:700;color:var(--gold)}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:20px;display:grid;gap:18px}
+.panel-head{display:flex;gap:14px;align-items:flex-start}
+.panel-head .big{font-size:2.6rem;line-height:1}
+.panel-head h2{font-size:1.6rem;color:var(--navy)}
+.story{margin:4px 0 0;max-width:65ch}
+.src{font-size:.78rem;color:var(--muted)}
+fieldset{border:0;padding:0;margin:0;display:grid;gap:8px}
+legend{font-weight:700;padding:0;margin-bottom:6px}
+legend .n{display:inline-block;min-width:1.6em;color:var(--gold);font-family:var(--f-display);font-size:1.1rem}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{border:1px solid var(--line);background:var(--bg);color:var(--ink);border-radius:999px;padding:6px 14px;font:inherit;font-size:.95rem;cursor:pointer}
+.chip:hover{border-color:var(--navy)}
+.chip[aria-pressed="true"]{background:var(--navy);color:var(--surface);border-color:var(--navy)}
+.chip.right{background:var(--good);border-color:var(--good);color:var(--surface)}
+.chip.wrong{border-color:var(--bad);color:var(--bad);background:var(--bg)}
+.dir{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.dir button{border:2px solid var(--line);background:var(--bg);color:var(--ink);border-radius:8px;padding:12px;font:inherit;cursor:pointer;display:grid;gap:2px;text-align:center}
+.dir .arrow{font-family:var(--f-display);font-size:1.25rem}
+.dir small{color:var(--muted)}
+.dir button[data-d="env"][aria-pressed="true"]{border-color:var(--env);background:var(--env-soft)}
+.dir button[data-d="bio"][aria-pressed="true"]{border-color:var(--bio);background:var(--bio-soft)}
+.dir button.wrong{border-color:var(--bad)}
+.fb{font-size:.92rem;margin:0;min-height:1.4em}
+.fb.ok{color:var(--good)} .fb.no{color:var(--bad)}
+.frame{background:var(--bg);border:1px dashed var(--line);border-radius:8px;padding:12px;display:grid;gap:8px}
+.frame .lead{margin:0}
+.frame .slot{font-weight:700;color:var(--navy);border-bottom:2px solid var(--gold);padding:0 4px}
+textarea{width:100%;min-height:70px;border:1px solid var(--line);border-radius:6px;padding:10px;font:inherit;background:var(--surface);color:var(--ink);resize:vertical}
+textarea:focus,button:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+.row{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.btn{border:0;background:var(--navy);color:var(--surface);border-radius:6px;padding:9px 16px;font:inherit;font-weight:700;cursor:pointer}
+.btn.ghost{background:none;color:var(--navy);border:1px solid var(--navy)}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.model{border-left:4px solid var(--good);background:var(--bg);padding:10px 14px;border-radius:0 6px 6px 0;margin:0}
+.model b{color:var(--good)}
+.board{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.col{border-radius:10px;padding:14px;display:grid;gap:8px;align-content:start;min-width:0}
+.col.env{background:var(--env-soft)} .col.bio{background:var(--bio-soft)}
+.col h3{font-size:1.2rem}
+.col.env h3{color:var(--env)} .col.bio h3{color:var(--bio)}
+.col ul{margin:0;padding:0;list-style:none;display:grid;gap:6px}
+.col li{background:var(--surface);border-radius:6px;padding:8px 10px;font-size:.88rem}
+.col .empty{color:var(--muted);font-size:.85rem}
+.mine{display:grid;gap:10px}
+.mine select{font:inherit;padding:6px 8px;border:1px solid var(--line);border-radius:6px;background:var(--surface);color:var(--ink)}
+.out{white-space:pre-wrap;background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:12px;font-size:.88rem;max-height:240px;overflow:auto}
+.toast{font-size:.9rem;color:var(--good)}
+@media (max-width:560px){.dir,.board{grid-template-columns:1fr} header h1{font-size:1.8rem}}
+@media (prefers-reduced-motion:no-preference){.panel{animation:rise .25s ease-out}@keyframes rise{from{transform:translateY(6px)}to{transform:none}}}
+[hidden]{display:none!important}
+body{margin:0}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <div>
+    <div class="eyebrow">통합과학 · 생물과 환경</div>
+    <h1>생물과 환경 탐구소</h1>
+  </div>
+  <div class="by">(made by. 무한쌤)</div>
+</header>
+
+<section class="question" aria-label="오늘의 탐구">
+  <p class="eyebrow">오늘의 질문</p>
+  <p><b>지렁이가 사는 땅에서 농작물이 잘 자라는 까닭은 무엇일까?</b> 생물과 환경이 어떻게 서로 영향을 주고받는지 사례 카드로 해석해 보자.</p>
+  <ul class="steps"><li>① 사례 읽기</li><li>② 생물요소 찾기</li><li>③ 비생물요소 찾기</li><li>④ 영향의 방향 정하기</li><li>⑤ 내 말로 해석하기</li></ul>
+</section>
+
+<div class="toolbar">
+  <div class="mode" role="group" aria-label="도전 수준">
+    <button id="m-basic" type="button" aria-pressed="true">기본 도전</button>
+    <button id="m-adv" type="button" aria-pressed="false">심화 도전 (+생산자·소비자·분해자)</button>
+  </div>
+  <div class="progress" id="progress"></div>
+</div>
+
+<div class="grid" id="grid" aria-label="사례 카드"></div>
+
+<section class="panel" id="panel" aria-live="polite"></section>
+
+<section aria-label="분류 보드" style="display:grid;gap:10px">
+  <h2 style="font-size:1.4rem;color:var(--navy)">우리가 찾은 영향의 방향</h2>
+  <div class="board">
+    <div class="col env"><h3>환경 → 생물</h3><p class="src" style="margin:0">비생물요소가 생물에 영향 (적응)</p><ul id="col-env"></ul></div>
+    <div class="col bio"><h3>생물 → 환경</h3><p class="src" style="margin:0">생물이 비생물요소를 변화시킴</p><ul id="col-bio"></ul></div>
+  </div>
+</section>
+
+<section class="panel mine" aria-label="나만의 사례">
+  <h2 style="font-size:1.4rem;color:var(--navy)">마지막 도전: 내가 찾은 사례</h2>
+  <p style="margin:0">주변에서 본 생물과 환경의 상호 관계를 하나 골라 문장틀로 써 보자.</p>
+  <div class="row">
+    <label for="my-dir">방향</label>
+    <select id="my-dir"><option value="env">환경 → 생물</option><option value="bio">생물 → 환경</option></select>
+    <label for="my-fac">비생물요소</label>
+    <select id="my-fac"><option>빛</option><option>온도</option><option>물</option><option>공기</option><option>토양</option></select>
+  </div>
+  <label for="my-text" class="src">문장틀: ___(이)가 ___에 영향을 주어 ___ 되었다.</label>
+  <textarea id="my-text" placeholder="예) 은행나무 가로수가 많은 길은 여름에 그늘이 생겨 기온이 낮아졌다."></textarea>
+  <h3 style="font-size:1.15rem">나의 해석 모음</h3>
+  <div class="out" id="out"></div>
+  <div class="row"><button class="btn" id="copy" type="button">해석 모음 복사하기</button><span class="toast" id="toast" role="status"></span></div>
+  <p class="src" style="margin:0">복사한 내용은 패들렛이나 활동지에 붙여 넣어 모둠 발표 자료로 쓴다.</p>
+</section>
+</div>
+
+<script>
+const FACTORS=["빛","온도","물","공기","토양"];
+const ROLES=["생산자","소비자","분해자"];
+const CASES=[
+ {id:"fox",ico:"🦊",name:"사막여우와 북극여우",story:"사막여우는 북극여우보다 몸집이 작고 귀가 크다. 북극여우는 몸집이 크고 귀가 작다.",org:"여우",orgOpts:["여우","모래","눈"],fac:"온도",dir:"env",role:"소비자",
+  model:"온도가 여우에게 영향을 주어, 더운 곳의 사막여우는 큰 귀로 열을 잘 내보내고 추운 곳의 북극여우는 작은 귀로 열을 덜 빼앗기게 되었다.",src:"교과서 74쪽"},
+ {id:"mum",ico:"🌼",name:"국화",story:"국화는 여름이 지나 낮이 짧아지는 가을에 꽃이 핀다.",org:"국화",orgOpts:["국화","햇빛","꽃병"],fac:"빛",dir:"env",role:"생산자",
+  model:"빛(낮의 길이)이 국화에 영향을 주어, 낮이 짧아지는 시기에 꽃이 피게 되었다.",src:"교과서 74쪽"},
+ {id:"cactus",ico:"🌵",name:"선인장",story:"건조한 사막에 사는 선인장은 잎이 가시로 변해 있다.",org:"선인장",orgOpts:["선인장","모래","바람"],fac:"물",dir:"env",role:"생산자",
+  model:"물이 부족한 환경이 선인장에 영향을 주어, 잎이 가시로 변해 물이 덜 빠져나가게 되었다.",src:"교과서 74쪽"},
+ {id:"salt",ico:"🌱",name:"함초",story:"염분이 많은 갯벌 땅에 사는 함초는 몸속에 염분을 저장하는 조직이 있다.",org:"함초",orgOpts:["함초","소금","갯벌"],fac:"토양",dir:"env",role:"생산자",
+  model:"염분이 많은 토양이 함초에 영향을 주어, 고농도의 염분을 저장하는 조직이 발달해 수분을 잘 흡수하게 되었다.",src:"교과서 74쪽"},
+ {id:"penguin",ico:"🐧",name:"황제펭귄",story:"남극처럼 추운 곳에 사는 펭귄은 피부 아래 지방층이 두껍게 발달해 있다.",org:"펭귄",orgOpts:["펭귄","빙하","바닷물"],fac:"온도",dir:"env",role:"소비자",
+  model:"낮은 온도가 펭귄에게 영향을 주어, 두꺼운 피하 지방층으로 체온을 유지하게 되었다.",src:"교과서 75쪽 (나)"},
+ {id:"algae",ico:"🌊",name:"바다의 해조류",story:"바다 얕은 곳에는 녹조류가, 더 깊은 곳에는 갈조류와 홍조류가 주로 산다. 깊이에 따라 도달하는 빛의 양과 종류가 다르기 때문이다.",org:"해조류",orgOpts:["해조류","바닷물","모래"],fac:"빛",dir:"env",role:"생산자",
+  model:"빛(바다 깊이에 따라 달라지는 빛의 양과 파장)이 해조류에 영향을 주어, 깊이에 따라 사는 해조류의 종류가 달라지게 되었다.",src:"추가 사례"},
+ {id:"plant",ico:"🌳",name:"식물의 광합성",story:"식물은 광합성을 하여 공기 중으로 산소를 내보낸다.",org:"식물",orgOpts:["식물","햇빛","이산화 탄소"],fac:"공기",dir:"bio",role:"생산자",
+  model:"식물이 공기에 영향을 주어, 광합성으로 공기 중의 산소 농도가 높아지게 되었다.",src:"교과서 74쪽"},
+ {id:"beaver",ico:"🦫",name:"비버의 댐",story:"비버가 나뭇가지로 강의 물길을 막는 댐을 만들면 강의 흐름이 느려지고 댐 주변이 습지로 바뀐다.",org:"비버",orgOpts:["비버","나뭇가지","강물"],fac:"물",dir:"bio",role:"소비자",
+  model:"비버가 물(강)에 영향을 주어, 강의 흐름이 느려지고 주변이 습지 환경으로 바뀌게 되었다.",src:"교과서 74쪽"},
+ {id:"cow",ico:"🐄",name:"소의 메테인",story:"소는 먹이를 소화하는 과정에서 대기 중으로 메테인을 방출한다.",org:"소",orgOpts:["소","풀","메테인"],fac:"공기",dir:"bio",role:"소비자",
+  model:"소가 공기(대기)에 영향을 주어, 대기 중의 메테인 양이 늘어나게 되었다.",src:"교과서 75쪽 (가)"},
+ {id:"drone",ico:"🚁",name:"드론으로 비료 뿌리기",story:"사람이 드론을 이용해 논에 비료를 뿌리면 논의 흙이 비옥해진다.",org:"사람",orgOpts:["사람","드론","벼"],fac:"토양",dir:"bio",role:"소비자",
+  model:"사람이 토양에 영향을 주어, 비료로 논의 흙이 비옥해지게 되었다.",src:"교과서 75쪽 (다)"},
+ {id:"worm",ico:"🪱",name:"지렁이가 사는 밭",story:"지렁이는 흙 속을 돌아다니며 굴을 만들고, 낙엽이나 사체가 섞인 흙을 먹고 분변토를 배출한다. 이런 밭에서는 비료를 많이 쓰지 않아도 농작물이 잘 자란다.",org:"지렁이",orgOpts:["지렁이","흙","배추"],fac:"토양",dir:"bio",role:"분해자",
+  roleNote:"지렁이는 동물이라 소비자로 생각하기 쉽지만, 사체·낙엽 같은 유기물을 분해하여 양분을 얻는다는 점에서 분해자 역할을 한다.",
+  model:"지렁이가 토양에 영향을 주어, 굴로 흙에 공기가 잘 통하고 유기물이 분해되어 흙이 비옥해지게 되었다. 그래서 농작물이 잘 자란다.",src:"교과서 72쪽 도입"},
+ {id:"forest",ico:"🌲",name:"숲 속의 그늘",story:"나무가 우거진 숲 속은 한여름에도 주변 도시보다 기온이 낮고 습하다.",org:"나무",orgOpts:["나무","그늘","바람"],fac:"온도",dir:"bio",role:"생산자",
+  model:"나무가 온도에 영향을 주어, 잎이 햇빛을 가리고 수분을 내보내 숲 속 기온이 낮아지게 되었다.",src:"추가 사례"}
+];
+const KEY="eco-lab-v1";
+let state={mode:"basic",cur:CASES[0].id,ans:{}};
+try{const s=JSON.parse(localStorage.getItem(KEY)||"null");if(s&&s.ans)state=Object.assign(state,s)}catch(e){}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(state))}catch(e){}}
+const $=id=>document.getElementById(id);
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+function A(id){return state.ans[id]||(state.ans[id]={})}
+function isDone(c){const a=state.ans[c.id];if(!a)return false;
+  const base=a.org===c.org&&a.fac===c.fac&&a.dir===c.dir&&(a.text||"").trim().length>=8&&a.checked;
+  return state.mode==="adv"?base&&a.role===c.role:base}
+function renderGrid(){
+  $("grid").innerHTML=CASES.map(c=>`<button type="button" class="card${isDone(c)?" done":""}" data-id="${c.id}" aria-current="${state.cur===c.id}"><span class="ico" aria-hidden="true">${c.ico}</span><span class="nm">${esc(c.name)}</span><span class="tag">${esc(c.src)}</span></button>`).join("");
+  const n=CASES.filter(isDone).length;
+  $("progress").innerHTML=`해결한 사례 <b>${n}</b> / ${CASES.length}`;
+}
+function chip(group,val,a,correct){
+  const sel=a[group]===val; let cls="chip";
+  if(sel&&a[group+"Chk"]) cls+= val===correct?" right":" wrong";
+  return `<button type="button" class="${cls}" data-g="${group}" data-v="${esc(val)}" aria-pressed="${sel}">${esc(val)}</button>`}
+function fbLine(a,g,correct,okMsg,noMsg){
+  if(!a[g]) return `<p class="fb"></p>`;
+  return a[g]===correct?`<p class="fb ok">${okMsg}</p>`:`<p class="fb no">${noMsg}</p>`}
+function renderPanel(){
+  const c=CASES.find(x=>x.id===state.cur), a=A(c.id); let k=1;
+  const facSlot=a.fac||"___", orgSlot=a.org||"___";
+  const lead=a.dir==="bio"?`<span class="slot">${esc(orgSlot)}</span>이(가) <span class="slot">${esc(facSlot)}</span>에 영향을 주어,`
+    : a.dir==="env"?`<span class="slot">${esc(facSlot)}</span>이(가) <span class="slot">${esc(orgSlot)}</span>에게 영향을 주어,`
+    : `영향의 방향을 먼저 정하면 문장틀이 나타난다.`;
+  $("panel").innerHTML=`
+  <div class="panel-head"><span class="big" aria-hidden="true">${c.ico}</span><div><h2>${esc(c.name)}</h2><p class="story">${esc(c.story)}</p><span class="src">${esc(c.src)}</span></div></div>
+  <fieldset><legend><span class="n">${k++}</span>이 사례의 <b>생물요소</b>는?</legend>
+   <div class="chips">${c.orgOpts.map(v=>chip("org",v,{org:a.org,orgChk:!!a.org},c.org)).join("")}</div>
+   ${fbLine(a,"org",c.org,"맞아요. 살아 있는 생물이에요.","다시 생각해 보자. 살아 있으면서 양분을 얻는 것은 무엇일까?")}</fieldset>
+  <fieldset><legend><span class="n">${k++}</span>관련이 가장 깊은 <b>비생물요소</b>는?</legend>
+   <div class="chips">${FACTORS.map(v=>chip("fac",v,{fac:a.fac,facChk:!!a.fac},c.fac)).join("")}</div>
+   ${fbLine(a,"fac",c.fac,"맞아요.","사례 글에서 무엇이 달라졌거나 무엇이 영향을 주었는지 다시 읽어 보자.")}</fieldset>
+  <fieldset><legend><span class="n">${k++}</span>영향의 <b>방향</b>은?</legend>
+   <div class="dir">
+    <button type="button" data-d="env" aria-pressed="${a.dir==="env"}" class="${a.dir==="env"&&c.dir!=="env"?"wrong":""}"><span class="arrow">환경 → 생물</span><small>환경 때문에 생물의 모습·생활이 달라짐</small></button>
+    <button type="button" data-d="bio" aria-pressed="${a.dir==="bio"}" class="${a.dir==="bio"&&c.dir!=="bio"?"wrong":""}"><span class="arrow">생물 → 환경</span><small>생물 때문에 환경이 달라짐</small></button>
+   </div>
+   ${a.dir?(a.dir===c.dir?`<p class="fb ok">맞아요. ${c.dir==="env"?"생물이 환경에 적응한 사례예요.":"생물이 환경을 바꾼 사례예요."}</p>`:`<p class="fb no">누가 먼저 바뀌었는지 생각해 보자. 바뀐 쪽이 영향을 받은 쪽이다.</p>`):`<p class="fb"></p>`}</fieldset>
+  ${state.mode==="adv"?`<fieldset><legend><span class="n">${k++}</span>심화: 이 생물은 생태계에서 무엇일까?</legend>
+   <div class="chips">${ROLES.map(v=>chip("role",v,{role:a.role,roleChk:!!a.role},c.role)).join("")}</div>
+   ${a.role?(a.role===c.role?`<p class="fb ok">맞아요. ${esc(c.roleNote||"")}</p>`:`<p class="fb no">양분을 어떻게 얻는지 생각해 보자. ${c.roleNote?"":"스스로 만드는가, 다른 생물을 먹는가, 사체·배설물을 분해하는가?"}</p>`):`<p class="fb"></p>`}</fieldset>`:""}
+  <fieldset><legend><span class="n">${k++}</span>내 말로 <b>해석</b>하기</legend>
+   <div class="frame"><p class="lead">${lead}</p>
+   <label for="t-${c.id}" class="src">이어서 어떻게 되었는지 내 말로 써 보자.</label>
+   <textarea id="t-${c.id}" data-t="1" placeholder="___ 하게 되었다.">${esc(a.text||"")}</textarea></div>
+   <div class="row"><button class="btn" type="button" id="chk" ${(a.text||"").trim().length<8||!a.dir?"disabled":""}>모범 해석과 비교하기</button>
+   <button class="btn ghost" type="button" id="next">다음 사례</button></div>
+   ${a.checked?`<p class="model"><b>모범 해석</b> ${esc(c.model)}</p><p class="src" style="margin:0">내 해석과 비교해 빠진 내용이 있으면 고쳐 쓰자.</p>`:""}
+  </fieldset>`;
+}
+function renderBoard(){
+  const li=d=>CASES.filter(c=>isDone(c)&&c.dir===d).map(c=>`<li>${c.ico} <b>${esc(c.name)}</b> · ${esc(c.fac)}</li>`).join("")||`<li class="empty">아직 없음</li>`;
+  $("col-env").innerHTML=li("env"); $("col-bio").innerHTML=li("bio");
+  const lines=CASES.filter(c=>(state.ans[c.id]||{}).text).map(c=>{const a=state.ans[c.id];
+    const head=a.dir==="bio"?`${a.org||"?"}→${a.fac||"?"}`:`${a.fac||"?"}→${a.org||"?"}`;
+    return `[${c.name}] (${head}${state.mode==="adv"&&a.role?", "+a.role:""}) ${a.text.trim()}`});
+  const my=$("my-text").value.trim();
+  if(my) lines.push(`[내가 찾은 사례] (${$("my-dir").value==="env"?"환경→생물":"생물→환경"}, ${$("my-fac").value}) ${my}`);
+  $("out").textContent=lines.length?lines.join("\n"):"사례를 해석하면 여기에 모인다.";
+}
+function render(){renderGrid();renderPanel();renderBoard();
+  document.querySelectorAll(".mode button").forEach(b=>b.setAttribute("aria-pressed",String((b.id==="m-adv")===(state.mode==="adv"))))}
+document.addEventListener("click",e=>{
+  const card=e.target.closest(".card"); if(card){state.cur=card.dataset.id;save();render();$("panel").scrollIntoView({behavior:"smooth",block:"start"});return}
+  const c=CASES.find(x=>x.id===state.cur), a=A(c.id);
+  const ch=e.target.closest(".chip"); if(ch&&$("panel").contains(ch)){a[ch.dataset.g]=ch.dataset.v;save();render();return}
+  const d=e.target.closest(".dir button"); if(d){a.dir=d.dataset.d;save();render();return}
+  if(e.target.id==="chk"){a.checked=true;save();render();return}
+  if(e.target.id==="next"){const i=CASES.findIndex(x=>x.id===state.cur);state.cur=CASES[(i+1)%CASES.length].id;save();render();$("panel").scrollIntoView({behavior:"smooth",block:"start"});return}
+  if(e.target.id==="m-basic"||e.target.id==="m-adv"){state.mode=e.target.id==="m-adv"?"adv":"basic";save();render();return}
+  if(e.target.id==="copy"){const t=$("out").textContent;
+    const done=()=>{$("toast").textContent="복사했어요."};
+    const fail=()=>{const r=document.createRange();r.selectNodeContents($("out"));const s=getSelection();s.removeAllRanges();s.addRange(r);$("toast").textContent="자동 복사가 막혀 있어요. 선택된 글을 Ctrl+C로 복사하세요."};
+    try{navigator.clipboard.writeText(t).then(done,fail)}catch(err){fail()}}
+});
+document.addEventListener("input",e=>{
+  if(e.target.dataset.t){const a=A(state.cur);a.text=e.target.value;save();
+    const b=$("chk"); if(b) b.disabled=a.text.trim().length<8||!a.dir; renderGrid(); renderBoard();}
+  if(["my-text","my-dir","my-fac"].includes(e.target.id)) renderBoard();
+});
+document.addEventListener("change",e=>{if(["my-dir","my-fac"].includes(e.target.id))renderBoard()});
+render();
+</script>
+
+</body>
+</html>
