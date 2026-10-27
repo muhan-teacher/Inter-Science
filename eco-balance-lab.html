@@ -106,6 +106,32 @@ button:focus-visible,textarea:focus,input:focus-visible{outline:3px solid var(--
 .updown .chip{font-size:1.05rem;padding:6px 16px}
 .verdict{border-radius:8px;padding:12px;margin:0;font-weight:700}
 .verdict.ok{background:var(--prod-soft);color:var(--good)} .verdict.no{background:var(--c3-soft);color:var(--bad)}
+/* 서술형 · 형성평가 */
+.wq{border:1px solid var(--line);border-radius:10px;padding:16px;display:grid;gap:10px}
+.wq .tag{display:inline-block;font-size:.75rem;font-weight:700;padding:2px 10px;border-radius:999px;background:var(--navy);color:var(--surface);width:max-content}
+.wq .tag.adv{background:var(--gold)}
+.wq .goal{font-size:.85rem;color:var(--muted);margin:0}
+.wq .q{margin:0;font-weight:700}
+.model{border-left:4px solid var(--good);background:var(--bg);padding:10px 14px;border-radius:0 6px 6px 0;margin:0}
+.model b{color:var(--good)}
+.checks{list-style:none;margin:0;padding:0;display:grid;gap:6px}
+.checks li{display:flex;gap:8px;align-items:flex-start;font-size:.92rem}
+.checks input{margin-top:5px;width:18px;height:18px;flex:none}
+.checks .auto{font-size:.75rem;color:var(--good);font-weight:700}
+.meter{height:10px;border-radius:5px;background:var(--line);overflow:hidden}
+.meter span{display:block;height:100%;background:var(--good);transition:width .4s ease}
+.level{margin:0;font-weight:700}
+.quizq{border-top:1px solid var(--line);padding-top:12px;display:grid;gap:8px}
+.quizq:first-child{border-top:0;padding-top:0}
+.quizq .q{margin:0;font-weight:700}
+.opts{display:grid;gap:6px}
+.opt{text-align:left;border:1px solid var(--line);background:var(--bg);color:var(--ink);border-radius:8px;padding:8px 12px;font:inherit;cursor:pointer}
+.opt:hover{border-color:var(--navy)}
+.opt.right{background:var(--good);border-color:var(--good);color:var(--surface)}
+.opt.wrong{border-color:var(--bad);color:var(--bad)}
+.qscore{font-weight:700;font-size:1.1rem;color:var(--navy)}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .opt.right,:root:not([data-theme="light"]) .chip.right{color:#10152a}}
+:root[data-theme="dark"] .opt.right,:root[data-theme="dark"] .chip.right{color:#10152a}
 textarea{width:100%;min-height:80px;border:1px solid var(--line);border-radius:6px;padding:10px;font:inherit;background:var(--surface);color:var(--ink);resize:vertical}
 .out{white-space:pre-wrap;background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:12px;font-size:.88rem;max-height:260px;overflow:auto}
 .toast{font-size:.9rem;color:var(--good)}
@@ -139,9 +165,20 @@ body{margin:0}
 <section class="panel" id="panel" role="tabpanel" aria-live="polite"></section>
 
 <section class="panel" aria-label="나의 정리 노트">
-  <h2>나의 정리 노트</h2>
-  <label for="sum" class="lead">세 정거장을 마쳤으면 오늘의 질문에 내 말로 답해 보자. (영양단계, 먹이 관계, 개체수, 생태계 평형 중 2개 이상의 용어 사용)</label>
-  <textarea id="sum" placeholder="참새가 사라지자 메뚜기가 늘어난 까닭은 ..."></textarea>
+  <h2>나의 정리 노트: 학습 목표 점검</h2>
+  <p class="lead">학습 목표를 달성했는지 서술형 문항으로 확인하자. 먼저 <b>내 문장</b>으로 답을 쓰고, <b>모범 답안과 비교하기</b>를 눌러 빠진 요소를 찾아 고쳐 쓴다.</p>
+  <div id="wq"></div>
+</section>
+
+<section class="panel" aria-label="형성평가">
+  <h2>형성평가</h2>
+  <p class="lead">답을 고르면 바로 해설이 나온다. 틀린 문항은 해설을 읽고 다시 골라 보자.</p>
+  <div id="quiz"></div>
+  <div class="qscore" id="qscore"></div>
+</section>
+
+<section class="panel" aria-label="제출">
+  <h2>제출하기</h2>
   <div class="out" id="out"></div>
   <div class="row"><button class="btn" id="copy" type="button">정리 노트 복사하기</button><span class="toast" id="toast" role="status"></span></div>
 </section>
@@ -241,6 +278,62 @@ function simView(){
   <p class="src">교과서 77쪽 그림 Ⅱ-7 생태계평형 회복 과정을 바탕으로 한 단순 모형 (수치는 이해를 돕기 위한 예시)</p>`;
 }
 
+
+/* ---------- 서술형 점검 ---------- */
+const WQ=[
+ {id:"w1",lv:"기본",goal:"먹이 관계에 의해 생태계 평형이 유지되는 과정을 설명할 수 있다.",
+  q:"안정된 생태계에서 2차 소비자의 개체수가 일시적으로 줄었다. 이후 생태계가 다시 평형을 되찾는 과정을 먹이 관계를 이용해 순서대로 설명하시오.",
+  model:"2차 소비자가 줄면 1차 소비자는 잡아먹히는 양이 줄어 증가한다. 1차 소비자가 늘면 먹이가 되는 생산자는 감소하고, 먹이가 많아진 2차 소비자는 증가한다. 2차 소비자가 늘면 1차 소비자는 다시 감소하고, 1차 소비자가 줄면 생산자는 다시 증가한다. 이처럼 먹이 관계로 연결된 생물들의 개체수가 서로 영향을 주고받으며 변해 생태계는 원래의 평형 상태를 회복한다.",
+  keys:[["1차 소비자가 증가한다",[/1차\s*소비자[^.]{0,20}(증가|늘)/]],["생산자가 감소하고 2차 소비자가 증가한다",[/생산자[^.]{0,20}(감소|줄)/,/2차\s*소비자[^.]{0,25}(증가|늘|회복)/]],["1차 소비자가 감소하고 생산자가 다시 증가한다",[/1차\s*소비자[^.]{0,20}(감소|줄)/,/생산자[^.]{0,20}(증가|늘|회복)/]],["먹이 관계로 연결되어 서로 영향을 준다",[/먹이\s*(관계|사슬|그물)|먹고\s*먹히/]],["원래 상태(평형)로 회복된다",[/평형|회복|원래|되돌아|돌아온/]]]},
+ {id:"w2",lv:"심화",goal:"생태 피라미드가 나타나는 원리를 추론할 수 있다.",
+  q:"생태 피라미드에서 상위 영양단계로 갈수록 에너지양과 개체수가 줄어드는 까닭을 설명하시오.",
+  model:"각 영양단계의 생물은 섭취한 에너지의 일부를 세포호흡을 통해 생명 활동에 사용하고, 일부는 열로 방출한다. 그래서 다음 영양단계로 전달되는 에너지양이 점점 줄어들고, 적은 에너지로 살아갈 수 있는 개체수도 상위 영양단계로 갈수록 줄어든다.",
+  keys:[["세포호흡·생명 활동에 에너지를 사용한다",[/세포\s*호흡|생명\s*활동|호흡/]],["열로 방출된다",[/열/]],["다음 영양단계로 전달되는 에너지가 줄어든다",[/(전달|이동)[^.]{0,20}(줄|감소|적)/,/(상위|다음)[^.]{0,25}(줄|감소|적)/]],["그래서 개체수도 줄어든다",[/개체\s*수[^.]{0,20}(줄|감소|적)/]]]},
+ {id:"w3",lv:"심화",goal:"환경의 변화가 생태계에 미치는 영향을 생태계 평형의 원리로 추론할 수 있다.",
+  q:"논 생태계 [벼 → 메뚜기 → 참새]에서 사람들이 참새를 계속 사냥했더니 생태계가 원래대로 회복되지 못했다. 그 까닭을 생태계 평형의 원리를 이용해 설명하시오.",
+  model:"참새가 줄면 천적이 사라진 메뚜기가 크게 늘고, 늘어난 메뚜기가 벼를 많이 먹어 벼가 크게 줄어든다. 일시적인 변화라면 먹이 관계를 통해 평형이 회복되지만, 사냥이 계속되면 참새가 다시 늘 수 없어 메뚜기의 개체수가 조절되지 않는다. 변화가 생태계의 회복 능력을 넘어섰기 때문에 평형이 깨지고 원래대로 회복되지 못했다.",
+  keys:[["메뚜기가 증가한다",[/메뚜기[^.]{0,20}(증가|늘|많아)/]],["벼가 감소한다",[/벼[^.]{0,20}(감소|줄|적어)/]],["사냥이 계속되어 참새가 회복되지 못한다",[/(계속|지속)/]],["회복 능력(한계)을 넘어섰다",[/(회복\s*능력|한계|넘어|넘었)/]],["생태계 평형이 깨진다",[/평형[^.]{0,15}(깨|무너|유지되지)/]]]}
+];
+if(!st.w)st.w={};
+function wqView(){
+  return WQ.map(w=>{const a=st.w[w.id]||{};const txt=a.t||"";
+    const auto=w.keys.map(k=>k[1].every(r=>r.test(txt.replace(/\s+/g," "))));
+    const got=w.keys.map((k,i)=>auto[i]||!!(a.c&&a.c[i]));const n=got.filter(Boolean).length,N=w.keys.length,p=Math.round(n/N*100);
+    const lvl=p>=80?["목표 달성! 핵심 요소를 거의 모두 설명했다.","ok"]:p>=50?["거의 다 왔다. 빠진 요소를 넣어 고쳐 쓰자.",""]:["다시 도전! 모범 답안의 흐름을 참고해 고쳐 쓰자.","no"];
+    return `<div class="wq"><span class="tag ${w.lv==='심화'?'adv':''}">${w.lv}</span><p class="goal">학습 목표: ${w.goal}</p><p class="q">${w.q}</p>
+    <label class="src" for="t-${w.id}">내 문장으로 답 쓰기</label><textarea id="t-${w.id}" data-w="${w.id}" placeholder="내 말로 설명해 보자.">${esc(txt)}</textarea>
+    <div class="row"><button class="btn" type="button" data-cmp="${w.id}" ${txt.trim().length<15?'disabled':''}>모범 답안과 비교하기</button>${a.shown?'<span class="src">답을 고친 뒤 다시 누르면 점검이 갱신된다.</span>':''}</div>
+    ${a.shown?`<p class="model"><b>모범 답안</b> ${esc(w.model)}</p>
+    <p class="src" style="margin:0">핵심 요소 점검: 자동으로 찾은 요소는 체크되어 있다. 내 답에 들어 있는데 체크되지 않았다면 직접 체크하자.</p>
+    <ul class="checks">${w.keys.map((k,i)=>`<li><input type="checkbox" id="c-${w.id}-${i}" data-ck="${w.id}" data-i="${i}" ${got[i]?'checked':''} ${auto[i]?'disabled':''}><label for="c-${w.id}-${i}">${k[0]} ${auto[i]?'<span class="auto">자동 확인</span>':''}</label></li>`).join("")}</ul>
+    <div class="meter" aria-label="목표 도달도"><span style="width:${p}%"></span></div>
+    <p class="level fb ${lvl[1]}">목표 도달도 ${n}/${N} · ${lvl[0]}</p>`:''}</div>`}).join("");
+}
+function wqScore(w){const a=st.w[w.id]||{};const txt=(a.t||"").replace(/\s+/g," ");return w.keys.filter((k,i)=>k[1].every(r=>r.test(txt))||(a.c&&a.c[i])).length}
+
+/* ---------- 형성평가 ---------- */
+const QZ=[
+ {q:"생태계를 구성하는 생물의 종류, 개체수, 에너지 흐름이 안정적으로 유지되는 상태를 무엇이라고 할까?",o:["먹이그물","생태계평형","생태피라미드","영양단계"],a:1,h:"일시적으로 변해도 다시 원래 상태로 돌아가는 '안정된 상태'를 떠올려 보자.",e:"생태계는 일시적으로 생물요소가 변해도 다시 원래 상태로 돌아가는 회복력이 있다. 이 안정된 상태가 생태계평형이다."},
+ {q:"에너지양, 개체수 등이 상위 영양단계로 갈수록 점점 줄어드는 형태를 그림으로 나타낸 것은?",o:["먹이 사슬","생태피라미드","먹이그물","생태통로"],a:1,h:"아래가 넓고 위가 좁은 모양을 생각해 보자.",e:"교과서 77쪽 그림 Ⅱ-6처럼 아래가 넓고 위가 좁은 피라미드 모양이 되어 생태피라미드라고 한다."},
+ {q:"[O, X] 1차 소비자의 개체수가 증가하면 생산자의 개체수는 감소하고, 2차 소비자의 개체수는 증가한다.",o:["O","X"],a:0,h:"1차 소비자에게 생산자는 먹이이고, 2차 소비자는 천적이다.",e:"1차 소비자가 늘면 먹이가 되는 생산자는 더 많이 먹혀 줄고, 먹이가 많아진 2차 소비자는 늘어난다."},
+ {q:"상위 영양단계로 갈수록 전달되는 에너지양이 줄어드는 까닭으로 옳은 것은?",o:["에너지가 먹히는 순간 사라지기 때문","각 단계의 생물이 생명 활동에 쓰고 일부는 열로 방출하기 때문","상위 영양단계의 생물은 에너지가 필요 없기 때문","생산자가 에너지를 만들지 못하기 때문"],a:1,h:"에너지는 없어지지 않는다. 생물이 살아가는 데 무엇이 필요할까?",e:"에너지는 사라지지 않는다. 세포호흡으로 생명 활동에 쓰이거나 열로 빠져나가 다음 단계로 전달되는 양이 줄어든다."},
+ {q:"먹이그물이 복잡한 생태계일수록 생태계평형이 잘 유지되는 까닭은?",o:["생물의 종류가 적기 때문","한 생물이 줄어도 다른 먹이로 대신할 수 있기 때문","에너지가 이동하지 않기 때문","모든 생물의 개체수가 늘기 때문"],a:1,h:"먹이가 한 가지뿐인 생물과 여러 가지인 생물을 비교해 보자.",e:"먹이가 여러 종류이면 한 먹이 생물이 줄어도 다른 생물을 먹고 살 수 있어 변화의 영향이 작아진다."},
+ {q:"카이바브 고원에서 늑대 사냥을 허용한 뒤 사슴의 개체수가 급증했다가 1920년 이후 급감한 까닭은?",o:["늑대가 다시 늘어났기 때문","사슴이 너무 많아져 먹이인 식물군집이 크게 줄었기 때문","사람들이 사슴을 보호했기 때문","날씨가 따뜻해졌기 때문"],a:1,h:"사슴이 늘어나면 사슴의 먹이는 어떻게 될까?",e:"천적이 사라진 사슴이 크게 늘어 식물군집을 먹어치웠고, 먹이가 부족해지자 사슴도 급감했다. 인간의 개입이 평형을 깨뜨린 사례다."},
+ {q:"다음 중 생태계평형을 깨뜨릴 수 있는 환경 변화가 아닌 것은?",o:["서식지 파괴","남획","외래 생물 유입","생태통로 건설"],a:3,h:"생태계평형을 지키기 위한 노력에는 무엇이 있었을까?",e:"생태통로는 끊긴 서식지를 이어 동물이 오갈 수 있게 하는, 생태계평형을 지키기 위한 노력이다."}
+];
+if(!st.qz)st.qz={};
+function quizView(){
+  return QZ.map((x,i)=>{const p=st.qz[i];const ok=p===x.a;
+    return `<div class="quizq"><p class="q">${i+1}. ${x.q}</p><div class="opts">${x.o.map((t,j)=>`<button type="button" class="opt ${p===j?(ok?'right':'wrong'):''}" data-qz="${i}" data-j="${j}" ${ok?'disabled':''}>${String.fromCharCode(9312+j)} ${t}</button>`).join("")}</div>
+    ${p===undefined?'':(ok?`<p class="fb ok">정답! ${x.e}</p>`:`<p class="fb no">다시 생각해 보자. 힌트: ${x.h}</p>`)}</div>`}).join("");
+}
+function quizScore(){return QZ.filter((x,i)=>st.qz[i]===x.a).length}
+function renderAssess(){
+  $("wq").innerHTML=wqView(); $("quiz").innerHTML=quizView();
+  const n=quizScore(),t=Object.keys(st.qz).length;
+  $("qscore").textContent=`맞힌 문항 ${n} / ${QZ.length}`+(n===QZ.length?"  · 모두 맞혔다!":"");
+}
+
 /* ---------- 공통 ---------- */
 const VIEWS={chain:chainView,pyr:pyrView,sim:simView};
 function isDone(t){if(t==="chain")return st.role==="a";if(t==="pyr")return st.why==="a";return !!(st.fin&&st.fin.temp)}
@@ -248,14 +341,14 @@ function renderOut(){
   const L=[];
   if(st.chain.length===5)L.push(`[먹이 사슬] ${st.chain.join(" → ")}${st.chain.every((x,i)=>x===ANSWER[i])?"":" (다시 확인 필요)"}`);
   if(st.revealed)L.push(`[에너지 전달 예상] ${st.guess.map(g=>g+"%").join(", ")} → 실제 약 16.2%, 11.4%, 5.5%`);
-  if(st.why)L.push(`[에너지가 줄어드는 까닭] ${st.why==="a"?"생명 활동(세포호흡)에 쓰이고 열로 방출되기 때문":"다시 생각해 보기"}`);
   ["temp","over"].forEach(k=>{if(st.score[k][1])L.push(`[시뮬레이터: ${SC[k].name}] 예상 적중 ${st.score[k][0]}/${st.score[k][1]}`)});
-  if(st.sum.trim())L.push(`[오늘의 질문에 대한 나의 답] ${st.sum.trim()}`);
-  $("out").textContent=L.length?L.join("\n"):"정거장 활동을 하면 여기에 기록이 모인다.";
+  WQ.forEach((w,i)=>{const a=st.w[w.id];if(a&&a.t&&a.t.trim())L.push(`[서술형 ${i+1} · ${w.lv}] ${a.t.trim()}${a.shown?` (목표 도달도 ${wqScore(w)}/${w.keys.length})`:""}`)});
+  if(Object.keys(st.qz).length)L.push(`[형성평가] ${quizScore()} / ${QZ.length}`);
+  $("out").textContent=L.length?L.join("\n"):"활동을 하면 여기에 기록이 모인다.";
 }
 function render(){
   document.querySelectorAll(".tab").forEach(b=>{b.setAttribute("aria-selected",String(b.dataset.t===st.tab));b.classList.toggle("done",isDone(b.dataset.t))});
-  $("panel").innerHTML=VIEWS[st.tab](); renderOut(); save();
+  $("panel").innerHTML=VIEWS[st.tab](); renderAssess(); renderOut(); save();
 }
 document.addEventListener("click",e=>{
   const b=e.target.closest("button"); if(!b)return;
@@ -276,15 +369,17 @@ document.addEventListener("click",e=>{
       st.lastFb={ok:good===ask.length,t:(good===ask.length?"예상 적중! ":"실제로는 ")+parts.join(", ")+(good===ask.length?"":" — 먹이 관계로 다시 따져 보자.")};
     } else st.lastFb=null;
     st.step=Math.min(k+1,s.states.length-1);if(st.step===s.states.length-1){st.fin=Object.assign({},st.fin,{[st.scen]:true})}render();return}
+  if(b.dataset.cmp){const a=st.w[b.dataset.cmp]=st.w[b.dataset.cmp]||{};a.shown=true;renderAssess();renderOut();save();return}
+  if(b.dataset.qz!==undefined){st.qz[b.dataset.qz]=+b.dataset.j;renderAssess();renderOut();save();return}
   if(b.id==="copy"){const t=$("out").textContent;const ok=()=>{$("toast").textContent="복사했어요."};
     const fail=()=>{const r=document.createRange();r.selectNodeContents($("out"));const sel=getSelection();sel.removeAllRanges();sel.addRange(r);$("toast").textContent="자동 복사가 막혀 있어요. 선택된 글을 Ctrl+C로 복사하세요."};
     try{navigator.clipboard.writeText(t).then(ok,fail)}catch(err){fail()}}
 });
 document.addEventListener("input",e=>{
   const m=e.target.id.match(/^g(\d)$/); if(m){st.guess[+m[1]]=+e.target.value;e.target.nextElementSibling.textContent=`내 예상 ${e.target.value}%`;save();return}
-  if(e.target.id==="sum"){st.sum=e.target.value;renderOut();save()}
+  if(e.target.dataset.w){const a=st.w[e.target.dataset.w]=st.w[e.target.dataset.w]||{};a.t=e.target.value;const bt=document.querySelector(`[data-cmp="${e.target.dataset.w}"]`);if(bt)bt.disabled=a.t.trim().length<15;renderOut();save();return}
 });
-$("sum").value=st.sum||"";
+document.addEventListener("change",e=>{if(e.target.dataset.ck){const a=st.w[e.target.dataset.ck]=st.w[e.target.dataset.ck]||{};a.c=a.c||{};a.c[e.target.dataset.i]=e.target.checked;renderAssess();renderOut();save()}});
 render();
 </script>
 
