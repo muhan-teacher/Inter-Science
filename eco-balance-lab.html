@@ -38,7 +38,7 @@ header h1{font-size:2.2rem;color:var(--navy);line-height:1.1}
 .eyebrow{font-size:.78rem;letter-spacing:.08em;color:var(--gold);font-weight:700;margin:0}
 .question{background:var(--surface);border:1px solid var(--line);border-left:6px solid var(--gold);border-radius:6px;padding:16px 18px;display:grid;gap:6px}
 .question p{margin:0}
-.tabs{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.tabs{display:grid;grid-template-columns:repeat(5,1fr);gap:8px}
 .tab{border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:8px;padding:10px 12px;text-align:left;font:inherit;cursor:pointer;display:grid;gap:2px;position:relative}
 .tab b{font-size:1rem}
 .tab small{color:var(--muted);font-size:.8rem}
@@ -135,6 +135,7 @@ button:focus-visible,textarea:focus,input:focus-visible{outline:3px solid var(--
 textarea{width:100%;min-height:80px;border:1px solid var(--line);border-radius:6px;padding:10px;font:inherit;background:var(--surface);color:var(--ink);resize:vertical}
 .out{white-space:pre-wrap;background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:12px;font-size:.88rem;max-height:260px;overflow:auto}
 .toast{font-size:.9rem;color:var(--good)}
+@media (max-width:860px){.tabs{grid-template-columns:repeat(2,1fr)}}
 @media (max-width:720px){.tabs{grid-template-columns:1fr}.sim{grid-template-columns:1fr}.ratio{grid-template-columns:1fr}.lvl{grid-template-columns:84px 1fr 96px} header h1{font-size:1.8rem}}
 @media (prefers-reduced-motion:reduce){.lvl .bar,.trow .bar{transition:none}}
 [hidden]{display:none!important}
@@ -153,29 +154,18 @@ body{margin:0}
 
 <section class="question" aria-label="오늘의 질문">
   <p class="eyebrow">오늘의 질문</p>
-  <p><b>참새가 사라지자 메뚜기가 늘어난 까닭은 무엇일까?</b> 세 정거장을 차례로 돌며 생태계의 상태를 나타내는 개념을 탐구해 보자.</p>
+  <p><b>참새가 사라지자 메뚜기가 늘어난 까닭은 무엇일까?</b> 세 정거장을 차례로 돌며 개념을 탐구한 뒤, 나의 정리 노트와 형성평가로 학습 목표를 점검하자.</p>
 </section>
 
 <div class="tabs" role="tablist" aria-label="탐구 정거장">
   <button class="tab" role="tab" id="tab-chain" aria-selected="true" data-t="chain"><span class="k">정거장 1</span><b>먹이 사슬과 영양단계</b><small>누가 누구를 먹을까?</small></button>
   <button class="tab" role="tab" id="tab-pyr" aria-selected="false" data-t="pyr"><span class="k">정거장 2</span><b>생태 피라미드</b><small>위로 갈수록 왜 줄어들까?</small></button>
   <button class="tab" role="tab" id="tab-sim" aria-selected="false" data-t="sim"><span class="k">정거장 3</span><b>생태계 평형 시뮬레이터</b><small>한 생물이 줄면 어떻게 될까?</small></button>
+  <button class="tab" role="tab" id="tab-note" aria-selected="false" data-t="note"><span class="k">정리</span><b>나의 정리 노트</b><small>학습 목표를 설명할 수 있을까?</small></button>
+  <button class="tab" role="tab" id="tab-quiz" aria-selected="false" data-t="quiz"><span class="k">평가</span><b>형성평가</b><small>마지막 확인 7문항</small></button>
 </div>
 
 <section class="panel" id="panel" role="tabpanel" aria-live="polite"></section>
-
-<section class="panel" aria-label="나의 정리 노트">
-  <h2>나의 정리 노트: 학습 목표 점검</h2>
-  <p class="lead">학습 목표를 달성했는지 서술형 문항으로 확인하자. 먼저 <b>내 문장</b>으로 답을 쓰고, <b>모범 답안과 비교하기</b>를 눌러 빠진 요소를 찾아 고쳐 쓴다.</p>
-  <div id="wq"></div>
-</section>
-
-<section class="panel" aria-label="형성평가">
-  <h2>형성평가</h2>
-  <p class="lead">답을 고르면 바로 해설이 나온다. 틀린 문항은 해설을 읽고 다시 골라 보자.</p>
-  <div id="quiz"></div>
-  <div class="qscore" id="qscore"></div>
-</section>
 
 <section class="panel" aria-label="제출">
   <h2>제출하기</h2>
@@ -265,7 +255,7 @@ function simView(){
   const rows=[2,1,0].map(i=>`<div class="trow"><span class="nm" style="color:var(${PC[i]})">${names[i]}</span><span class="bar" style="width:${cur[i]/2}%;background:var(${PC[i]})"></span><span class="v">${cur[i]}</span></div>`).join("");
   const sc=st.score[st.scen];
   let right="";
-  if(last){right=`<p class="verdict ${st.scen==='temp'?'ok':'no'}">${st.scen==='temp'?'평형 회복':'평형이 깨짐'}</p><p class="lead">${s.end}</p><p class="src">내 예상 적중: ${sc[0]} / ${sc[1]}</p><div class="row"><button class="btn ghost" type="button" id="sim-reset">처음부터</button>${st.scen==='temp'?'<button class="btn" type="button" data-scen="over">다음 시나리오: 참새를 계속 사냥한다면</button>':'<button class="btn" type="button" data-scen="temp">교과서 시나리오 다시 보기</button>'}</div>`}
+  if(last){right=`<p class="verdict ${st.scen==='temp'?'ok':'no'}">${st.scen==='temp'?'평형 회복':'평형이 깨짐'}</p><p class="lead">${s.end}</p><p class="src">내 예상 적중: ${sc[0]} / ${sc[1]}</p><div class="row"><button class="btn ghost" type="button" id="sim-reset">처음부터</button>${st.scen==='temp'?'<button class="btn" type="button" data-scen="over">다음 시나리오: 참새를 계속 사냥한다면</button>':'<button class="btn" type="button" data-scen="temp">교과서 시나리오 다시 보기</button>'}<button class="btn" type="button" data-t="note">나의 정리 노트로 가기</button></div>`}
   else if(!ask){right=`<p class="ev">${s.ev[k+1]}</p><div class="row"><button class="btn" type="button" id="next">다음 단계</button></div>`}
   else{const nxt=s.states[k+1];
     right=`<p class="ev"><b>예상하기</b> ${s.ev[k+1]}</p>`+ask.map(i=>`<div class="step"><b style="color:var(${PC[i]})">${names[i]}</b><div class="updown">${["증가","감소"].map(d=>{const sel=pk[i]===d;return `<button type="button" class="chip" data-pred="${i}" data-d="${d}" aria-pressed="${sel}">${d==='증가'?'↑ 증가':'↓ 감소'}</button>`}).join("")}</div></div>`).join("")+
@@ -328,15 +318,24 @@ function quizView(){
     ${p===undefined?'':(ok?`<p class="fb ok">정답! ${x.e}</p>`:`<p class="fb no">다시 생각해 보자. 힌트: ${x.h}</p>`)}</div>`}).join("");
 }
 function quizScore(){return QZ.filter((x,i)=>st.qz[i]===x.a).length}
-function renderAssess(){
-  $("wq").innerHTML=wqView(); $("quiz").innerHTML=quizView();
-  const n=quizScore(),t=Object.keys(st.qz).length;
-  $("qscore").textContent=`맞힌 문항 ${n} / ${QZ.length}`+(n===QZ.length?"  · 모두 맞혔다!":"");
+function noteView(){
+  return `<h2>나의 정리 노트: 학습 목표 점검</h2>
+  <p class="lead">학습 목표를 달성했는지 서술형 문항으로 확인하자. 먼저 <b>내 문장</b>으로 답을 쓰고, <b>모범 답안과 비교하기</b>를 눌러 빠진 요소를 찾아 고쳐 쓴다.</p>
+  ${wqView()}
+  <div class="row"><button class="btn" type="button" data-t="quiz">형성평가 풀러 가기</button></div>`;
 }
+function quizTabView(){
+  const n=quizScore();
+  return `<h2>형성평가</h2>
+  <p class="lead">답을 고르면 바로 채점된다. 틀린 문항은 힌트를 읽고 다시 골라 보자. 다 풀었으면 아래 <b>제출하기</b>에서 정리 노트를 복사해 제출한다.</p>
+  ${quizView()}
+  <div class="qscore">맞힌 문항 ${n} / ${QZ.length}${n===QZ.length?"  · 모두 맞혔다!":""}</div>`;
+}
+function renderAssess(){ if(st.tab==="note"||st.tab==="quiz") render(); }
 
 /* ---------- 공통 ---------- */
-const VIEWS={chain:chainView,pyr:pyrView,sim:simView};
-function isDone(t){if(t==="chain")return st.role==="a";if(t==="pyr")return st.why==="a";return !!(st.fin&&st.fin.temp)}
+const VIEWS={chain:chainView,pyr:pyrView,sim:simView,note:noteView,quiz:quizTabView};
+function isDone(t){if(t==="chain")return st.role==="a";if(t==="pyr")return st.why==="a";if(t==="sim")return !!(st.fin&&st.fin.temp);if(t==="note")return WQ.every(w=>{const a=st.w[w.id];return a&&a.shown&&wqScore(w)/w.keys.length>=.8});return quizScore()===QZ.length}
 function renderOut(){
   const L=[];
   if(st.chain.length===5)L.push(`[먹이 사슬] ${st.chain.join(" → ")}${st.chain.every((x,i)=>x===ANSWER[i])?"":" (다시 확인 필요)"}`);
@@ -348,11 +347,11 @@ function renderOut(){
 }
 function render(){
   document.querySelectorAll(".tab").forEach(b=>{b.setAttribute("aria-selected",String(b.dataset.t===st.tab));b.classList.toggle("done",isDone(b.dataset.t))});
-  $("panel").innerHTML=VIEWS[st.tab](); renderAssess(); renderOut(); save();
+  $("panel").innerHTML=VIEWS[st.tab](); renderOut(); save();
 }
 document.addEventListener("click",e=>{
   const b=e.target.closest("button"); if(!b)return;
-  if(b.dataset.t){st.tab=b.dataset.t;st.lastFb=null;render();return}
+  if(b.dataset.t){const fromTab=b.classList.contains("tab");st.tab=b.dataset.t;st.lastFb=null;render();if(!fromTab)document.querySelector(".tabs").scrollIntoView({behavior:"smooth",block:"start"});return}
   if(b.dataset.org){if(st.chain.length<5)st.chain.push(b.dataset.org);render();return}
   if(b.id==="reset-chain"){st.chain=[];st.role=null;render();return}
   if(b.dataset.role){st.role=b.dataset.role;render();return}
