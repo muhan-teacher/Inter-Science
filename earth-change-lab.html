@@ -1,0 +1,452 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>지구 환경 변화 탐구소</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Do+Hyeon&family=IBM+Plex+Sans+KR:wght@400;500;700&display=swap">
+<style>
+/* 레이아웃: 상단 질문 띠 → 탐구 정거장 4개 탭 → 정거장별 조작 패널(모식도 + 예상·확인) → 제출 */
+:root{
+  --bg:#f5f6f9; --surface:#ffffff; --ink:#18213a; --muted:#5b6478; --line:#dde1ea;
+  --navy:#1f2f5c; --gold:#c9962b; --gold-soft:#f6ecd3;
+  --prod:#5b8a2f; --prod-soft:#e8f2dc; --c1:#d39b1f; --c1-soft:#fbf0d4; --c2:#2f7a8c; --c2-soft:#e0f0f3; --c3:#8a4f9e; --c3-soft:#f1e6f5;
+  --good:#2e7d4f; --bad:#b4472f;
+ --sun:#e8a317; --ir:#d9483b; --atm:#9cc7e8; --ground:#c9b48a; --warm:#f2a65a; --cold:#3d72b4; --cold-ink:#1d4f8f; --land:#8a7a5a; --air:#c2307a; --cloud:#c9d2de; --rain:#3d72b4; --space:#e6ecf7; --atmbox:#e3f0fa;
+  --f-display:"Do Hyeon","IBM Plex Sans KR",sans-serif;
+  --f-body:"IBM Plex Sans KR","Apple SD Gothic Neo","Malgun Gothic",sans-serif;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#10152a; --surface:#1a2140; --ink:#e9ecf5; --muted:#a3abc2; --line:#2e3760;
+  --navy:#9fb3ee; --gold:#e3b856; --gold-soft:#3a3220;
+  --prod:#a6d27a; --prod-soft:#24361a; --c1:#f0c45a; --c1-soft:#3a3018; --c2:#7cc6d6; --c2-soft:#183842; --c3:#d3a2e3; --c3-soft:#33203b;
+  --good:#7fd6a0; --bad:#f19b85; --sun:#f2bb3f; --ir:#ff7a6b; --atm:#4e7fa8; --ground:#6d5f45; --warm:#c97632; --cold:#2a4f80; --cold-ink:#8fc0ff; --land:#5c5240; --air:#f07ab5; --cloud:#5b6782; --rain:#8fc0ff; --space:#1c2546; --atmbox:#1a3148;
+ color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#10152a; --surface:#1a2140; --ink:#e9ecf5; --muted:#a3abc2; --line:#2e3760;
+  --navy:#9fb3ee; --gold:#e3b856; --gold-soft:#3a3220;
+  --prod:#a6d27a; --prod-soft:#24361a; --c1:#f0c45a; --c1-soft:#3a3018; --c2:#7cc6d6; --c2-soft:#183842; --c3:#d3a2e3; --c3-soft:#33203b;
+  --good:#7fd6a0; --bad:#f19b85; --sun:#f2bb3f; --ir:#ff7a6b; --atm:#4e7fa8; --ground:#6d5f45; --warm:#c97632; --cold:#2a4f80; --cold-ink:#8fc0ff; --land:#5c5240; --air:#f07ab5; --cloud:#5b6782; --rain:#8fc0ff; --space:#1c2546; --atmbox:#1a3148;
+ color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:16px;line-height:1.6;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:20px 48px}
+.wrap{max-width:1040px;margin:0 auto;display:grid;gap:20px}
+h1,h2,h3{font-family:var(--f-display);font-weight:400;margin:0;text-wrap:balance;letter-spacing:.01em}
+header{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:12px;border-bottom:3px solid var(--navy);padding-bottom:12px}
+header h1{font-size:2.2rem;color:var(--navy);line-height:1.1}
+.by{font-size:.85rem;color:var(--muted)}
+.eyebrow{font-size:.78rem;letter-spacing:.08em;color:var(--gold);font-weight:700;margin:0}
+.question{background:var(--surface);border:1px solid var(--line);border-left:6px solid var(--gold);border-radius:6px;padding:16px 18px;display:grid;gap:6px}
+.question p{margin:0}
+.tabs{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.tab{border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:8px;padding:10px 12px;text-align:left;font:inherit;cursor:pointer;display:grid;gap:2px;position:relative}
+.tab b{font-size:1rem}
+.tab small{color:var(--muted);font-size:.8rem}
+.tab .k{font-family:var(--f-display);color:var(--gold);font-size:1.1rem}
+.tab[aria-selected="true"]{border-color:var(--navy);box-shadow:inset 0 -4px 0 var(--navy)}
+.tab.done::after{content:"완료";position:absolute;top:8px;right:10px;font-size:.7rem;font-weight:700;color:var(--good)}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:20px;display:grid;gap:18px}
+.panel h2{font-size:1.6rem;color:var(--navy)}
+.lead{margin:0;max-width:68ch}
+.src{font-size:.78rem;color:var(--muted)}
+.step{display:grid;gap:8px}
+.step h3{font-size:1.15rem}
+.step h3 .n{color:var(--gold);margin-right:6px}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{border:1px solid var(--line);background:var(--bg);color:var(--ink);border-radius:999px;padding:6px 14px;font:inherit;font-size:.95rem;cursor:pointer}
+.chip:hover{border-color:var(--navy)}
+.chip:disabled{opacity:.35;cursor:default}
+.chip[aria-pressed="true"]{background:var(--navy);color:var(--surface);border-color:var(--navy)}
+.chip.right{background:var(--good);border-color:var(--good);color:var(--surface)}
+.chip.wrong{border-color:var(--bad);color:var(--bad)}
+.fb{margin:0;font-size:.92rem;min-height:1.4em}
+.fb.ok{color:var(--good)} .fb.no{color:var(--bad)}
+.btn{border:0;background:var(--navy);color:var(--surface);border-radius:6px;padding:9px 16px;font:inherit;font-weight:700;cursor:pointer}
+.btn.ghost{background:none;color:var(--navy);border:1px solid var(--navy)}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.row{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+button:focus-visible,textarea:focus,input:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+/* 1. 먹이 사슬 */
+.chain{display:flex;flex-wrap:wrap;align-items:stretch;gap:6px}
+.slot{min-width:104px;flex:1 1 104px;border:2px dashed var(--line);border-radius:8px;padding:8px;text-align:center;display:grid;gap:2px;align-content:center;min-height:84px}
+.slot .ico{font-size:1.6rem;line-height:1}
+.slot .lv{font-size:.75rem;color:var(--muted)}
+.slot.filled{border-style:solid}
+.slot.l0{border-color:var(--prod);background:var(--prod-soft)} .slot.l1{border-color:var(--c1);background:var(--c1-soft)}
+.slot.l2{border-color:var(--c2);background:var(--c2-soft)} .slot.l3{border-color:var(--c3);background:var(--c3-soft)} .slot.l4{border-color:var(--navy);background:var(--gold-soft)}
+.arrow{align-self:center;color:var(--gold);font-family:var(--f-display);font-size:1.3rem}
+.note{background:var(--bg);border-radius:8px;padding:12px 14px;margin:0}
+/* 2. 피라미드 */
+.pyr{display:grid;gap:6px;justify-items:center;padding:8px 0}
+.lvl{display:grid;grid-template-columns:110px 1fr 120px;align-items:center;gap:10px;width:100%;cursor:pointer;border:0;background:none;font:inherit;color:inherit;padding:2px 0;text-align:left}
+.lvl .bar{height:34px;border-radius:4px;justify-self:center;min-width:3px;transition:width .4s ease}
+.lvl .nm{font-weight:700;font-size:.9rem}
+.lvl .val{font-variant-numeric:tabular-nums;font-size:.9rem;text-align:right}
+.ratio{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.ratio div{background:var(--bg);border-radius:8px;padding:10px;display:grid;gap:4px}
+.ratio label{font-size:.85rem;font-weight:700}
+.ratio input{width:100%}
+.ratio output{font-variant-numeric:tabular-nums;font-size:.9rem}
+.ratio .ans{font-size:.85rem;color:var(--good);min-height:1.3em}
+/* 3. 시뮬레이터 */
+.sim{display:grid;grid-template-columns:1.1fr 1fr;gap:16px}
+.stage{background:var(--bg);border-radius:10px;padding:14px;display:grid;gap:8px;align-content:start}
+.stage .pyr{gap:4px}
+.trow{display:grid;grid-template-columns:90px 1fr 46px;gap:8px;align-items:center;width:100%}
+.trow .bar{height:30px;border-radius:4px;justify-self:center;transition:width .5s ease}
+.trow .nm{font-size:.85rem;font-weight:700}
+.trow .v{font-size:.8rem;color:var(--muted);text-align:right;font-variant-numeric:tabular-nums}
+.base{position:relative}
+.timeline{display:flex;gap:4px;flex-wrap:wrap}
+.timeline span{width:26px;height:6px;border-radius:3px;background:var(--line)}
+.timeline span.on{background:var(--gold)}
+.pred{display:grid;gap:10px;align-content:start}
+.pred .ev{background:var(--gold-soft);border-radius:8px;padding:10px 12px;margin:0}
+.updown{display:flex;gap:8px}
+.updown .chip{font-size:1.05rem;padding:6px 16px}
+.verdict{border-radius:8px;padding:12px;margin:0;font-weight:700}
+.verdict.ok{background:var(--prod-soft);color:var(--good)} .verdict.no{background:var(--c3-soft);color:var(--bad)}
+/* 서술형 · 형성평가 */
+.wq{border:1px solid var(--line);border-radius:10px;padding:16px;display:grid;gap:10px}
+.wq .tag{display:inline-block;font-size:.75rem;font-weight:700;padding:2px 10px;border-radius:999px;background:var(--navy);color:var(--surface);width:max-content}
+.wq .tag.adv{background:var(--gold)}
+.wq .goal{font-size:.85rem;color:var(--muted);margin:0}
+.wq .q{margin:0;font-weight:700}
+.model{border-left:4px solid var(--good);background:var(--bg);padding:10px 14px;border-radius:0 6px 6px 0;margin:0}
+.model b{color:var(--good)}
+.checks{list-style:none;margin:0;padding:0;display:grid;gap:6px}
+.checks li{display:flex;gap:8px;align-items:flex-start;font-size:.92rem}
+.checks input{margin-top:5px;width:18px;height:18px;flex:none}
+.checks .auto{font-size:.75rem;color:var(--good);font-weight:700}
+.meter{height:10px;border-radius:5px;background:var(--line);overflow:hidden}
+.meter span{display:block;height:100%;background:var(--good);transition:width .4s ease}
+.level{margin:0;font-weight:700}
+.quizq{border-top:1px solid var(--line);padding-top:12px;display:grid;gap:8px}
+.quizq:first-child{border-top:0;padding-top:0}
+.quizq .q{margin:0;font-weight:700}
+.opts{display:grid;gap:6px}
+.opt{text-align:left;border:1px solid var(--line);background:var(--bg);color:var(--ink);border-radius:8px;padding:8px 12px;font:inherit;cursor:pointer}
+.opt:hover{border-color:var(--navy)}
+.opt.right{background:var(--good);border-color:var(--good);color:var(--surface)}
+.opt.wrong{border-color:var(--bad);color:var(--bad)}
+.qscore{font-weight:700;font-size:1.1rem;color:var(--navy)}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .opt.right,:root:not([data-theme="light"]) .chip.right{color:#10152a}}
+:root[data-theme="dark"] .opt.right,:root[data-theme="dark"] .chip.right{color:#10152a}
+textarea{width:100%;min-height:80px;border:1px solid var(--line);border-radius:6px;padding:10px;font:inherit;background:var(--surface);color:var(--ink);resize:vertical}
+.out{white-space:pre-wrap;background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:12px;font-size:.88rem;max-height:260px;overflow:auto}
+.toast{font-size:.9rem;color:var(--good)}
+@media (max-width:860px){.tabs{grid-template-columns:repeat(2,1fr)}}
+@media (max-width:720px){.tabs{grid-template-columns:1fr}.sim{grid-template-columns:1fr}.ratio{grid-template-columns:1fr}.lvl{grid-template-columns:84px 1fr 96px} header h1{font-size:1.8rem}}
+@media (prefers-reduced-motion:reduce){.lvl .bar,.trow .bar{transition:none}}
+
+/* 지구 환경 */
+.scene{background:var(--bg);border-radius:10px;padding:8px;overflow-x:auto}
+.scene svg{width:100%;height:auto;display:block;min-width:520px}
+.gauge{display:flex;flex-wrap:wrap;gap:16px;align-items:center;background:var(--gold-soft);border-radius:10px;padding:12px 16px}
+.gauge .big{font-family:var(--f-display);font-size:2.2rem;color:var(--navy);display:block;line-height:1.1}
+.tnum{font-variant-numeric:tabular-nums}
+.slider{flex:1 1 260px;display:grid;gap:4px}
+.slider input{width:100%}
+.ticks{display:flex;justify-content:space-between;font-size:.78rem;color:var(--muted)}
+.seq{margin:0;padding-left:1.4em;display:grid;gap:4px}
+.tblwrap{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:.92rem}
+th,td{border:1px solid var(--line);padding:8px 10px;text-align:left}
+thead th{background:var(--navy);color:var(--surface)}
+tbody th{background:var(--bg);width:110px}
+.pgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:10px}
+.pgrid>div{background:var(--bg);border-radius:8px;padding:10px;display:grid;gap:6px}
+.bgrid{display:grid;gap:8px}
+.bq{display:grid;grid-template-columns:1fr 90px 24px;gap:10px;align-items:center;background:var(--bg);border-radius:8px;padding:8px 12px}
+.bq span{display:grid}
+.bq small{color:var(--muted)}
+.bq input{font:inherit;font-size:1.1rem;padding:6px 8px;border:1px solid var(--line);border-radius:6px;background:var(--surface);color:var(--ink);width:100%}
+.bq .mark{font-weight:700;color:var(--good)}
+.quizbox{display:grid;gap:12px}
+[hidden]{display:none!important}
+body{margin:0}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <div>
+    <p class="eyebrow">통합과학 · 지구 환경의 변화</p>
+    <h1>지구 환경 변화 탐구소</h1>
+  </div>
+  <div class="by">(made by. 무한쌤)</div>
+</header>
+
+<section class="question" aria-label="오늘의 질문">
+  <p class="eyebrow">오늘의 질문</p>
+  <p><b>탄소를 배출하면 왜 지구가 따뜻해질까? 표층 수온이 높아지면 그 지역의 날씨는 어떻게 될까?</b> 세 정거장을 탐구한 뒤 형성평가로 학습 목표를 점검하자.</p>
+</section>
+
+<div class="tabs" role="tablist" aria-label="탐구 정거장">
+  <button class="tab" role="tab" id="tab-gh" aria-selected="true" data-t="gh"><span class="k">정거장 1</span><b>온실 효과와 지구 온난화</b><small>패딩을 여러 벌 입으면?</small></button>
+  <button class="tab" role="tab" id="tab-pac" aria-selected="false" data-t="pac"><span class="k">정거장 2</span><b>태평양 적도: 평상시 vs 엘니뇨</b><small>무역풍이 약해지면?</small></button>
+  <button class="tab" role="tab" id="tab-bud" aria-selected="false" data-t="bud"><span class="k">정거장 3 · 심화</span><b>지구 열수지</b><small>들어온 만큼 나간다</small></button>
+  <button class="tab" role="tab" id="tab-quiz" aria-selected="false" data-t="quiz"><span class="k">평가</span><b>형성평가</b><small>학습 목표 점검</small></button>
+</div>
+
+<section class="panel" id="panel" role="tabpanel" aria-live="polite"></section>
+
+</div>
+
+<script>
+const $=id=>document.getElementById(id);
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const KEY="earth-change-v1";
+let st={tab:"gh",atm:true,eps:0.77,q:{},order:[],pac:"normal",pred:{},pacShown:false,bud:{},budChk:false,chain:{},w:{},qz:{}};
+try{const s=JSON.parse(localStorage.getItem(KEY)||"null");if(s)st=Object.assign(st,s)}catch(e){}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(st))}catch(e){}}
+function mcq(id,opts,ans,okMsg,noMsg){const p=st.q[id];
+  return `<div class="chips">${opts.map((t,j)=>`<button type="button" class="chip ${p===j?(j===ans?'right':'wrong'):''}" data-q="${id}" data-j="${j}" aria-pressed="${p===j}">${t}</button>`).join("")}</div>
+  ${p===undefined?'<p class="fb"></p>':(p===ans?`<p class="fb ok">${okMsg}</p>`:`<p class="fb no">${noMsg}</p>`)}`}
+
+/* ---------- 정거장 1: 온실 효과 ---------- */
+const BASE_EPS=0.77;
+const tempC=e=>255*Math.pow(2/(2-e),.25)-273.15;
+function ghScene(e){
+  const up=Math.round(6*(1-e)), back=Math.round(6*e);
+  const arr=(x,y1,y2,c,id)=>`<line x1="${x}" y1="${y1}" x2="${x}" y2="${y2}" stroke="var(${c})" stroke-width="5" marker-end="url(#ah-${id})"/>`;
+  let s=`<svg viewBox="0 0 640 300" role="img" aria-label="지구의 에너지 출입 모식도"><defs>
+   <marker id="ah-sun" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto"><path d="M0 0L10 5L0 10z" fill="var(--sun)"/></marker>
+   <marker id="ah-ir" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto"><path d="M0 0L10 5L0 10z" fill="var(--ir)"/></marker></defs>
+   <rect x="0" y="250" width="640" height="50" fill="var(--ground)"/>
+   <circle cx="70" cy="50" r="32" fill="var(--sun)"/>`;
+  if(st.atm) s+=`<rect x="0" y="95" width="640" height="${40+e*40}" fill="var(--atm)" opacity="${.25+e*.6}"/><text x="630" y="112" text-anchor="end" font-size="13" fill="var(--muted)">대기 (온실기체)</text>`;
+  for(let i=0;i<4;i++){const x=120+i*38;s+=`<line x1="${x-30}" y1="80" x2="${x+20}" y2="245" stroke="var(--sun)" stroke-width="5" marker-end="url(#ah-sun)"/>`}
+  s+=`<text x="120" y="275" font-size="13" fill="var(--ink)">태양 복사 에너지</text>`;
+  const n=6;for(let i=0;i<n;i++){const x=380+i*40;
+    if(!st.atm||i<up){s+=arr(x,245,30,"--ir","ir")}
+    else{s+=arr(x,245,125,"--ir","ir");s+=`<line x1="${x+14}" y1="128" x2="${x+14}" y2="240" stroke="var(--ir)" stroke-width="3" stroke-dasharray="6 4" marker-end="url(#ah-ir)"/>`}}
+  s+=`<text x="380" y="272" font-size="13" fill="var(--ink)">지구 복사 에너지</text>${st.atm?'<text x="380" y="292" font-size="12" fill="var(--ink)">점선: 대기가 지표로 재방출</text>':''}</svg>`;
+  return s;
+}
+const ORDER=["인간 활동으로 탄소(이산화 탄소) 배출","대기 중 온실기체 양 증가","온실기체가 흡수하는 지구 복사 에너지 증가","지표로 재방출하는 에너지 증가","지구 평균 기온 상승 (지구 온난화)"];
+const SHUF=[3,0,4,1,2];
+function ghView(){
+  const e=st.atm?st.eps:0, T=tempC(e);
+  const done=st.order.length===5, ok=done&&st.order.every((x,i)=>x===i);
+  return `<h2>온실 효과와 지구 온난화</h2>
+  <p class="lead">지구는 태양에게서 흡수한 에너지만큼 우주로 방출한다(태양 복사 에너지 = 지구 복사 에너지). 대기가 있으면 무엇이 달라질까?</p>
+  <div class="step"><h3><span class="n">①</span>예상하기: 지구에 대기가 없다면 지구 평균 기온은 약 몇 ℃일까?</h3>
+   ${mcq("noatm",["약 15℃","약 -18℃","약 40℃"],1,"맞아요. 대기가 없으면 약 -18℃로, 지금(약 15℃)보다 30℃ 이상 낮다. 아래에서 직접 확인해 보자.","아래 장면에서 '대기 없음'을 눌러 확인해 보자.")}
+  </div>
+  <div class="scene">${ghScene(e)}</div>
+  <div class="row" role="group" aria-label="대기"><button type="button" class="chip" data-atm="0" aria-pressed="${!st.atm}">지구에 대기가 없을 때</button><button type="button" class="chip" data-atm="1" aria-pressed="${st.atm}">지구에 대기가 있을 때</button></div>
+  <div class="gauge"><div><span class="src">지표 평균 기온</span><b class="big tnum" id="tval">${T.toFixed(1)}℃</b></div>
+   ${st.atm?`<div class="slider"><label for="eps">온실기체 양 (패딩 겹수) <span class="src">현재 수준 = 가운데 표시</span></label><input type="range" id="eps" min="0.70" max="0.92" step="0.01" value="${st.eps}"><div class="ticks"><span>적음</span><span>▲ 현재 수준</span><span>많음</span></div></div>`:`<p class="src" style="margin:0">대기가 없으면 지구 복사 에너지가 모두 우주로 빠져나간다.</p>`}</div>
+  <div class="step"><h3><span class="n">②</span>패딩을 여러 벌 겹쳐 입으면 체온은 어떻게 될까? (패딩 = 온실기체)</h3>
+   ${mcq("pad",["몸에서 나온 열이 덜 빠져나가 더 따뜻해진다","패딩이 열을 만들어 내서 따뜻해진다","변화가 없다"],0,"맞아요. 온실기체도 스스로 열을 만들지 않는다. 지구가 방출한 에너지의 일부를 흡수했다가 지표로 다시 방출해 지표를 따뜻하게 한다. 슬라이더로 온실기체 양을 늘려 확인해 보자.","패딩 자체는 열을 만들지 않는다. 열이 빠져나가는 정도를 생각해 보자.")}
+  </div>
+  <div class="step"><h3><span class="n">③</span>지구 온난화의 메커니즘을 순서대로 눌러 완성하자</h3>
+   <div class="chips">${SHUF.map(i=>`<button type="button" class="chip" data-ord="${i}" ${st.order.includes(i)||done?'disabled':''}>${ORDER[i]}</button>`).join("")}<button type="button" class="chip" id="ord-reset">다시 하기</button></div>
+   <ol class="seq">${st.order.map(i=>`<li>${ORDER[i]}</li>`).join("")}</ol>
+   ${done?(ok?`<p class="fb ok">완성! 온실 효과가 강화되어 지구 평균 기온이 올라가는 현상이 지구 온난화다.</p>`:`<p class="fb no">순서를 다시 생각해 보자. 원인(인간 활동)에서 시작해 결과(기온 상승)로 끝난다.</p>`):'<p class="fb"></p>'}
+  </div>
+  <p class="src">기온은 대기를 한 층으로 단순화한 모형으로 계산한 값이다. 교과서 82~83쪽, 그림 Ⅱ-10 지구의 에너지 출입 관계</p>`;
+}
+
+/* ---------- 정거장 2: 태평양 적도 ---------- */
+const PAC={normal:{wind:1,wW:"높다",eW:"낮다",wx:["흐리고 비가 자주 온다","상승 기류"],ex:["맑고 건조하다","하강 기류"],up:"활발하다"},
+ nino:{wind:.3,wW:"평상시보다 낮아진다",eW:"평상시보다 높아진다",wx:["맑고 건조해진다(가뭄)","하강 기류"],ex:["비가 많이 온다(홍수)","상승 기류"],up:"약해진다"}};
+function pacScene(m){
+  const n=m==="nino", wt=n?.3:1;
+  const wTop=150, wDepth=n?70:105, eDepth=n?55:18;
+  const cloudX=n?470:110, up=n?0.35:1;
+  let s=`<svg viewBox="0 0 680 324" role="img" aria-label="${n?'엘니뇨 시기':'평상시'} 태평양 적도 단면"><defs>
+  <marker id="pw" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto"><path d="M0 0L10 5L0 10z" fill="var(--air)"/></marker>
+  <marker id="pu" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto"><path d="M0 0L10 5L0 10z" fill="var(--cold-ink)"/></marker></defs>
+  <rect x="40" y="${wTop}" width="600" height="146" fill="var(--cold)"/>
+  <path d="M40 ${wTop} L640 ${wTop} L640 ${wTop+eDepth} C 480 ${wTop+eDepth+10}, 300 ${wTop+wDepth-10}, 40 ${wTop+wDepth} Z" fill="var(--warm)"/>
+  <rect x="0" y="${wTop-20}" width="40" height="166" fill="var(--land)"/><rect x="640" y="${wTop-20}" width="40" height="166" fill="var(--land)"/>
+  <text x="6" y="314" font-size="13" fill="var(--ink)">서 (동남아시아)</text><text x="674" y="314" font-size="13" text-anchor="end" fill="var(--ink)">동 (남아메리카)</text>
+  <text x="70" y="${wTop+30}" font-size="13" fill="var(--ink)">따뜻한 해수</text><text x="300" y="${wTop+128}" font-size="13" fill="var(--cold-ink)">찬 해수</text>`;
+  // trade wind arrows
+  const len=60+90*wt;
+  for(let i=0;i<3;i++){const x=560-i*170;s+=`<line x1="${x}" y1="${wTop-12}" x2="${x-len}" y2="${wTop-12}" stroke="var(--air)" stroke-width="${2+3*wt}" marker-end="url(#pw)"/>`}
+  s+=`<text x="${n?560:320}" y="${wTop-24}" font-size="13" text-anchor="middle" fill="var(--air)">무역풍${n?' 약화':''} (동 → 서)</text>`;
+  // upwelling
+  s+=`<path d="M600 ${wTop+130} C 610 ${wTop+90}, 615 ${wTop+50}, 612 ${wTop+12}" fill="none" stroke="var(--cold-ink)" stroke-width="${1.5+3.5*up}" ${n?'stroke-dasharray="6 5"':''} marker-end="url(#pu)"/>
+  <text x="590" y="${wTop+100}" font-size="13" text-anchor="end" fill="var(--cold-ink)">용승${n?' 약화':''}</text>`;
+  // cloud & rising air
+  s+=`<g><ellipse cx="${cloudX}" cy="40" rx="55" ry="22" fill="var(--cloud)"/><ellipse cx="${cloudX+30}" cy="30" rx="35" ry="18" fill="var(--cloud)"/>
+  ${[0,1,2,3].map(i=>`<line x1="${cloudX-30+i*18}" y1="64" x2="${cloudX-36+i*18}" y2="84" stroke="var(--rain)" stroke-width="2"/>`).join("")}
+  <line x1="${cloudX-70}" y1="${wTop-30}" x2="${cloudX-70}" y2="70" stroke="var(--air)" stroke-width="2" marker-end="url(#pw)"/><text x="${cloudX-64}" y="104" font-size="12" fill="var(--air)">상승 기류</text></g>`;
+  const sunX=n?110:500;
+  s+=`<circle cx="${sunX}" cy="42" r="18" fill="var(--sun)"/><line x1="${sunX+70}" y1="70" x2="${sunX+70}" y2="${wTop-30}" stroke="var(--air)" stroke-width="2" marker-end="url(#pw)"/><text x="${sunX+76}" y="80" font-size="12" fill="var(--air)">하강 기류</text>`;
+  s+=`</svg>`;return s;
+}
+const PQ=[["wT","서태평양 표층 수온",["높아진다","낮아진다"],1],["eT","동태평양 표층 수온",["높아진다","낮아진다"],0],["up","동태평양 용승",["강해진다","약해진다"],1],["wW","서태평양 날씨",["비가 많아진다","맑고 건조해진다"],1],["eW","동태평양 날씨",["비가 많아진다","맑고 건조해진다"],0]];
+function pacView(){
+  const m=st.pac,P=PAC[m];
+  const allPred=PQ.every(q=>st.pred[q[0]]!==undefined);
+  const right=PQ.filter(q=>st.pred[q[0]]===q[3]).length;
+  return `<h2>태평양 적도: 평상시 vs 엘니뇨</h2>
+  <p class="lead">태평양 적도에는 대기 대순환에 의해 동쪽에서 서쪽으로 무역풍이 분다. 무역풍이 바다와 날씨를 어떻게 바꾸는지 살펴보자.</p>
+  <div class="row" role="group" aria-label="시기"><button type="button" class="chip" data-pac="normal" aria-pressed="${m==='normal'}">평상시</button><button type="button" class="chip" data-pac="nino" aria-pressed="${m==='nino'}" ${st.pacShown?'':'disabled'}>엘니뇨 시기${st.pacShown?'':' (예상 후 열림)'}</button></div>
+  <div class="scene">${pacScene(m)}</div>
+  <div class="tblwrap"><table><thead><tr><th>${m==='nino'?'엘니뇨 시기':'평상시'}</th><th>서태평양 (동남아시아)</th><th>동태평양 (남아메리카)</th></tr></thead>
+  <tbody><tr><th>표층 수온</th><td>${P.wW}</td><td>${P.eW}</td></tr><tr><th>기류</th><td>${P.wx[1]}</td><td>${P.ex[1]}</td></tr><tr><th>날씨</th><td>${P.wx[0]}</td><td>${P.ex[0]}</td></tr><tr><th>용승</th><td>-</td><td>${P.up}</td></tr></tbody></table></div>
+  <div class="step"><h3><span class="n">①</span>예상하기: 무역풍이 평상시보다 약해지면 어떻게 될까? (평상시와 비교)</h3>
+   <div class="pgrid">${PQ.map(([k,label,opts])=>`<div><b>${label}</b><div class="chips">${opts.map((t,j)=>{const sel=st.pred[k]===j;const cls=st.pacShown&&sel?(j===PQ.find(q=>q[0]===k)[3]?'right':'wrong'):'';return `<button type="button" class="chip ${cls}" data-pr="${k}" data-j="${j}" aria-pressed="${sel}" ${st.pacShown?'disabled':''}>${t}</button>`}).join("")}</div></div>`).join("")}</div>
+   <div class="row"><button class="btn" type="button" id="pac-check" ${allPred&&!st.pacShown?'':'disabled'}>엘니뇨 시기 확인하기</button>${st.pacShown?`<button class="btn ghost" type="button" id="pac-reset">다시 예상하기</button>`:''}</div>
+   ${st.pacShown?`<p class="fb ${right===5?'ok':'no'}">예상 적중 ${right}/5. 무역풍이 약해지면 서쪽으로 가는 표층 해수의 흐름이 약해져, 동태평양의 용승이 약해지고 수온이 높아진다. 수온과 날씨가 평상시와 반대로 바뀐다.</p>`:''}
+  </div>
+  ${st.pacShown?`<div class="step"><h3><span class="n">②</span>엘니뇨가 일어나면 남아메리카 페루 연안의 어획량이 줄어든다. 그 까닭은?</h3>
+   ${mcq("fish",["용승이 약해져 깊은 바다의 영양염류가 덜 올라오고 플랑크톤이 줄기 때문","바닷물이 차가워져 물고기가 얼기 때문","무역풍이 강해져 배가 나가지 못하기 때문"],0,"맞아요. 서식지 환경이 바뀌면 어종 수확량, 작물 생산량 같은 인간 생활에도 영향이 미친다.","용승은 깊은 곳의 차고 영양염류가 풍부한 물을 끌어올린다는 점을 떠올려 보자.")}
+  </div>`:''}
+  <p class="src">교과서 86~87쪽, 그림 Ⅱ-13 평상시와 엘니뇨 발생 시의 대기와 해수의 흐름</p>`;
+}
+
+/* ---------- 정거장 3: 지구 열수지 ---------- */
+const BQ=[["sIn","지표가 흡수하는 에너지","50 (태양) + 94 (대기 복사)",144],["sOut","지표가 방출하는 에너지","132 (대기로) + 12 (우주로)",144],["aIn","대기가 흡수하는 에너지","20 (태양) + 132 (지표)",152],["aOut","대기가 방출하는 에너지","94 (지표로) + 58 (우주로)",152],["spOut","우주로 나가는 에너지","30 (반사) + 58 (대기) + 12 (지표)",100]];
+const CQ=[["c1","대기가 흡수하는 에너지양은 132보다",["증가","감소"],0],["c2","대기가 지표로 방출하는 에너지양은 94보다",["증가","감소"],0],["c3","지표가 다시 흡수하는 에너지양은 94보다",["증가","감소"],0],["c4","지표 온도는",["상승","하강"],0]];
+function budScene(hi){
+  const box=(y,h,lab,fill)=>`<rect x="20" y="${y}" width="640" height="${h}" fill="var(${fill})"/><text x="650" y="${y+20}" font-size="14" font-weight="700" text-anchor="end" fill="var(--muted)">${lab}</text>`;
+  const ln=(x1,y1,x2,y2,c,w)=>`<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="var(${c})" stroke-width="${w}" marker-end="url(#b${c==='--sun'?'s':'r'})"/>`;
+  const lb=(x,y,big,small,hot)=>`<text x="${x}" y="${y}" font-size="15" font-weight="700" fill="var(--ink)">${big}${hot?' ↑':''}</text>${small?`<text x="${x}" y="${y+16}" font-size="11.5" fill="var(--muted)">${small}</text>`:''}`;
+  return `<svg viewBox="0 0 680 330" role="img" aria-label="지구 열수지 모식도"><defs>
+  <marker id="bs" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="4" markerHeight="4" orient="auto"><path d="M0 0L10 5L0 10z" fill="var(--sun)"/></marker>
+  <marker id="br" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="4" markerHeight="4" orient="auto"><path d="M0 0L10 5L0 10z" fill="var(--ir)"/></marker></defs>
+  ${box(10,60,"우주","--space")}${box(70,180,"대기","--atmbox")}${box(250,70,"지표","--ground")}
+  ${ln(200,20,200,295,"--sun",16)}${lb(214,40,"태양 복사 100","")}${lb(214,282,"50","지표 흡수")}
+  ${ln(190,120,120,28,"--sun",6)}${lb(40,100,"30","반사(구름·대기·지표)")}
+  ${ln(212,165,280,165,"--sun",6)}${lb(222,192,"20","대기 흡수")}
+  ${ln(370,295,370,95,"--ir",hi?16:11)}${lb(306,190,"132","지표 방출",hi)}
+  ${ln(450,95,450,295,"--ir",hi?14:9)}${lb(460,190,"94","대기 복사",hi)}
+  ${ln(540,135,540,25,"--ir",9)}${lb(550,95,"58","우주로")}
+  ${ln(610,295,610,25,"--ir",3)}${lb(618,170,"12","")}
+  </svg>`;
+}
+function budView(){
+  const ok=BQ.map(q=>+st.bud[q[0]]===q[3]);const nOk=ok.filter(Boolean).length;
+  const cAll=CQ.every(q=>st.chain[q[0]]!==undefined);const cOk=CQ.filter(q=>st.chain[q[0]]===q[3]).length;
+  return `<h2>지구 열수지 (심화)</h2>
+  <p class="lead">지구에 들어오는 태양 복사 에너지를 100이라고 할 때, 지표·대기·우주 각각에서 들어온 에너지와 나간 에너지를 비교해 보자.</p>
+  <div class="scene">${budScene(st.budChk&&cOk===4)}</div>
+  <div class="step"><h3><span class="n">①</span>계산하기: 각 영역의 에너지 출입을 더해 보자</h3>
+   <div class="bgrid">${BQ.map((q,i)=>`<label class="bq" for="b-${q[0]}"><span><b>${q[1]}</b><small>${q[2]} =</small></span><input type="number" inputmode="numeric" id="b-${q[0]}" data-b="${q[0]}" value="${st.bud[q[0]]??''}"><span class="mark">${st.budChk?(ok[i]?'✔':'✖'):''}</span></label>`).join("")}</div>
+   <div class="row"><button class="btn" type="button" id="bud-check">확인하기</button></div>
+   ${st.budChk?(nOk===5?`<p class="fb ok">지표 144 = 144, 대기 152 = 152, 우주 100 = 100. 모든 영역에서 흡수한 에너지양과 방출한 에너지양이 같다. 이것이 열수지 평형이다.</p>`:`<p class="fb no">${nOk}/5 맞음. ✖ 표시된 칸을 다시 계산해 보자.</p>`):'<p class="fb"></p>'}
+  </div>
+  <div class="step"><h3><span class="n">②</span>추론하기: 대기 중 이산화 탄소 농도가 증가하면?</h3>
+   <div class="pgrid">${CQ.map(([k,label,opts,ans])=>`<div><b>${label}</b><div class="chips">${opts.map((t,j)=>{const sel=st.chain[k]===j;return `<button type="button" class="chip ${sel?(j===ans?'right':'wrong'):''}" data-ch="${k}" data-j="${j}" aria-pressed="${sel}">${t}</button>`}).join("")}</div></div>`).join("")}</div>
+   ${cAll?(cOk===4?`<p class="fb ok">맞아요. 온실기체가 늘면 대기가 흡수하는 지구 복사 에너지(132)가 늘고, 대기가 지표로 다시 방출하는 에너지(94)도 늘어 지표 온도가 올라간다. 위 그림에서 두 화살표가 굵어졌다. 지표 온도가 올라가면 지표 방출도 늘어 더 높은 온도에서 새로운 평형을 이룬다.</p>`:`<p class="fb no">${cOk}/4 맞음. 온실기체는 지구 복사 에너지를 흡수했다가 지표로 다시 방출한다는 점을 떠올려 보자.</p>`):'<p class="fb"></p>'}
+  </div>
+  <p class="src">교과서 84쪽 탐구 「지구 온난화로 인한 지구 열수지 변동 탐구하기」 (출처: 『대기과학』, 2016)</p>`;
+}
+
+/* ---------- 형성평가 ---------- */
+const WQ=[
+ {id:"w1",lv:"기본",goal:"온실 효과 강화로 인한 지구 온난화의 메커니즘을 설명할 수 있다.",
+  q:"탄소를 배출하면 왜 지구가 따뜻해지는지, 온실기체와 지구 복사 에너지를 이용해 설명하시오.",
+  model:"인간 활동으로 탄소(이산화 탄소)를 배출하면 대기 중 온실기체의 양이 늘어난다. 온실기체는 지구가 방출하는 지구 복사 에너지를 흡수했다가 지표로 다시 방출하는데, 온실기체가 늘면 흡수하고 재방출하는 에너지양도 늘어난다. 그 결과 온실 효과가 강화되어 지구 평균 기온이 올라간다. 이것이 지구 온난화다.",
+  keys:[["탄소(이산화 탄소) 배출로 온실기체 증가",[/(탄소|이산화\s*탄소|온실\s*기체|온실가스)[^.]{0,25}(증가|늘|많아)/]],["온실기체가 지구 복사 에너지를 흡수",[/흡수/]],["지표로 다시 방출(재방출)",[/(재방출|다시\s*방출|지표로[^.]{0,10}방출|되돌려)/]],["지구 평균 기온 상승",[/(기온|온도)[^.]{0,15}(상승|올라|높아)/]],["온실 효과 강화 = 지구 온난화",[/(온실\s*효과[^.]{0,10}(강화|커|증가)|지구\s*온난화)/]]]},
+ {id:"w2",lv:"기본",goal:"엘니뇨가 지구 환경과 인간 생활에 미치는 영향을 설명할 수 있다.",
+  q:"엘니뇨가 발생했을 때 동태평양 적도 해역의 수온과 날씨가 어떻게 변하는지 무역풍과 용승을 이용해 설명하시오.",
+  model:"엘니뇨가 발생하면 무역풍이 평상시보다 약해져 서쪽으로 이동하는 표층 해수의 흐름이 약해진다. 그래서 동태평양에서는 깊은 곳의 찬 해수가 올라오는 용승이 약해지고 표층 수온이 평상시보다 높아진다. 따뜻해진 바다 위에 상승 기류가 생겨 강수량이 늘고 홍수가 나기도 한다.",
+  keys:[["무역풍이 약해진다",[/무역풍[^.]{0,15}(약|줄)/]],["용승이 약해진다",[/용승[^.]{0,15}(약|줄|감소)/]],["동태평양 수온이 높아진다",[/(수온|온도)[^.]{0,15}(높아|상승|올라)/]],["상승 기류가 생긴다",[/상승\s*기류/]],["강수량 증가(홍수)",[/(비|강수|홍수)/]]]},
+ {id:"w3",lv:"심화",goal:"지구 온난화의 메커니즘을 지구 열수지 개념으로 설명할 수 있다.",
+  q:"대기 중 이산화 탄소 농도가 증가하면 지구 열수지가 어떻게 변하여 지표 온도가 올라가는지 설명하시오.",
+  model:"이산화 탄소가 증가하면 대기가 흡수하는 지구 복사 에너지양이 132보다 증가한다. 그러면 대기가 지표로 방출하는 에너지양도 94보다 증가하고, 지표가 다시 흡수하는 에너지양이 늘어난다. 지표가 흡수하는 에너지가 방출하는 에너지보다 많아져 지표 온도가 올라가고, 더 높은 온도에서 다시 열수지 평형을 이룬다.",
+  keys:[["대기가 흡수하는 에너지 증가",[/대기[^.]{0,20}흡수[^.]{0,20}(증가|늘|많아)|흡수[^.]{0,20}(증가|늘|많아)/]],["대기가 지표로 방출하는 에너지 증가",[/(지표로|지표에)[^.]{0,20}(방출|재방출)[^.]{0,20}(증가|늘|많아)|방출[^.]{0,20}(증가|늘|많아)/]],["지표가 흡수하는 에너지 증가",[/지표[^.]{0,20}흡수[^.]{0,20}(증가|늘|많아)/]],["지표 온도 상승",[/(온도|기온)[^.]{0,15}(상승|올라|높아)/]],["열수지(평형)로 설명",[/(열수지|평형)/]]]}
+];
+const QZ=[
+ {q:"온실 효과에 대한 설명으로 옳은 것은?",o:["온실기체가 태양 복사 에너지를 모두 막는 현상","온실기체가 지구 복사 에너지의 일부를 흡수했다가 지표로 다시 방출해 지표가 따뜻하게 유지되는 현상","온실기체가 스스로 열을 만들어 내는 현상","구름이 태양 빛을 반사하는 현상"],a:1,h:"패딩이 하는 일을 떠올려 보자.",e:"온실기체는 지구 복사 에너지를 흡수했다가 지표로 재방출한다. 덕분에 지구 평균 기온이 대기가 없을 때보다 높게 유지된다."},
+ {q:"[O, X] 지구의 평균 기온은 대기가 없을 때보다 대기가 있을 때 높게 유지된다.",o:["O","X"],a:0,h:"정거장 1에서 '대기 없음'과 '대기 있음'의 기온을 비교해 보자.",e:"대기가 없으면 약 -18℃, 대기가 있으면 약 15℃로 유지된다."},
+ {q:"지구 온난화의 주된 원인으로 가장 알맞은 것은?",o:["태양 복사 에너지의 급격한 증가","화석 연료 사용 등 인간 활동으로 인한 온실기체 증가","지구 자전 속도 변화","오존층의 회복"],a:1,h:"산업 혁명 이후 무엇이 크게 늘었을까?",e:"화석 연료 사용, 토지 개발, 벌목 등으로 온실기체가 늘어 온실 효과가 강화되었다."},
+ {q:"사막이 주로 위도 30° 부근에 분포하는 까닭은?",o:["대기 대순환에 의한 하강 기류로 맑고 건조한 날씨가 계속되기 때문","바다와 멀기 때문","태양 복사 에너지를 가장 적게 받기 때문","상승 기류가 강해 비가 많이 오기 때문"],a:0,h:"하강 기류가 생기면 구름이 만들어지기 어렵다.",e:"위도 30° 부근은 대기 대순환에 의해 하강 기류가 형성되어 맑고 건조한 날씨가 지속된다."},
+ {q:"사막화의 원인 중 인위적인 원인이 아닌 것은?",o:["가축의 과잉 방목","과도한 경작","무분별한 삼림 벌채","오랜 가뭄"],a:3,h:"사람의 활동이 아닌 것을 고르자.",e:"가뭄은 자연적 원인이다. 과잉 방목, 과도한 경작, 삼림 벌채는 인위적 원인이다."},
+ {q:"엘니뇨 시기 동태평양 적도 해역의 변화로 옳은 것은?",o:["용승이 강해져 수온이 낮아진다","용승이 약해져 수온이 평상시보다 높아진다","하강 기류가 강해져 가뭄이 든다","무역풍이 강해진다"],a:1,h:"엘니뇨 시기에는 무역풍이 약해진다.",e:"무역풍이 약해지면 동태평양의 용승이 약해지고 수온이 높아져 상승 기류가 생기고 강수량이 늘어난다."},
+ {q:"엘니뇨 시기 서태평양(동남아시아, 오스트레일리아)에서 나타날 수 있는 현상은?",o:["상승 기류가 강해져 홍수가 잦아진다","하강 기류가 형성되어 가뭄이나 산불이 발생한다","수온이 크게 높아진다","용승이 강해진다"],a:1,h:"엘니뇨 시기에는 평상시와 수온·날씨가 반대로 바뀐다.",e:"서태평양은 수온이 낮아지고 하강 기류가 형성되어 강수량이 줄고 가뭄이나 산불 피해가 생기기도 한다."},
+ {q:"지구 열수지에서 대기가 흡수하는 에너지양과 방출하는 에너지양은? (태양 복사 에너지 = 100)",o:["흡수 152, 방출 152","흡수 132, 방출 94","흡수 100, 방출 70","흡수 144, 방출 152"],a:0,h:"대기 흡수 = 20 + 132, 대기 방출 = 94 + 58",e:"대기는 152를 흡수하고 152를 방출해 열수지 평형을 이룬다."},
+ {q:"기후 변화를 완화(온실기체 줄이기)하기 위한 방안이 아닌 것은?",o:["태양광·풍력 등 신재생 에너지 기술 개발","공장에서 배출하는 이산화 탄소를 포집해 땅속에 묻기","대중교통 이용으로 화석 연료 사용 줄이기","폭염에 대비해 도심에 그늘막 설치하기"],a:3,h:"온실기체의 양을 직접 줄이는지 따져 보자.",e:"그늘막 설치는 이미 일어난 기후 변화에 적응하기 위한 노력이다. 나머지는 온실기체를 줄이는 완화 방안이다."}
+];
+function wqView(){
+  return WQ.map(w=>{const a=st.w[w.id]||{};const txt=a.t||"";
+    const auto=w.keys.map(k=>k[1].every(r=>r.test(txt.replace(/\s+/g," "))));
+    const got=w.keys.map((k,i)=>auto[i]||!!(a.c&&a.c[i]));const n=got.filter(Boolean).length,N=w.keys.length,p=Math.round(n/N*100);
+    const lvl=p>=80?["목표 달성! 핵심 요소를 거의 모두 설명했다.","ok"]:p>=50?["거의 다 왔다. 빠진 요소를 넣어 고쳐 쓰자.",""]:["다시 도전! 모범 답안의 흐름을 참고해 고쳐 쓰자.","no"];
+    return `<div class="wq"><span class="tag ${w.lv==='심화'?'adv':''}">${w.lv}</span><p class="goal">학습 목표: ${w.goal}</p><p class="q">${w.q}</p>
+    <label class="src" for="t-${w.id}">내 문장으로 답 쓰기</label><textarea id="t-${w.id}" data-w="${w.id}" placeholder="내 말로 설명해 보자.">${esc(txt)}</textarea>
+    <div class="row"><button class="btn" type="button" data-cmp="${w.id}" ${txt.trim().length<15?'disabled':''}>모범 답안과 비교하기</button>${a.shown?'<span class="src">답을 고친 뒤 다시 누르면 점검이 갱신된다.</span>':''}</div>
+    ${a.shown?`<p class="model"><b>모범 답안</b> ${esc(w.model)}</p>
+    <p class="src" style="margin:0">핵심 요소 점검: 자동으로 찾은 요소는 체크되어 있다. 내 답에 들어 있는데 체크되지 않았다면 직접 체크하자.</p>
+    <ul class="checks">${w.keys.map((k,i)=>`<li><input type="checkbox" id="c-${w.id}-${i}" data-ck="${w.id}" data-i="${i}" ${got[i]?'checked':''} ${auto[i]?'disabled':''}><label for="c-${w.id}-${i}">${k[0]} ${auto[i]?'<span class="auto">자동 확인</span>':''}</label></li>`).join("")}</ul>
+    <div class="meter" aria-label="목표 도달도"><span style="width:${p}%"></span></div>
+    <p class="level fb ${lvl[1]}">목표 도달도 ${n}/${N} · ${lvl[0]}</p>`:''}</div>`}).join("");
+}
+function wqScore(w){const a=st.w[w.id]||{};const txt=(a.t||"").replace(/\s+/g," ");return w.keys.filter((k,i)=>k[1].every(r=>r.test(txt))||(a.c&&a.c[i])).length}
+function quizScore(){return QZ.filter((x,i)=>st.qz[i]===x.a).length}
+function quizView(){
+  const n=quizScore();
+  return `<h2>형성평가</h2>
+  <p class="lead"><b>Part 1. 선택형</b> 답을 고르면 바로 채점된다. 틀리면 힌트를 읽고 다시 골라 보자.</p>
+  <div class="quizbox">${QZ.map((x,i)=>{const p=st.qz[i];const ok=p===x.a;
+    return `<div class="quizq"><p class="q">${i+1}. ${x.q}</p><div class="opts">${x.o.map((t,j)=>`<button type="button" class="opt ${p===j?(ok?'right':'wrong'):''}" data-qz="${i}" data-j="${j}" ${ok?'disabled':''}>${String.fromCharCode(9312+j)} ${t}</button>`).join("")}</div>
+    ${p===undefined?'':(ok?`<p class="fb ok">정답! ${x.e}</p>`:`<p class="fb no">다시 생각해 보자. 힌트: ${x.h}</p>`)}</div>`}).join("")}</div>
+  <div class="qscore">선택형 ${n} / ${QZ.length}${n===QZ.length?"  · 모두 맞혔다!":""}</div>
+  <p class="lead"><b>Part 2. 서술형</b> 내 문장으로 답을 쓰고, <b>모범 답안과 비교하기</b>를 눌러 학습 목표에 얼마나 가까워졌는지 점검하자.</p>
+  ${wqView()}`;
+}
+
+/* ---------- 공통 ---------- */
+const VIEWS={gh:ghView,pac:pacView,bud:budView,quiz:quizView};
+function isDone(t){
+  if(t==="gh")return st.q.noatm===1&&st.q.pad===0&&st.order.length===5&&st.order.every((x,i)=>x===i);
+  if(t==="pac")return st.pacShown&&st.q.fish===0;
+  if(t==="bud")return st.budChk&&BQ.every(q=>+st.bud[q[0]]===q[3])&&CQ.every(q=>st.chain[q[0]]===q[3]);
+  return quizScore()===QZ.length&&WQ.every(w=>{const a=st.w[w.id];return a&&a.shown&&wqScore(w)/w.keys.length>=.8});
+}
+function renderOut(){
+  const L=[];
+  if(st.atm)L.push(`[온실기체 양 실험] 마지막 설정 기온 ${tempC(st.eps).toFixed(1)}℃`);
+  if(st.order.length===5)L.push(`[지구 온난화 메커니즘] ${st.order.map(i=>ORDER[i]).join(" → ")}`);
+  if(st.pacShown)L.push(`[엘니뇨 예상] 적중 ${PQ.filter(q=>st.pred[q[0]]===q[3]).length}/5`);
+  if(st.budChk)L.push(`[열수지 계산] ${BQ.filter(q=>+st.bud[q[0]]===q[3]).length}/5 · [CO2 증가 추론] ${CQ.filter(q=>st.chain[q[0]]===q[3]).length}/4`);
+  if(Object.keys(st.qz).length)L.push(`[형성평가 선택형] ${quizScore()} / ${QZ.length}`);
+  WQ.forEach((w,i)=>{const a=st.w[w.id];if(a&&a.t&&a.t.trim())L.push(`[서술형 ${i+1} · ${w.lv}] ${a.t.trim()}${a.shown?` (목표 도달도 ${wqScore(w)}/${w.keys.length})`:""}`)});
+  const o=$("out");if(o)o.textContent=L.length?L.join("\n"):"";
+}
+function render(){
+  document.querySelectorAll(".tab").forEach(b=>{b.setAttribute("aria-selected",String(b.dataset.t===st.tab));b.classList.toggle("done",isDone(b.dataset.t))});
+  $("panel").innerHTML=VIEWS[st.tab]()+nextBtn(); renderOut(); save();
+}
+function nextBtn(){const order=["gh","pac","bud","quiz"],i=order.indexOf(st.tab);if(i===order.length-1)return "";
+  const names={pac:"정거장 2로",bud:"정거장 3으로",quiz:"형성평가로"};return `<div class="row"><button class="btn ghost" type="button" data-t="${order[i+1]}">${names[order[i+1]]} 가기 →</button></div>`}
+document.addEventListener("click",e=>{
+  const b=e.target.closest("button"); if(!b)return;
+  if(b.dataset.t){const fromTab=b.classList.contains("tab");st.tab=b.dataset.t;render();if(!fromTab)document.querySelector(".tabs").scrollIntoView({behavior:"smooth",block:"start"});return}
+  if(b.dataset.q){st.q[b.dataset.q]=+b.dataset.j;render();return}
+  if(b.dataset.atm){st.atm=b.dataset.atm==="1";render();return}
+  if(b.dataset.ord!==undefined){if(st.order.length<5)st.order.push(+b.dataset.ord);render();return}
+  if(b.id==="ord-reset"){st.order=[];render();return}
+  if(b.dataset.pac){st.pac=b.dataset.pac;render();return}
+  if(b.dataset.pr){st.pred[b.dataset.pr]=+b.dataset.j;render();return}
+  if(b.id==="pac-check"){st.pacShown=true;st.pac="nino";render();return}
+  if(b.id==="pac-reset"){st.pacShown=false;st.pred={};st.pac="normal";delete st.q.fish;render();return}
+  if(b.id==="bud-check"){st.budChk=true;render();return}
+  if(b.dataset.ch){st.chain[b.dataset.ch]=+b.dataset.j;render();return}
+  if(b.dataset.cmp){const a=st.w[b.dataset.cmp]=st.w[b.dataset.cmp]||{};a.shown=true;render();return}
+  if(b.dataset.qz!==undefined){st.qz[b.dataset.qz]=+b.dataset.j;render();return}
+  if(b.id==="copy"){const t=$("out").textContent;const ok=()=>{$("toast").textContent="복사했어요."};
+    const fail=()=>{const r=document.createRange();r.selectNodeContents($("out"));const sel=getSelection();sel.removeAllRanges();sel.addRange(r);$("toast").textContent="자동 복사가 막혀 있어요. 선택된 글을 Ctrl+C로 복사하세요."};
+    try{navigator.clipboard.writeText(t).then(ok,fail)}catch(err){fail()}}
+});
+document.addEventListener("input",e=>{
+  if(e.target.id==="eps"){st.eps=+e.target.value;const sc=document.querySelector(".scene");sc.innerHTML=ghScene(st.eps);$("tval").textContent=tempC(st.eps).toFixed(1)+"℃";renderOut();save();return}
+  if(e.target.dataset.b){st.bud[e.target.dataset.b]=e.target.value;save();return}
+  if(e.target.dataset.w){const a=st.w[e.target.dataset.w]=st.w[e.target.dataset.w]||{};a.t=e.target.value;const bt=document.querySelector(`[data-cmp="${e.target.dataset.w}"]`);if(bt)bt.disabled=a.t.trim().length<15;renderOut();save();return}
+});
+document.addEventListener("change",e=>{if(e.target.dataset.ck){const a=st.w[e.target.dataset.ck]=st.w[e.target.dataset.ck]||{};a.c=a.c||{};a.c[e.target.dataset.i]=e.target.checked;render()}});
+render();
+</script>
+
+</body>
+</html>
