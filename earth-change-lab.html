@@ -166,6 +166,11 @@ tbody th{background:var(--bg);width:110px}
 .bq input{font:inherit;font-size:1.1rem;padding:6px 8px;border:1px solid var(--line);border-radius:6px;background:var(--surface);color:var(--ink);width:100%}
 .bq .mark{font-weight:700;color:var(--good)}
 .quizbox{display:grid;gap:12px}
+.pgroup{display:grid;gap:8px;border-left:4px solid var(--gold);padding-left:12px}
+.pg{color:var(--navy)}
+.pgrid>div{align-content:start}
+.chips{align-items:flex-start}
+.chip:disabled.right,.chip:disabled.wrong{opacity:1}
 [hidden]{display:none!important}
 body{margin:0}
 </style>
@@ -282,7 +287,8 @@ function pacScene(m){
   s+=`<circle cx="${sunX}" cy="42" r="18" fill="var(--sun)"/><line x1="${sunX+70}" y1="70" x2="${sunX+70}" y2="${wTop-30}" stroke="var(--air)" stroke-width="2" marker-end="url(#pw)"/><text x="${sunX+76}" y="80" font-size="12" fill="var(--air)">하강 기류</text>`;
   s+=`</svg>`;return s;
 }
-const PQ=[["wT","서태평양 표층 수온",["높아진다","낮아진다"],1],["eT","동태평양 표층 수온",["높아진다","낮아진다"],0],["up","동태평양 용승",["강해진다","약해진다"],1],["wW","서태평양 날씨",["비가 많아진다","맑고 건조해진다"],1],["eW","동태평양 날씨",["비가 많아진다","맑고 건조해진다"],0]];
+const PQ=[["flow","서쪽으로 가는 표층 해수의 흐름",["강화","약화"],1,0],["up","동태평양 용승",["강화","약화"],1,0],["wT","서태평양 표층 수온",["높아진다","낮아진다"],1,1],["wW","서태평양 날씨",["비가 많아진다","맑고 건조해진다"],1,1],["eT","동태평양 표층 수온",["높아진다","낮아진다"],0,2],["eW","동태평양 날씨",["비가 많아진다","맑고 건조해진다"],0,2]];
+const PG=["첫 번째 예상: 무역풍이 약해지면?","두 번째 예상: 서태평양의 변화는?","세 번째 예상: 동태평양의 변화는?"];
 function pacView(){
   const m=st.pac,P=PAC[m];
   const allPred=PQ.every(q=>st.pred[q[0]]!==undefined);
@@ -294,9 +300,9 @@ function pacView(){
   <div class="tblwrap"><table><thead><tr><th>${m==='nino'?'엘니뇨 시기':'평상시'}</th><th>서태평양 (동남아시아)</th><th>동태평양 (남아메리카)</th></tr></thead>
   <tbody><tr><th>표층 수온</th><td>${P.wW}</td><td>${P.eW}</td></tr><tr><th>기류</th><td>${P.wx[1]}</td><td>${P.ex[1]}</td></tr><tr><th>날씨</th><td>${P.wx[0]}</td><td>${P.ex[0]}</td></tr><tr><th>용승</th><td>-</td><td>${P.up}</td></tr></tbody></table></div>
   <div class="step"><h3><span class="n">①</span>예상하기: 무역풍이 평상시보다 약해지면 어떻게 될까? (평상시와 비교)</h3>
-   <div class="pgrid">${PQ.map(([k,label,opts])=>`<div><b>${label}</b><div class="chips">${opts.map((t,j)=>{const sel=st.pred[k]===j;const cls=st.pacShown&&sel?(j===PQ.find(q=>q[0]===k)[3]?'right':'wrong'):'';return `<button type="button" class="chip ${cls}" data-pr="${k}" data-j="${j}" aria-pressed="${sel}" ${st.pacShown?'disabled':''}>${t}</button>`}).join("")}</div></div>`).join("")}</div>
+   ${PG.map((g,gi)=>`<div class="pgroup"><b class="pg">${g}</b><div class="pgrid">${PQ.filter(q=>q[4]===gi).map(([k,label,opts,ans])=>`<div><b>${label}</b><div class="chips">${opts.map((t,j)=>{const sel=st.pred[k]===j;const cls=st.pacShown&&sel?(j===ans?'right':'wrong'):'';return `<button type="button" class="chip ${cls}" data-pr="${k}" data-j="${j}" aria-pressed="${sel}" ${st.pacShown?'disabled':''}>${t}</button>`}).join("")}</div></div>`).join("")}</div></div>`).join("")}
    <div class="row"><button class="btn" type="button" id="pac-check" ${allPred&&!st.pacShown?'':'disabled'}>엘니뇨 시기 확인하기</button>${st.pacShown?`<button class="btn ghost" type="button" id="pac-reset">다시 예상하기</button>`:''}</div>
-   ${st.pacShown?`<p class="fb ${right===5?'ok':'no'}">예상 적중 ${right}/5. 무역풍이 약해지면 서쪽으로 가는 표층 해수의 흐름이 약해져, 동태평양의 용승이 약해지고 수온이 높아진다. 수온과 날씨가 평상시와 반대로 바뀐다.</p>`:''}
+   ${st.pacShown?`<p class="fb ${right===PQ.length?'ok':'no'}">예상 적중 ${right}/${PQ.length}. 무역풍이 약해지면 서쪽으로 가는 표층 해수의 흐름이 약해져, 동태평양의 용승이 약해지고 수온이 높아진다. 수온과 날씨가 평상시와 반대로 바뀐다.</p>`:''}
   </div>
   ${st.pacShown?`<div class="step"><h3><span class="n">②</span>엘니뇨가 일어나면 남아메리카 페루 연안의 어획량이 줄어든다. 그 까닭은?</h3>
    ${mcq("fish",["용승이 약해져 깊은 바다의 영양염류가 덜 올라오고 플랑크톤이 줄기 때문","바닷물이 차가워져 물고기가 얼기 때문","무역풍이 강해져 배가 나가지 못하기 때문"],0,"맞아요. 서식지 환경이 바뀌면 어종 수확량, 작물 생산량 같은 인간 생활에도 영향이 미친다.","용승은 깊은 곳의 차고 영양염류가 풍부한 물을 끌어올린다는 점을 떠올려 보자.")}
@@ -408,7 +414,7 @@ function renderOut(){
   const L=[];
   if(st.atm)L.push(`[온실기체 양 실험] 마지막 설정 기온 ${tempC(st.eps).toFixed(1)}℃`);
   if(st.order.length===5)L.push(`[지구 온난화 메커니즘] ${st.order.map(i=>ORDER[i]).join(" → ")}`);
-  if(st.pacShown)L.push(`[엘니뇨 예상] 적중 ${PQ.filter(q=>st.pred[q[0]]===q[3]).length}/5`);
+  if(st.pacShown)L.push(`[엘니뇨 예상] 적중 ${PQ.filter(q=>st.pred[q[0]]===q[3]).length}/${PQ.length}`);
   if(st.budChk)L.push(`[열수지 계산] ${BQ.filter(q=>+st.bud[q[0]]===q[3]).length}/5 · [CO2 증가 추론] ${CQ.filter(q=>st.chain[q[0]]===q[3]).length}/4`);
   if(Object.keys(st.qz).length)L.push(`[형성평가 선택형] ${quizScore()} / ${QZ.length}`);
   WQ.forEach((w,i)=>{const a=st.w[w.id];if(a&&a.t&&a.t.trim())L.push(`[서술형 ${i+1} · ${w.lv}] ${a.t.trim()}${a.shown?` (목표 도달도 ${wqScore(w)}/${w.keys.length})`:""}`)});
