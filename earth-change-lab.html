@@ -166,6 +166,22 @@ tbody th{background:var(--bg);width:110px}
 .bq input{font:inherit;font-size:1.1rem;padding:6px 8px;border:1px solid var(--line);border-radius:6px;background:var(--surface);color:var(--ink);width:100%}
 .bq .mark{font-weight:700;color:var(--good)}
 .quizbox{display:grid;gap:12px}
+.simbox{padding:0;background:none}
+.simbox canvas{width:100%;min-width:640px;height:auto;aspect-ratio:900/440;display:block;border-radius:10px}
+.ctrl{display:grid;gap:10px;background:var(--bg);border-radius:10px;padding:12px}
+.readout{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.rcard{background:var(--bg);border-radius:10px;padding:10px 12px;display:grid;gap:4px;align-content:start}
+.rcard b{font-family:var(--f-display);font-size:1.6rem;line-height:1.1;color:var(--navy)}
+.rcard small{font-size:.8rem;color:var(--ink)}
+.mbar{height:8px;background:var(--line);border-radius:4px;overflow:hidden}
+.mbar i{display:block;height:100%;width:0;background:var(--c2);transition:width .3s}
+.state{border-radius:6px;padding:2px 8px;width:max-content}
+.state.n{background:var(--c2-soft)}.state.m{background:var(--gold-soft)}.state.e{background:var(--c3-soft);color:var(--bad)!important}
+.story{margin:0;padding:12px 12px 12px 2em;background:var(--bg);border-radius:10px;display:grid;gap:4px;list-style:none}
+.story li{color:var(--muted);transition:color .3s}
+.story li.on{color:var(--ink);font-weight:700}
+@media (max-width:720px){.readout{grid-template-columns:1fr 1fr}}
+
 .pgroup{display:grid;gap:8px;border-left:4px solid var(--gold);padding-left:12px}
 .pg{color:var(--navy)}
 .pgrid>div{align-content:start}
@@ -257,55 +273,144 @@ function ghView(){
   <p class="src">기온은 대기를 한 층으로 단순화한 모형으로 계산한 값이다. 교과서 82~83쪽, 그림 Ⅱ-10 지구의 에너지 출입 관계</p>`;
 }
 
-/* ---------- 정거장 2: 태평양 적도 ---------- */
-const PAC={normal:{wind:1,wW:"높다",eW:"낮다",wx:["흐리고 비가 자주 온다","상승 기류"],ex:["맑고 건조하다","하강 기류"],up:"활발하다"},
- nino:{wind:.3,wW:"평상시보다 낮아진다",eW:"평상시보다 높아진다",wx:["맑고 건조해진다(가뭄)","하강 기류"],ex:["비가 많이 온다(홍수)","상승 기류"],up:"약해진다"}};
-function pacScene(m){
-  const n=m==="nino", wt=n?.3:1;
-  const wTop=150, wDepth=n?70:105, eDepth=n?55:18;
-  const cloudX=n?470:110, up=n?0.35:1;
-  let s=`<svg viewBox="0 0 680 324" role="img" aria-label="${n?'엘니뇨 시기':'평상시'} 태평양 적도 단면"><defs>
-  <marker id="pw" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto"><path d="M0 0L10 5L0 10z" fill="var(--air)"/></marker>
-  <marker id="pu" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto"><path d="M0 0L10 5L0 10z" fill="var(--cold-ink)"/></marker></defs>
-  <rect x="40" y="${wTop}" width="600" height="146" fill="var(--cold)"/>
-  <path d="M40 ${wTop} L640 ${wTop} L640 ${wTop+eDepth} C 480 ${wTop+eDepth+10}, 300 ${wTop+wDepth-10}, 40 ${wTop+wDepth} Z" fill="var(--warm)"/>
-  <rect x="0" y="${wTop-20}" width="40" height="166" fill="var(--land)"/><rect x="640" y="${wTop-20}" width="40" height="166" fill="var(--land)"/>
-  <text x="6" y="314" font-size="13" fill="var(--ink)">서 (동남아시아)</text><text x="674" y="314" font-size="13" text-anchor="end" fill="var(--ink)">동 (남아메리카)</text>
-  <text x="70" y="${wTop+30}" font-size="13" fill="var(--ink)">따뜻한 해수</text><text x="300" y="${wTop+128}" font-size="13" fill="var(--cold-ink)">찬 해수</text>`;
-  // trade wind arrows
-  const len=60+90*wt;
-  for(let i=0;i<3;i++){const x=560-i*170;s+=`<line x1="${x}" y1="${wTop-12}" x2="${x-len}" y2="${wTop-12}" stroke="var(--air)" stroke-width="${2+3*wt}" marker-end="url(#pw)"/>`}
-  s+=`<text x="${n?560:320}" y="${wTop-24}" font-size="13" text-anchor="middle" fill="var(--air)">무역풍${n?' 약화':''} (동 → 서)</text>`;
-  // upwelling
-  s+=`<path d="M600 ${wTop+130} C 610 ${wTop+90}, 615 ${wTop+50}, 612 ${wTop+12}" fill="none" stroke="var(--cold-ink)" stroke-width="${1.5+3.5*up}" ${n?'stroke-dasharray="6 5"':''} marker-end="url(#pu)"/>
-  <text x="590" y="${wTop+100}" font-size="13" text-anchor="end" fill="var(--cold-ink)">용승${n?' 약화':''}</text>`;
-  // cloud & rising air
-  s+=`<g><ellipse cx="${cloudX}" cy="40" rx="55" ry="22" fill="var(--cloud)"/><ellipse cx="${cloudX+30}" cy="30" rx="35" ry="18" fill="var(--cloud)"/>
-  ${[0,1,2,3].map(i=>`<line x1="${cloudX-30+i*18}" y1="64" x2="${cloudX-36+i*18}" y2="84" stroke="var(--rain)" stroke-width="2"/>`).join("")}
-  <line x1="${cloudX-70}" y1="${wTop-30}" x2="${cloudX-70}" y2="70" stroke="var(--air)" stroke-width="2" marker-end="url(#pw)"/><text x="${cloudX-64}" y="104" font-size="12" fill="var(--air)">상승 기류</text></g>`;
-  const sunX=n?110:500;
-  s+=`<circle cx="${sunX}" cy="42" r="18" fill="var(--sun)"/><line x1="${sunX+70}" y1="70" x2="${sunX+70}" y2="${wTop-30}" stroke="var(--air)" stroke-width="2" marker-end="url(#pw)"/><text x="${sunX+76}" y="80" font-size="12" fill="var(--air)">하강 기류</text>`;
-  s+=`</svg>`;return s;
-}
+/* ---------- 정거장 2: 태평양 적도 (시뮬레이션) ---------- */
 const PQ=[["flow","서쪽으로 가는 표층 해수의 흐름",["강화","약화"],1,0],["up","동태평양 용승",["강화","약화"],1,0],["wT","서태평양 표층 수온",["높아진다","낮아진다"],1,1],["wW","서태평양 날씨",["비가 많아진다","맑고 건조해진다"],1,1],["eT","동태평양 표층 수온",["높아진다","낮아진다"],0,2],["eW","동태평양 날씨",["비가 많아진다","맑고 건조해진다"],0,2]];
 const PG=["첫 번째 예상: 무역풍이 약해지면?","두 번째 예상: 서태평양의 변화는?","세 번째 예상: 동태평양의 변화는?"];
+const CMP=[["무역풍","강하다 (동 → 서)","약해진다"],["서쪽으로 가는 표층 해수 흐름","강하다","약해진다 (따뜻한 해수가 동쪽으로 퍼짐)"],["동태평양 용승","활발하다","약해진다"],["서태평양 표층 수온","높다","평상시보다 낮아진다"],["서태평양 날씨","상승 기류 · 비가 많다","하강 기류 · 가뭄, 산불"],["동태평양 표층 수온","낮다","평상시보다 높아진다"],["동태평양 날씨","하강 기류 · 맑고 건조하다","상승 기류 · 폭우, 홍수"]];
+const STORY=[[.97,"① 무역풍이 약해진다"],[.82,"② 서쪽으로 가던 따뜻한 표층 해수의 흐름이 약해진다"],[.66,"③ 따뜻한 해수가 동쪽으로 퍼지고, 동태평양의 용승이 약해진다"],[.5,"④ 동태평양 표층 수온이 크게 올라간다"],[.36,"⑤ 상승 기류와 비구름이 동쪽으로 이동한다"],[.22,"⑥ 서태평양은 하강 기류로 가뭄, 동태평양은 폭우와 홍수"]];
+const PS={w:1,target:1,play:!matchMedia("(prefers-reduced-motion: reduce)").matches,story:0,storyStart:0,surf:null,ups:null,air:null,rain:[],fish:null,raf:0,lastUi:0};
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v)),lerp=(a,b,k)=>a+(b-a)*k;
+const CW=900,CH=440,SEA=210,WX=60,EX=840;
+function pacModel(w){
+  const k=clamp((w-0.2)/0.8,0,1), xr=lerp(.8,.13,k);
+  const rainAt=x=>clamp(1-Math.abs(x-xr)/.3,0,1);
+  return {k,hw:30+95*k,he:clamp(100-90*k,10,100),Tw:28.2+1.4*k,Te:28.6-6.6*k,up:k,xr,xs:xr<.45?.86:.15,rW:rainAt(.15),rE:rainAt(.86),fish:k};
+}
+const tCol=(T,a=1)=>{const f=clamp((T-21)/8.5,0,1);const r=Math.round(lerp(46,226,f)),g=Math.round(lerp(110,92,f)),b=Math.round(lerp(200,52,f));return `rgba(${r},${g},${b},${a})`};
+const layerBottom=(m,x)=>{const f=clamp((x-WX)/(EX-WX),0,1);const s=f*f*(3-2*f);return SEA+lerp(m.hw,m.he,s)};
+function pacInit(){
+  if(PS.surf)return;
+  PS.surf=Array.from({length:150},()=>({x:WX+Math.random()*(EX-WX),d:Math.random()}));
+  PS.ups=Array.from({length:46},()=>({x:EX-150+Math.random()*140,y:SEA+60+Math.random()*160}));
+  PS.air=Array.from({length:46},(_,i)=>({th:i/46*Math.PI*2}));
+  PS.fish=Array.from({length:7},(_,i)=>({x:EX-120+Math.random()*90,y:SEA+18+i*9,v:.3+Math.random()*.4}));
+}
+function pacDraw(ctx,m,adv){
+  const css=getComputedStyle(document.documentElement),V=n=>css.getPropertyValue(n).trim();
+  const dark=matchMedia("(prefers-color-scheme: dark)").matches&&document.documentElement.dataset.theme!=="light"||document.documentElement.dataset.theme==="dark";
+  // sky
+  const sky=ctx.createLinearGradient(0,0,0,SEA);sky.addColorStop(0,dark?"#16203d":"#cfe3f6");sky.addColorStop(1,dark?"#24345e":"#eef6fd");
+  ctx.fillStyle=sky;ctx.fillRect(0,0,CW,SEA);
+  // deep ocean
+  const deep=ctx.createLinearGradient(0,SEA,0,CH);deep.addColorStop(0,"#2f5f9c");deep.addColorStop(1,"#173763");
+  ctx.fillStyle=deep;ctx.fillRect(0,SEA,CW,CH-SEA);
+  // warm layer
+  const g=ctx.createLinearGradient(WX,0,EX,0);
+  for(let i=0;i<=10;i++){const f=i/10;const T=lerp(m.Tw,m.Te,f*f*(3-2*f));g.addColorStop(f,tCol(T,.95))}
+  ctx.fillStyle=g;ctx.beginPath();ctx.moveTo(WX,SEA);ctx.lineTo(EX,SEA);
+  for(let x=EX;x>=WX;x-=10)ctx.lineTo(x,layerBottom(m,x));ctx.closePath();ctx.fill();
+  // thermocline line
+  ctx.setLineDash([6,5]);ctx.strokeStyle="rgba(255,255,255,.55)";ctx.lineWidth=1.5;ctx.beginPath();
+  for(let x=WX;x<=EX;x+=10){const y=layerBottom(m,x);x===WX?ctx.moveTo(x,y):ctx.lineTo(x,y)}ctx.stroke();ctx.setLineDash([]);
+  ctx.fillStyle="rgba(255,255,255,.85)";ctx.font="12px sans-serif";ctx.fillText("수온 약층 (따뜻한 해수의 바닥)",WX+300,layerBottom(m,WX+300)+16);
+  // upwelling particles
+  ctx.fillStyle=`rgba(170,215,255,${.25+.7*m.up})`;
+  PS.ups.forEach(p=>{if(adv){p.y-=.4+1.6*m.up;p.x+=.25*m.up;const top=layerBottom(m,p.x)-4;if(p.y<top||p.x>EX-4){p.y=CH-10-Math.random()*40;p.x=EX-150+Math.random()*130}}
+    if(m.up>.05){ctx.beginPath();ctx.arc(p.x,p.y,2.4,0,7);ctx.fill()}});
+  if(m.up>.15){ctx.strokeStyle=`rgba(200,232,255,${m.up})`;ctx.lineWidth=2+4*m.up;ctx.beginPath();ctx.moveTo(EX-50,CH-30);ctx.quadraticCurveTo(EX-20,SEA+90,EX-26,SEA+14);ctx.stroke();arrowHead(ctx,EX-26,SEA+14,-Math.PI/2,10+6*m.up,`rgba(200,232,255,${m.up})`)}
+  ctx.fillStyle="#fff";ctx.font="bold 13px sans-serif";ctx.textAlign="right";ctx.fillText(m.up>.6?"용승 활발":m.up>.25?"용승 약해짐":"용승 거의 멈춤",EX-34,CH-34);ctx.textAlign="left";
+  // surface current particles
+  const vx=-2.2*m.k+0.8*(1-m.k);
+  PS.surf.forEach(p=>{if(adv){p.x+=vx*(0.6+0.4*(1-p.d));if(p.x<WX+2)p.x=EX-2;if(p.x>EX-2)p.x=WX+2}
+    const y=SEA+4+p.d*(layerBottom(m,p.x)-SEA-8),f=(p.x-WX)/(EX-WX),T=lerp(m.Tw,m.Te,f*f*(3-2*f));
+    ctx.strokeStyle=T>26.5?"rgba(255,236,200,.9)":"rgba(220,240,255,.9)";ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(p.x,y);ctx.lineTo(p.x-Math.sign(vx||1)*Math.min(14,4+Math.abs(vx)*5),y);ctx.stroke()});
+  // fish
+  const nf=Math.round(7*m.fish);PS.fish.forEach((f,i)=>{if(i>=nf)return;if(adv){f.x-=f.v;if(f.x<EX-150)f.x=EX-30}fishShape(ctx,f.x,f.y)});
+  // land
+  ctx.fillStyle=dark?"#5c5240":"#8a7a5a";ctx.fillRect(0,SEA-26,WX,CH-SEA+26);ctx.fillRect(EX,SEA-40,CW-EX,CH-SEA+40);
+  ctx.fillStyle=dark?"#4b7a3a":"#6d9c4a";ctx.fillRect(0,SEA-32,WX,8);ctx.fillRect(EX,SEA-46,CW-EX,8);
+  // walker circulation
+  const xr=WX+m.xr*(EX-WX),xs=WX+m.xs*(EX-WX),cx=(xr+xs)/2,rx=Math.abs(xs-xr)/2,cy=112,ry=70,dir=xr<xs?1:-1;
+  ctx.strokeStyle=dark?"rgba(240,122,181,.35)":"rgba(194,48,122,.25)";ctx.lineWidth=10;ctx.beginPath();ctx.ellipse(cx,cy,rx,ry,0,0,7);ctx.stroke();
+  ctx.fillStyle=dark?"#f07ab5":"#c2307a";
+  PS.air.forEach(a=>{if(adv)a.th+=dir*(.006+.008*Math.max(m.k,.35));const x=cx+rx*Math.cos(a.th),y=cy+ry*Math.sin(a.th);const tx=-rx*Math.sin(a.th)*dir,ty=ry*Math.cos(a.th)*dir;arrowHead(ctx,x,y,Math.atan2(ty,tx),9,ctx.fillStyle)});
+  // cloud + rain at xr
+  const rs=Math.max(m.rW,m.rE,.6);
+  if(adv&&PS.play){for(let i=0;i<3*rs;i++)PS.rain.push({x:xr+(Math.random()-.5)*110,y:70})}
+  ctx.strokeStyle="rgba(90,150,230,.85)";ctx.lineWidth=1.6;
+  PS.rain=PS.rain.filter(d=>{if(adv)d.y+=7;if(d.y>SEA)return false;ctx.beginPath();ctx.moveTo(d.x,d.y);ctx.lineTo(d.x-2,d.y+9);ctx.stroke();return true});
+  cloud(ctx,xr,58,1+0.25*rs,dark);
+  // sun at xs
+  const sx=xs,sy=52;ctx.fillStyle="#f2b632";ctx.beginPath();ctx.arc(sx,sy,20,0,7);ctx.fill();ctx.strokeStyle="#f2b632";ctx.lineWidth=2;
+  for(let i=0;i<8;i++){const a=i*Math.PI/4+(PS.t||0)*.01;ctx.beginPath();ctx.moveTo(sx+Math.cos(a)*26,sy+Math.sin(a)*26);ctx.lineTo(sx+Math.cos(a)*34,sy+Math.sin(a)*34);ctx.stroke()}
+  // air labels & weather tags
+  ptag(ctx,xr,150,"상승 기류",dark?"#f07ab5":"#c2307a");ptag(ctx,xs,150,"하강 기류",dark?"#f07ab5":"#c2307a");
+  if(m.rW<.2)ptag(ctx,WX+70,100,"가뭄 · 산불 위험","#b4472f");if(m.rE>.6)ptag(ctx,EX-70,100,"폭우 · 홍수","#2f5f9c");
+  // trade winds
+  const L=20+60*m.k;ctx.strokeStyle="#fff";ctx.fillStyle="#fff";ctx.lineWidth=2+3*m.k;
+  for(let i=0;i<4;i++){const x0=EX-60-i*190;ctx.beginPath();ctx.moveTo(x0,SEA-12);ctx.lineTo(x0-L,SEA-12);ctx.stroke();arrowHead(ctx,x0-L,SEA-12,Math.PI,10+4*m.k,"#fff")}
+  tag(ctx,EX-260,SEA-24,m.k>.75?"무역풍 (동 → 서)":m.k>.35?"무역풍 약해짐":"무역풍 매우 약함");
+  // sea surface labels
+  tag(ctx,WX+12,SEA+22,`표층 수온 ${m.Tw.toFixed(1)}℃`);tag(ctx,EX-150,SEA+22,`표층 수온 ${m.Te.toFixed(1)}℃`);
+  ctx.font="bold 13px sans-serif";ctx.fillStyle="#fff";ctx.fillText("서태평양 · 인도네시아, 오스트레일리아",WX+8,CH-12);ctx.textAlign="right";ctx.fillText("동태평양 · 페루 연안",EX-8,CH-12);ctx.textAlign="left";
+  // story caption
+  if(PS.story){const step=STORY.filter(s=>m.k<=s[0]).pop();if(step){ctx.font="bold 15px sans-serif";const w=ctx.measureText(step[1]).width+28;ctx.fillStyle="rgba(31,47,92,.88)";roundRect(ctx,CW/2-w/2,SEA-74,w,32,8);ctx.fill();ctx.fillStyle="#fff";ctx.textAlign="center";ctx.fillText(step[1],CW/2,SEA-53);ctx.textAlign="left"}}
+}
+function arrowHead(ctx,x,y,ang,s,c){ctx.save();ctx.translate(x,y);ctx.rotate(ang);ctx.fillStyle=c;ctx.beginPath();ctx.moveTo(0,0);ctx.lineTo(-s,-s*.55);ctx.lineTo(-s,s*.55);ctx.closePath();ctx.fill();ctx.restore()}
+function fishShape(ctx,x,y){ctx.fillStyle="#ffd36b";ctx.beginPath();ctx.ellipse(x,y,7,3.5,0,0,7);ctx.fill();ctx.beginPath();ctx.moveTo(x+6,y);ctx.lineTo(x+11,y-4);ctx.lineTo(x+11,y+4);ctx.closePath();ctx.fill()}
+function cloud(ctx,x,y,s,dark){ctx.fillStyle=dark?"#8a96b3":"#f7f9fc";ctx.strokeStyle=dark?"#6c7895":"#b8c4d6";ctx.lineWidth=1.5;[[-34,8,22],[-12,-6,26],[16,0,24],[38,10,18],[0,12,24]].forEach(([dx,dy,r])=>{ctx.beginPath();ctx.arc(x+dx*s,y+dy*s,r*s,0,7);ctx.fill()});ctx.fillStyle=dark?"#6c7895":"#c9d2de";ctx.fillRect(x-50*s,y+16*s,100*s,6*s)}
+function ptag(ctx,x,y,t,c){ctx.font="bold 13px sans-serif";const w=ctx.measureText(t).width+16;ctx.fillStyle=c;roundRect(ctx,x-w/2,y-16,w,23,11);ctx.fill();ctx.fillStyle="#fff";ctx.textAlign="center";ctx.fillText(t,x,y);ctx.textAlign="left"}
+function tag(ctx,x,y,t){ctx.font="bold 14px sans-serif";const w=ctx.measureText(t).width+16;ctx.fillStyle="rgba(0,0,0,.45)";roundRect(ctx,x,y-17,w,24,6);ctx.fill();ctx.fillStyle="#fff";ctx.fillText(t,x+8,y)}
+function roundRect(ctx,x,y,w,h,r){ctx.beginPath();ctx.moveTo(x+r,y);ctx.arcTo(x+w,y,x+w,y+h,r);ctx.arcTo(x+w,y+h,x,y+h,r);ctx.arcTo(x,y+h,x,y,r);ctx.arcTo(x,y,x+w,y,r);ctx.closePath()}
+function pacFrame(ts){
+  const cv=document.getElementById("pacCanvas");if(!cv){PS.raf=0;return}
+  PS.raf=requestAnimationFrame(pacFrame);
+  if(PS.story){const t=(ts-PS.storyStart)/1000;PS.target=lerp(1,.2,clamp(t/12,0,1));if(t>12)PS.story=0}
+  if(PS.play)PS.w+=(PS.target-PS.w)*.03;else PS.w+=(PS.target-PS.w)*.2;
+  PS.t=(PS.t||0)+(PS.play?1:0);
+  const dpr=window.devicePixelRatio||1;if(cv.width!==CW*dpr){cv.width=CW*dpr;cv.height=CH*dpr}
+  const ctx=cv.getContext("2d");ctx.setTransform(dpr,0,0,dpr,0,0);ctx.clearRect(0,0,CW,CH);
+  const m=pacModel(PS.w);pacDraw(ctx,m,PS.play);
+  if(ts-PS.lastUi>150){PS.lastUi=ts;pacUi(m)}
+}
+function pacUi(m){
+  const set=(id,v)=>{const e=$(id);if(e)e.textContent=v},bar=(id,v)=>{const e=$(id);if(e)e.style.width=Math.round(clamp(v,0,1)*100)+"%"};
+  set("r-state",m.k>.8?"평상시":m.k>.35?"변화 중…":"엘니뇨");const st_=$("r-state");if(st_)st_.className="state "+(m.k>.8?"n":m.k>.35?"m":"e");
+  set("r-tw",m.Tw.toFixed(1)+"℃");set("r-te",m.Te.toFixed(1)+"℃");bar("b-rw",m.rW);bar("b-re",m.rE);bar("b-up",m.up);bar("b-fish",m.fish);
+  set("r-rw",m.rW>.6?"비가 많다":m.rW>.25?"보통":"가뭄");set("r-re",m.rE>.6?"폭우·홍수":m.rE>.25?"보통":"맑고 건조");
+  set("r-up",m.up>.6?"활발":m.up>.25?"약함":"거의 없음");set("r-fish",m.fish>.6?"풍부":m.fish>.25?"감소":"크게 감소");
+  const ws=$("wind");if(ws&&document.activeElement!==ws)ws.value=PS.target.toFixed(2);
+  document.querySelectorAll(".story li").forEach((li,i)=>li.classList.toggle("on",m.k<=STORY[i][0]+.001&&PS.w<.999));
+}
+function pacStart(){pacInit();if(!PS.raf)PS.raf=requestAnimationFrame(pacFrame)}
+function pacStory(){PS.story=1;PS.storyStart=performance.now();PS.play=true;const b=$("p-play");if(b)b.textContent="일시정지"}
 function pacView(){
-  const m=st.pac,P=PAC[m];
   const allPred=PQ.every(q=>st.pred[q[0]]!==undefined);
   const right=PQ.filter(q=>st.pred[q[0]]===q[3]).length;
+  const lock=!st.pacShown;
   return `<h2>태평양 적도: 평상시 vs 엘니뇨</h2>
-  <p class="lead">태평양 적도에는 대기 대순환에 의해 동쪽에서 서쪽으로 무역풍이 분다. 무역풍이 바다와 날씨를 어떻게 바꾸는지 살펴보자.</p>
-  <div class="row" role="group" aria-label="시기"><button type="button" class="chip" data-pac="normal" aria-pressed="${m==='normal'}">평상시</button><button type="button" class="chip" data-pac="nino" aria-pressed="${m==='nino'}" ${st.pacShown?'':'disabled'}>엘니뇨 시기${st.pacShown?'':' (예상 후 열림)'}</button></div>
-  <div class="scene">${pacScene(m)}</div>
-  <div class="tblwrap"><table><thead><tr><th>${m==='nino'?'엘니뇨 시기':'평상시'}</th><th>서태평양 (동남아시아)</th><th>동태평양 (남아메리카)</th></tr></thead>
-  <tbody><tr><th>표층 수온</th><td>${P.wW}</td><td>${P.eW}</td></tr><tr><th>기류</th><td>${P.wx[1]}</td><td>${P.ex[1]}</td></tr><tr><th>날씨</th><td>${P.wx[0]}</td><td>${P.ex[0]}</td></tr><tr><th>용승</th><td>-</td><td>${P.up}</td></tr></tbody></table></div>
+  <p class="lead">태평양 적도에는 대기 대순환에 의해 동쪽에서 서쪽으로 무역풍이 분다. 무역풍이 바다와 날씨를 어떻게 움직이는지 시뮬레이션으로 관찰하자.</p>
+  <div class="scene simbox"><canvas id="pacCanvas" width="900" height="440" role="img" aria-label="태평양 적도 해수와 대기의 흐름 시뮬레이션"></canvas></div>
+  <div class="ctrl">
+   <div class="row"><button type="button" class="chip" id="p-normal">평상시로 되돌리기</button><button type="button" class="btn" id="p-story" ${lock?'disabled':''}>▶ 엘니뇨 진행 보기${lock?' (예상 후 열림)':''}</button><button type="button" class="chip" id="p-play">${PS.play?'일시정지':'재생'}</button></div>
+   <div class="slider"><label for="wind">무역풍 세기 직접 조절 ${lock?'<span class="src">(예상 후 열림)</span>':''}</label><input type="range" id="wind" min="0.2" max="1" step="0.01" value="${PS.target}" ${lock?'disabled':''}><div class="ticks"><span>매우 약함 (엘니뇨)</span><span>평상시</span></div></div>
+  </div>
+  <div class="readout">
+   <div class="rcard"><span class="src">현재 상태</span><b id="r-state" class="state n">평상시</b></div>
+   <div class="rcard"><span class="src">서태평양 표층 수온</span><b id="r-tw" class="tnum">-</b><span class="src">강수</span><div class="mbar"><i id="b-rw"></i></div><small id="r-rw"></small></div>
+   <div class="rcard"><span class="src">동태평양 표층 수온</span><b id="r-te" class="tnum">-</b><span class="src">강수</span><div class="mbar"><i id="b-re"></i></div><small id="r-re"></small></div>
+   <div class="rcard"><span class="src">동태평양 용승</span><div class="mbar"><i id="b-up"></i></div><small id="r-up"></small><span class="src">페루 연안 어획량</span><div class="mbar"><i id="b-fish"></i></div><small id="r-fish"></small></div>
+  </div>
+  <p class="src" style="margin:0">수온·강수·어획량은 변화의 방향을 보여 주기 위한 모형 값이다. 실제 엘니뇨 때 동태평양 표층 수온은 평상시보다 수 ℃ 높아진다.</p>
+  ${st.pacShown?`<ol class="story">${STORY.map(s=>`<li>${s[1]}</li>`).join("")}</ol>`:''}
   <div class="step"><h3><span class="n">①</span>예상하기: 무역풍이 평상시보다 약해지면 어떻게 될까? (평상시와 비교)</h3>
    ${PG.map((g,gi)=>`<div class="pgroup"><b class="pg">${g}</b><div class="pgrid">${PQ.filter(q=>q[4]===gi).map(([k,label,opts,ans])=>`<div><b>${label}</b><div class="chips">${opts.map((t,j)=>{const sel=st.pred[k]===j;const cls=st.pacShown&&sel?(j===ans?'right':'wrong'):'';return `<button type="button" class="chip ${cls}" data-pr="${k}" data-j="${j}" aria-pressed="${sel}" ${st.pacShown?'disabled':''}>${t}</button>`}).join("")}</div></div>`).join("")}</div></div>`).join("")}
-   <div class="row"><button class="btn" type="button" id="pac-check" ${allPred&&!st.pacShown?'':'disabled'}>엘니뇨 시기 확인하기</button>${st.pacShown?`<button class="btn ghost" type="button" id="pac-reset">다시 예상하기</button>`:''}</div>
-   ${st.pacShown?`<p class="fb ${right===PQ.length?'ok':'no'}">예상 적중 ${right}/${PQ.length}. 무역풍이 약해지면 서쪽으로 가는 표층 해수의 흐름이 약해져, 동태평양의 용승이 약해지고 수온이 높아진다. 수온과 날씨가 평상시와 반대로 바뀐다.</p>`:''}
+   <div class="row"><button class="btn" type="button" id="pac-check" ${allPred&&!st.pacShown?'':'disabled'}>시뮬레이션으로 확인하기</button>${st.pacShown?`<button class="btn ghost" type="button" id="pac-reset">다시 예상하기</button>`:''}</div>
+   ${st.pacShown?`<p class="fb ${right===PQ.length?'ok':'no'}">예상 적중 ${right}/${PQ.length}. 위 시뮬레이션에서 ①~⑥의 순서로 변화가 일어나는지 확인하자.</p>`:''}
   </div>
-  ${st.pacShown?`<div class="step"><h3><span class="n">②</span>엘니뇨가 일어나면 남아메리카 페루 연안의 어획량이 줄어든다. 그 까닭은?</h3>
-   ${mcq("fish",["용승이 약해져 깊은 바다의 영양염류가 덜 올라오고 플랑크톤이 줄기 때문","바닷물이 차가워져 물고기가 얼기 때문","무역풍이 강해져 배가 나가지 못하기 때문"],0,"맞아요. 서식지 환경이 바뀌면 어종 수확량, 작물 생산량 같은 인간 생활에도 영향이 미친다.","용승은 깊은 곳의 차고 영양염류가 풍부한 물을 끌어올린다는 점을 떠올려 보자.")}
+  ${st.pacShown?`<div class="tblwrap"><table><thead><tr><th>구분</th><th>평상시</th><th>엘니뇨 시기</th></tr></thead><tbody>${CMP.map(r=>`<tr><th>${r[0]}</th><td>${r[1]}</td><td>${r[2]}</td></tr>`).join("")}</tbody></table></div>
+  <div class="step"><h3><span class="n">②</span>엘니뇨가 일어나면 남아메리카 페루 연안의 어획량이 줄어든다. 그 까닭은?</h3>
+   ${mcq("fish",["용승이 약해져 깊은 바다의 영양염류가 덜 올라오고 플랑크톤이 줄기 때문","바닷물이 차가워져 물고기가 얼기 때문","무역풍이 강해져 배가 나가지 못하기 때문"],0,"맞아요. 서식지 환경이 바뀌면 어종 수확량, 작물 생산량 같은 인간 생활에도 영향이 미친다.","시뮬레이션에서 용승과 어획량 막대가 함께 줄어드는 것을 살펴보자.")}
   </div>`:''}
   <p class="src">교과서 86~87쪽, 그림 Ⅱ-13 평상시와 엘니뇨 발생 시의 대기와 해수의 흐름</p>`;
 }
@@ -422,7 +527,7 @@ function renderOut(){
 }
 function render(){
   document.querySelectorAll(".tab").forEach(b=>{b.setAttribute("aria-selected",String(b.dataset.t===st.tab));b.classList.toggle("done",isDone(b.dataset.t))});
-  $("panel").innerHTML=VIEWS[st.tab]()+nextBtn(); renderOut(); save();
+  $("panel").innerHTML=VIEWS[st.tab]()+nextBtn(); renderOut(); save(); if(st.tab==="pac")pacStart();
 }
 function nextBtn(){const order=["gh","pac","bud","quiz"],i=order.indexOf(st.tab);if(i===order.length-1)return "";
   const names={pac:"정거장 2로",bud:"정거장 3으로",quiz:"형성평가로"};return `<div class="row"><button class="btn ghost" type="button" data-t="${order[i+1]}">${names[order[i+1]]} 가기 →</button></div>`}
@@ -433,10 +538,12 @@ document.addEventListener("click",e=>{
   if(b.dataset.atm){st.atm=b.dataset.atm==="1";render();return}
   if(b.dataset.ord!==undefined){if(st.order.length<5)st.order.push(+b.dataset.ord);render();return}
   if(b.id==="ord-reset"){st.order=[];render();return}
-  if(b.dataset.pac){st.pac=b.dataset.pac;render();return}
+  if(b.id==="p-normal"){PS.story=0;PS.target=1;return}
+  if(b.id==="p-story"){pacStory();return}
+  if(b.id==="p-play"){PS.play=!PS.play;b.textContent=PS.play?"일시정지":"재생";return}
   if(b.dataset.pr){st.pred[b.dataset.pr]=+b.dataset.j;render();return}
-  if(b.id==="pac-check"){st.pacShown=true;st.pac="nino";render();return}
-  if(b.id==="pac-reset"){st.pacShown=false;st.pred={};st.pac="normal";delete st.q.fish;render();return}
+  if(b.id==="pac-check"){st.pacShown=true;render();pacStory();const c=$("pacCanvas");if(c)c.scrollIntoView({behavior:"smooth",block:"center"});return}
+  if(b.id==="pac-reset"){st.pacShown=false;st.pred={};delete st.q.fish;PS.story=0;PS.target=1;render();return}
   if(b.id==="bud-check"){st.budChk=true;render();return}
   if(b.dataset.ch){st.chain[b.dataset.ch]=+b.dataset.j;render();return}
   if(b.dataset.cmp){const a=st.w[b.dataset.cmp]=st.w[b.dataset.cmp]||{};a.shown=true;render();return}
@@ -446,6 +553,7 @@ document.addEventListener("click",e=>{
     try{navigator.clipboard.writeText(t).then(ok,fail)}catch(err){fail()}}
 });
 document.addEventListener("input",e=>{
+  if(e.target.id==="wind"){PS.story=0;PS.target=+e.target.value;return}
   if(e.target.id==="eps"){st.eps=+e.target.value;const sc=document.querySelector(".scene");sc.innerHTML=ghScene(st.eps);$("tval").textContent=tempC(st.eps).toFixed(1)+"℃";renderOut();save();return}
   if(e.target.dataset.b){st.bud[e.target.dataset.b]=e.target.value;save();return}
   if(e.target.dataset.w){const a=st.w[e.target.dataset.w]=st.w[e.target.dataset.w]||{};a.t=e.target.value;const bt=document.querySelector(`[data-cmp="${e.target.dataset.w}"]`);if(bt)bt.disabled=a.t.trim().length<15;renderOut();save();return}
