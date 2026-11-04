@@ -136,7 +136,7 @@ body{margin:0}
 .rcard small{font-size:.78rem;color:var(--muted)}
 .big{border-left:6px solid var(--gold);background:var(--gold-soft);border-radius:0 8px 8px 0;padding:10px 14px;margin:0}
 .log{margin:0;list-style:none;color:var(--ink);padding:10px 12px;background:var(--bg);border-radius:10px;display:grid;gap:3px;font-size:.9rem;min-height:9.5em}
-.log li{animation:fadein .4s}
+.log li:first-child{animation:fadein .4s}
 @keyframes fadein{from{opacity:0;transform:translateY(-4px)}to{opacity:1}}
 .paths{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
 .paths button{border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:8px;padding:8px 10px;font:inherit;cursor:pointer;text-align:left;display:grid;gap:0}
@@ -150,6 +150,32 @@ body{margin:0}
 @media (max-width:860px){.scn{grid-template-columns:repeat(3,1fr)}.paths{grid-template-columns:repeat(2,1fr)}.cards{grid-template-columns:1fr 1fr}.two{grid-template-columns:1fr}}
 @media (max-width:560px){.scn{grid-template-columns:1fr 1fr}.ebar{grid-template-columns:120px 1fr 52px}}
 @media (prefers-reduced-motion:reduce){.log li{animation:none}}
+/* 활동 화면: 시뮬레이션(왼쪽) + 조작·관찰 패널(오른쪽) */
+.stage,.stage-main,.stage-side{display:grid;gap:12px;min-width:0}
+.qgrid{display:grid;gap:16px}
+@media (min-width:1000px) and (orientation:landscape){
+  body{padding-block:10px 32px}
+  .wrap{max-width:1480px;gap:12px}
+  header{padding-bottom:4px} header h1{font-size:1.45rem} header .eyebrow{font-size:.7rem}
+  .question{padding:6px 14px;gap:0;font-size:.9rem} .question .eyebrow{display:none}
+  .tab{gap:0} .tab .k{font-size:.95rem} .tab b{font-size:.92rem}
+  .panel>h2{font-size:1.3rem} .panel>.lead{font-size:.92rem;margin-top:-6px}
+  .stage .simbox canvas{max-height:calc(100svh - 120px);width:auto;max-width:100%;margin:0 auto}
+  .stage .scn button{padding:5px 10px}
+  .tab{padding:6px 12px} .tab small{display:none}
+  .panel{padding:14px 18px;gap:12px}
+  .lead{max-width:none}
+  .stage{grid-template-columns:minmax(0,1.7fr) minmax(330px,1fr);gap:14px;align-items:start}
+  .stage .simbox canvas{min-width:0}
+  .stage-side{position:sticky;top:10px;max-height:calc(100svh - 20px);overflow:auto;gap:10px}
+  .stage-side .cards,.stage-side .paths{grid-template-columns:1fr 1fr}
+  .stage-side .ebar{grid-template-columns:minmax(110px,1fr) minmax(60px,.8fr) 58px}
+  .stage-side .two{grid-template-columns:1fr}
+  .stage-side .log{min-height:0}
+  .qgrid{grid-template-columns:1fr 1fr;gap:14px 24px}
+  .quizbox{grid-template-columns:1fr 1fr;gap:14px 28px}
+  .quizq:nth-child(2){border-top:0;padding-top:0}
+}
 
 </style>
 </head>
@@ -360,12 +386,12 @@ function e1Bars(){const S=SC[st.sc];const now=S.bars(E1.p);const dp=S.loop?.03:.
 function e1View(){const S=SC[st.sc];const bars=S.bars(0);const done=SC.filter(s=>{const i=SC.indexOf(s);return st.q["e"+i]===s.q[2]}).length;
   return `<h2>활동 1. 여러 형태의 에너지</h2>
   <p class="lead">에너지는 <b>일을 할 수 있는 능력</b>이며 여러 형태로 존재한다. 장면을 재생하면서 어떤 에너지가 <b>늘어나고(↑)</b>, <b>줄어들고(↓)</b>, <b>어디로 이동(→)</b>하는지 관찰하자.</p>
-  <div class="scn" role="group" aria-label="장면 고르기">${SC.map((s,i)=>`<button type="button" data-sc="${i}" aria-pressed="${st.sc===i}" class="${st.seen[s.id]?'seen':''}"><b>${s.t}</b><small>${s.s}</small></button>`).join("")}</div>
+  <div class="stage"><div class="stage-main">  <div class="scn" role="group" aria-label="장면 고르기">${SC.map((s,i)=>`<button type="button" data-sc="${i}" aria-pressed="${st.sc===i}" class="${st.seen[s.id]?'seen':''}"><b>${s.t}</b><small>${s.s}</small></button>`).join("")}</div>
   <div class="simbox"><canvas id="e1Canvas" width="900" height="440" role="img" aria-label="${S.t} 장면 애니메이션"></canvas></div>
-  <div class="ctrl"><div class="row"><button type="button" class="btn" id="e1-play">${E1.play?'일시정지':'재생'}</button><button type="button" class="chip" id="e1-reset">처음부터</button><span class="src">막대의 길이는 에너지의 많고 적음을 비교하기 위한 모형 값이다.</span></div>
+  </div><div class="stage-side">  <div class="ctrl"><div class="row"><button type="button" class="btn" id="e1-play">${E1.play?'일시정지':'재생'}</button><button type="button" class="chip" id="e1-reset">처음부터</button><span class="src">막대의 길이는 에너지의 많고 적음을 비교하기 위한 모형 값이다.</span></div>
    <div class="ebars">${bars.map((b,i)=>`<div class="ebar"><span class="nm"><i class="dot" style="background:${EC[b[1]]}"></i>${b[0]}</span><span class="tr"><i id="eb-${i}" style="background:${EC[b[1]]}"></i></span><span class="dir eq" id="ed-${i}">–</span></div>`).join("")}</div>
    <ul class="moves">${S.moves.map(m=>`<li>${m}</li>`).join("")}</ul></div>
-  <div class="step"><h3><span class="n">①</span>${S.q[0]}</h3>${mcq("e"+st.sc,S.q[1],S.q[2],S.q[3],S.q[4])}<p class="src" style="margin:0">다섯 장면 중 ${done}개 장면의 질문을 해결했다.</p></div>
+  <div class="step"><h3><span class="n">①</span>${S.q[0]}</h3>${mcq("e"+st.sc,S.q[1],S.q[2],S.q[3],S.q[4])}<p class="src" style="margin:0">다섯 장면 중 ${done}개 장면의 질문을 해결했다.</p></div></div></div>
   <div class="step"><h3><span class="n">②</span>Q. 기억나는 에너지 사례는?</h3>${answerBox("e1","오늘 본 장면이나 생활 속 사례 하나를 골라 \"○○ 에너지가 △△ 에너지로 바뀌었다(이동했다)\"로 써 보자.",null)}</div>`}
 
 /* =========================================================
@@ -422,8 +448,8 @@ function fuUi(){const set=(id,v)=>{const e=$(id);if(e)e.textContent=v};set("f-n"
 function fuView(){const P=["반응물 쪽으로 기운다","수평을 이룬다","생성물 쪽으로 기운다"];const pr=st.pred;
   return `<h2>활동 2. 수소 핵융합 반응 관찰하기</h2>
   <p class="lead">태양 에너지는 <b>수소 핵융합 반응</b>으로 생성된다. 중심부에서 <b>수소 원자핵 4개</b>가 융합해 <b>헬륨 원자핵 1개</b>가 되는 모습을 관찰하고, 반응물과 생성물의 질량을 저울로 비교하자.</p>
-  <div class="simbox"><canvas id="fuCanvas" width="900" height="440" role="img" aria-label="태양 중심부의 수소 핵융합 반응과 질량 비교 저울"></canvas></div>
-  <div class="ctrl"><div class="row"><b>관찰 장소</b><button type="button" class="chip" data-mode="core" aria-pressed="${st.mode==='core'}">태양 중심부 (약 1500만 K)</button><button type="button" class="chip" data-mode="surf" aria-pressed="${st.mode==='surf'}">태양 표면 (약 6000 K)</button><button type="button" class="chip" id="fu-run">${FU.run?'일시정지':'재생'}</button></div>
+  <div class="stage"><div class="stage-main">  <div class="simbox"><canvas id="fuCanvas" width="900" height="440" role="img" aria-label="태양 중심부의 수소 핵융합 반응과 질량 비교 저울"></canvas></div>
+  </div><div class="stage-side">  <div class="ctrl"><div class="row"><b>관찰 장소</b><button type="button" class="chip" data-mode="core" aria-pressed="${st.mode==='core'}">태양 중심부 (약 1500만 K)</button><button type="button" class="chip" data-mode="surf" aria-pressed="${st.mode==='surf'}">태양 표면 (약 6000 K)</button><button type="button" class="chip" id="fu-run">${FU.run?'일시정지':'재생'}</button></div>
   <p class="src" style="margin:0">표면에서는 원자핵이 느려 서로 밀어내기만 한다. 핵융합은 온도가 매우 높은 중심부에서만 일어난다.</p></div>
   <div class="cards"><div class="rcard"><small>핵융합 반응 횟수</small><b id="f-n">${FU.n}회</b></div><div class="rcard"><small>줄어든 질량 (누적)</small><b id="f-m" class="tnum">${(FU.n*DM).toFixed(4)} u</b></div><div class="rcard"><small>생성된 태양 에너지 (누적)</small><b id="f-e" class="tnum">0 J</b><div class="mbar" style="height:8px;background:var(--line);border-radius:4px;overflow:hidden"><i id="f-sun" style="display:block;height:100%;width:0;background:#e2553b;transition:width .3s"></i></div></div><div class="rcard"><small>실제 태양에서는 1초마다</small><b style="font-size:1.05rem">약 9×10³⁷번 핵융합</b><small>질량 약 43억 kg 감소 → 약 3.8×10²⁶ J 방출</small></div></div>
   <div class="step"><h3><span class="n">①</span>예상하기: 반응물(수소 원자핵 4개)과 생성물(헬륨 원자핵 1개)을 저울에 올리면?</h3>
@@ -431,7 +457,7 @@ function fuView(){const P=["반응물 쪽으로 기운다","수평을 이룬다"
    <div class="row"><button type="button" class="btn" id="put-L" ${pr===null||st.L?'disabled':''}>왼쪽 접시: 수소 원자핵 4개 올리기</button><button type="button" class="btn" id="put-R" ${pr===null||st.R?'disabled':''}>오른쪽 접시: 헬륨 원자핵 1개 올리기</button><button type="button" class="chip" id="put-0">저울 비우기</button></div>
    ${pr===null?'<p class="fb">먼저 예상을 고르면 저울을 쓸 수 있다.</p>':''}
    ${st.L&&st.R?`<p class="fb ${pr===0?'ok':'no'}">${pr===0?'예상이 맞았다!':'예상과 달랐다.'} 반응물 ${(4*MH).toFixed(4)} u &gt; 생성물 ${MHE.toFixed(4)} u. 반응 후 질량이 <b>${DM.toFixed(4)} u (약 0.7%)</b> 줄었다.</p>
-   <p class="big"><b>줄어든 질량은 어디로 갔을까?</b> 핵융합 반응이 일어날 때마다 줄어든 질량만큼 에너지가 생성된다. 질량과 에너지는 서로 전환될 수 있다 (아인슈타인). 반응 1번에 약 4.1×10⁻¹² J의 에너지가 생긴다.</p>`:''}</div>
+   <p class="big"><b>줄어든 질량은 어디로 갔을까?</b> 핵융합 반응이 일어날 때마다 줄어든 질량만큼 에너지가 생성된다. 질량과 에너지는 서로 전환될 수 있다 (아인슈타인). 반응 1번에 약 4.1×10⁻¹² J의 에너지가 생긴다.</p>`:''}</div></div></div>
   <div class="step"><h3><span class="n">②</span>Q. 핵융합 반응에서 질량이 줄어든 이유는?</h3>${answerBox("fu","저울의 결과와 생성된 에너지를 근거로 설명해 보자.","수소 원자핵 4개가 헬륨 원자핵 1개로 융합할 때 생성물(헬륨 원자핵)의 질량이 반응물(수소 원자핵 4개)의 질량 합보다 작다. 줄어든 질량은 에너지로 전환되어 태양 에너지로 방출되기 때문이다.")}</div>`}
 
 /* =========================================================
@@ -504,14 +530,14 @@ function flView(){const P=st.fl!=="all"?PATHS[st.fl]:null;const C=[["c1","광합
   ["c4","화석 연료에 저장된 에너지의 근원은?",["지구 내부 에너지","태양 에너지","전기 에너지"],1,"맞아요. 광합성으로 저장된 태양 에너지가 화석 연료 속에 남아 있다.","광합성 흐름을 처음부터 따라가 보자."]];
   return `<h2>활동 3. 태양 에너지의 전환</h2>
   <p class="lead">한 형태의 에너지가 다른 형태로 바뀌는 것을 <b>에너지 전환</b>이라고 한다. 지구에 도달한 태양 에너지가 어떤 형태로 바뀌며 흐르는지 실시간으로 관찰하자. 점의 색이 에너지의 형태를 나타낸다.</p>
-  <div class="legend">${["빛","열","화학","전기","운동","위치"].map(f=>`<span><i class="dot" style="background:${EC[f]}"></i>${EN(f)}</span>`).join("")}</div>
+  <div class="stage"><div class="stage-main">  <div class="legend">${["빛","열","화학","전기","운동","위치"].map(f=>`<span><i class="dot" style="background:${EC[f]}"></i>${EN(f)}</span>`).join("")}</div>
   <div class="simbox"><canvas id="flCanvas" width="900" height="440" role="img" aria-label="태양 에너지가 지구에서 다양한 에너지로 전환되는 흐름"></canvas></div>
-  <div class="ctrl"><div class="row"><button type="button" class="btn" id="fl-sun">${st.sun?'햇빛 끄기':'햇빛 켜기'}</button><span class="src">흐름 하나를 골라 따라가 보자.</span></div>
+  </div><div class="stage-side">  <div class="ctrl"><div class="row"><button type="button" class="btn" id="fl-sun">${st.sun?'햇빛 끄기':'햇빛 켜기'}</button><span class="src">흐름 하나를 골라 따라가 보자.</span></div>
    <div class="paths"><button type="button" data-fl="all" aria-pressed="${st.fl==='all'}"><b>전체 보기</b><small>모든 흐름</small></button>${Object.entries(PATHS).map(([k,v])=>`<button type="button" data-fl="${k}" aria-pressed="${st.fl===k}"><b>${v.t}</b><small>${v.c}</small></button>`).join("")}</div>
    ${P?`<ol class="steps">${P.steps.map(s=>`<li>${s}</li>`).join("")}</ol>`:''}</div>
   <div class="two"><div class="step"><h3>실시간 전환 기록</h3><ul class="log" id="fl-log">${FL.logs.map(l=>`<li><i class="dot" style="background:${EC[l.f]}"></i> ${l.t}</li>`).join("")}</ul></div>
-  <div class="note"><b>태양 에너지 = 지구 에너지의 근원</b><br>태양 에너지는 지구시스템을 순환하며 자연 현상(바람, 구름, 비)을 일으키고, 생명체가 살아가는 데 필요한 에너지원이 된다.</div></div>
-  ${C.map((q,i)=>`<div class="step"><h3><span class="n">${"①②③④"[i]}</span>${q[1]}</h3>${mcq(q[0],q[2],q[3],q[4],q[5])}</div>`).join("")}
+  <div class="note"><b>태양 에너지 = 지구 에너지의 근원</b><br>태양 에너지는 지구시스템을 순환하며 자연 현상(바람, 구름, 비)을 일으키고, 생명체가 살아가는 데 필요한 에너지원이 된다.</div></div></div></div>
+  <div class="qgrid">${C.map((q,i)=>`<div class="step"><h3><span class="n">${"①②③④"[i]}</span>${q[1]}</h3>${mcq(q[0],q[2],q[3],q[4],q[5])}</div>`).join("")}</div>
   <div class="step"><h3><span class="n">⑤</span>Q. 기억나는 에너지 사례는?</h3>${answerBox("fl","태양 에너지에서 출발하는 흐름 하나를 화살표로 이어 써 보자. (예: 태양(빛E) → …)",null)}</div>`}
 
 /* =========================================================
