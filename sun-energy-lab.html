@@ -1,0 +1,623 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>태양 에너지 탐구소</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Do+Hyeon&family=IBM+Plex+Sans+KR:wght@400;500;700&display=swap">
+<style>
+/* 레이아웃: 상단 질문 띠 → 탐구 정거장 4개 탭 → 정거장별 조작 패널(모식도 + 예상·확인) → 제출 */
+:root{
+  --bg:#f5f6f9; --surface:#ffffff; --ink:#18213a; --muted:#5b6478; --line:#dde1ea;
+  --navy:#1f2f5c; --gold:#c9962b; --gold-soft:#f6ecd3;
+  --prod:#5b8a2f; --prod-soft:#e8f2dc; --c1:#d39b1f; --c1-soft:#fbf0d4; --c2:#2f7a8c; --c2-soft:#e0f0f3; --c3:#8a4f9e; --c3-soft:#f1e6f5;
+  --good:#2e7d4f; --bad:#b4472f;
+ --sun:#e8a317; --ir:#d9483b; --atm:#9cc7e8; --ground:#c9b48a; --warm:#f2a65a; --cold:#3d72b4; --cold-ink:#1d4f8f; --land:#8a7a5a; --air:#c2307a; --cloud:#c9d2de; --rain:#3d72b4; --space:#e6ecf7; --atmbox:#e3f0fa;
+  --f-display:"Do Hyeon","IBM Plex Sans KR",sans-serif;
+  --f-body:"IBM Plex Sans KR","Apple SD Gothic Neo","Malgun Gothic",sans-serif;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#10152a; --surface:#1a2140; --ink:#e9ecf5; --muted:#a3abc2; --line:#2e3760;
+  --navy:#9fb3ee; --gold:#e3b856; --gold-soft:#3a3220;
+  --prod:#a6d27a; --prod-soft:#24361a; --c1:#f0c45a; --c1-soft:#3a3018; --c2:#7cc6d6; --c2-soft:#183842; --c3:#d3a2e3; --c3-soft:#33203b;
+  --good:#7fd6a0; --bad:#f19b85; --sun:#f2bb3f; --ir:#ff7a6b; --atm:#4e7fa8; --ground:#6d5f45; --warm:#c97632; --cold:#2a4f80; --cold-ink:#8fc0ff; --land:#5c5240; --air:#f07ab5; --cloud:#5b6782; --rain:#8fc0ff; --space:#1c2546; --atmbox:#1a3148;
+ color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#10152a; --surface:#1a2140; --ink:#e9ecf5; --muted:#a3abc2; --line:#2e3760;
+  --navy:#9fb3ee; --gold:#e3b856; --gold-soft:#3a3220;
+  --prod:#a6d27a; --prod-soft:#24361a; --c1:#f0c45a; --c1-soft:#3a3018; --c2:#7cc6d6; --c2-soft:#183842; --c3:#d3a2e3; --c3-soft:#33203b;
+  --good:#7fd6a0; --bad:#f19b85; --sun:#f2bb3f; --ir:#ff7a6b; --atm:#4e7fa8; --ground:#6d5f45; --warm:#c97632; --cold:#2a4f80; --cold-ink:#8fc0ff; --land:#5c5240; --air:#f07ab5; --cloud:#5b6782; --rain:#8fc0ff; --space:#1c2546; --atmbox:#1a3148;
+ color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:16px;line-height:1.6;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:20px 48px}
+.wrap{max-width:1040px;margin:0 auto;display:grid;gap:20px}
+h1,h2,h3{font-family:var(--f-display);font-weight:400;margin:0;text-wrap:balance;letter-spacing:.01em}
+header{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:12px;border-bottom:3px solid var(--navy);padding-bottom:12px}
+header h1{font-size:2.2rem;color:var(--navy);line-height:1.1}
+.by{font-size:.85rem;color:var(--muted)}
+.eyebrow{font-size:.78rem;letter-spacing:.08em;color:var(--gold);font-weight:700;margin:0}
+.question{background:var(--surface);border:1px solid var(--line);border-left:6px solid var(--gold);border-radius:6px;padding:16px 18px;display:grid;gap:6px}
+.question p{margin:0}
+.tabs{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.tab{border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:8px;padding:10px 12px;text-align:left;font:inherit;cursor:pointer;display:grid;gap:2px;position:relative}
+.tab b{font-size:1rem}
+.tab small{color:var(--muted);font-size:.8rem}
+.tab .k{font-family:var(--f-display);color:var(--gold);font-size:1.1rem}
+.tab[aria-selected="true"]{border-color:var(--navy);box-shadow:inset 0 -4px 0 var(--navy)}
+.tab.done::after{content:"완료";position:absolute;top:8px;right:10px;font-size:.7rem;font-weight:700;color:var(--good)}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:20px;display:grid;gap:18px}
+.panel h2{font-size:1.6rem;color:var(--navy)}
+.lead{margin:0;max-width:68ch}
+.src{font-size:.78rem;color:var(--muted)}
+.step{display:grid;gap:8px}
+.step h3{font-size:1.15rem}
+.step h3 .n{color:var(--gold);margin-right:6px}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{border:1px solid var(--line);background:var(--bg);color:var(--ink);border-radius:999px;padding:6px 14px;font:inherit;font-size:.95rem;cursor:pointer}
+.chip:hover{border-color:var(--navy)}
+.chip:disabled{opacity:.35;cursor:default}
+.chip[aria-pressed="true"]{background:var(--navy);color:var(--surface);border-color:var(--navy)}
+.chip.right{background:var(--good);border-color:var(--good);color:var(--surface)}
+.chip.wrong{border-color:var(--bad);color:var(--bad)}
+.fb{margin:0;font-size:.92rem;min-height:1.4em}
+.fb.ok{color:var(--good)} .fb.no{color:var(--bad)}
+.btn{border:0;background:var(--navy);color:var(--surface);border-radius:6px;padding:9px 16px;font:inherit;font-weight:700;cursor:pointer}
+.btn.ghost{background:none;color:var(--navy);border:1px solid var(--navy)}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.row{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+button:focus-visible,textarea:focus,input:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+.note{background:var(--bg);border-radius:8px;padding:12px 14px;margin:0}
+/* 서술형 · 형성평가 */
+.wq{border:1px solid var(--line);border-radius:10px;padding:16px;display:grid;gap:10px}
+.wq .tag{display:inline-block;font-size:.75rem;font-weight:700;padding:2px 10px;border-radius:999px;background:var(--navy);color:var(--surface);width:max-content}
+.wq .tag.adv{background:var(--gold)}
+.wq .goal{font-size:.85rem;color:var(--muted);margin:0}
+.wq .q{margin:0;font-weight:700}
+.model{border-left:4px solid var(--good);background:var(--bg);padding:10px 14px;border-radius:0 6px 6px 0;margin:0}
+.model b{color:var(--good)}
+.checks{list-style:none;margin:0;padding:0;display:grid;gap:6px}
+.checks li{display:flex;gap:8px;align-items:flex-start;font-size:.92rem}
+.checks input{margin-top:5px;width:18px;height:18px;flex:none}
+.checks .auto{font-size:.75rem;color:var(--good);font-weight:700}
+.meter{height:10px;border-radius:5px;background:var(--line);overflow:hidden}
+.meter span{display:block;height:100%;background:var(--good);transition:width .4s ease}
+.level{margin:0;font-weight:700}
+.quizq{border-top:1px solid var(--line);padding-top:12px;display:grid;gap:8px}
+.quizq:first-child{border-top:0;padding-top:0}
+.quizq .q{margin:0;font-weight:700}
+.opts{display:grid;gap:6px}
+.opt{text-align:left;border:1px solid var(--line);background:var(--bg);color:var(--ink);border-radius:8px;padding:8px 12px;font:inherit;cursor:pointer}
+.opt:hover{border-color:var(--navy)}
+.opt.right{background:var(--good);border-color:var(--good);color:var(--surface)}
+.opt.wrong{border-color:var(--bad);color:var(--bad)}
+.qscore{font-weight:700;font-size:1.1rem;color:var(--navy)}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .opt.right,:root:not([data-theme="light"]) .chip.right{color:#10152a}}
+:root[data-theme="dark"] .opt.right,:root[data-theme="dark"] .chip.right{color:#10152a}
+textarea{width:100%;min-height:80px;border:1px solid var(--line);border-radius:6px;padding:10px;font:inherit;background:var(--surface);color:var(--ink);resize:vertical}
+.out{white-space:pre-wrap;background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:12px;font-size:.88rem;max-height:260px;overflow:auto}
+.toast{font-size:.9rem;color:var(--good)}
+@media (max-width:860px){.tabs{grid-template-columns:repeat(2,1fr)}}
+@media (max-width:720px){.tabs{grid-template-columns:1fr}.sim{grid-template-columns:1fr}.ratio{grid-template-columns:1fr}.lvl{grid-template-columns:84px 1fr 96px} header h1{font-size:1.8rem}}
+@media (prefers-reduced-motion:reduce){.lvl .bar,.trow .bar{transition:none}}
+body{margin:0}
+[hidden]{display:none!important}
+.chips{align-items:flex-start}
+.chip:disabled.right,.chip:disabled.wrong{opacity:1}
+.tnum{font-variant-numeric:tabular-nums}
+.simbox{border-radius:10px;overflow-x:auto;background:var(--bg)}
+.simbox canvas{width:100%;min-width:640px;height:auto;aspect-ratio:900/440;display:block;border-radius:10px}
+.ctrl{display:grid;gap:10px;background:var(--bg);border-radius:10px;padding:12px}
+.slider{flex:1 1 260px;display:grid;gap:4px}
+.slider input{width:100%}
+.ticks{display:flex;justify-content:space-between;font-size:.78rem;color:var(--muted)}
+.note{background:var(--bg);border-radius:8px;padding:12px 14px;margin:0}
+.scn{display:grid;grid-template-columns:repeat(5,1fr);gap:8px}
+.scn button{border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:8px;padding:8px 10px;font:inherit;cursor:pointer;text-align:left;display:grid;gap:0}
+.scn button small{color:var(--muted);font-size:.78rem}
+.scn button[aria-pressed="true"]{border-color:var(--navy);box-shadow:inset 0 -3px 0 var(--navy)}
+.scn button.seen::after{content:"✓";color:var(--good);font-weight:700;justify-self:end;margin-top:-1.4em}
+.ebars{display:grid;gap:8px}
+.ebar{display:grid;grid-template-columns:minmax(150px,220px) 1fr 64px;gap:10px;align-items:center}
+.ebar .nm{font-size:.9rem;font-weight:700;display:flex;gap:6px;align-items:center}
+.ebar .tr{display:block;height:22px;background:var(--line);border-radius:5px;overflow:hidden}
+.ebar .tr i{display:block;height:100%;width:0;border-radius:5px}
+.ebar .dir{font-family:var(--f-display);font-size:1.05rem;text-align:center;border-radius:6px;padding:1px 0}
+.dir.up{color:var(--good);background:var(--prod-soft)} .dir.dn{color:var(--bad);background:var(--c3-soft)} .dir.eq{color:var(--muted);background:var(--bg)}
+.dot{width:12px;height:12px;border-radius:50%;flex:none;display:inline-block}
+.moves{margin:0;padding:0;list-style:none;display:flex;flex-wrap:wrap;gap:8px}
+.moves li{background:var(--gold-soft);border-radius:999px;padding:4px 12px;font-size:.9rem}
+.two{display:grid;grid-template-columns:1.2fr 1fr;gap:12px}
+.cards{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.rcard{background:var(--bg);border-radius:10px;padding:10px 12px;display:grid;gap:2px;align-content:start}
+.rcard b{font-family:var(--f-display);font-size:1.5rem;line-height:1.15;color:var(--navy);font-weight:400}
+.rcard small{font-size:.78rem;color:var(--muted)}
+.big{border-left:6px solid var(--gold);background:var(--gold-soft);border-radius:0 8px 8px 0;padding:10px 14px;margin:0}
+.log{margin:0;list-style:none;color:var(--ink);padding:10px 12px;background:var(--bg);border-radius:10px;display:grid;gap:3px;font-size:.9rem;min-height:9.5em}
+.log li{animation:fadein .4s}
+@keyframes fadein{from{opacity:0;transform:translateY(-4px)}to{opacity:1}}
+.paths{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.paths button{border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:8px;padding:8px 10px;font:inherit;cursor:pointer;text-align:left;display:grid;gap:0}
+.paths button small{font-size:.78rem;color:var(--muted)}
+.paths button[aria-pressed="true"]{border-color:var(--navy);box-shadow:inset 0 -3px 0 var(--navy)}
+.steps{margin:0;padding:12px 12px 12px 2.2em;background:var(--bg);border-radius:10px;display:grid;gap:6px}
+.steps li.on{font-weight:700}
+.legend{display:flex;flex-wrap:wrap;gap:10px;font-size:.85rem}
+.legend span{display:flex;gap:5px;align-items:center}
+.answer{display:grid;gap:6px}
+@media (max-width:860px){.scn{grid-template-columns:repeat(3,1fr)}.paths{grid-template-columns:repeat(2,1fr)}.cards{grid-template-columns:1fr 1fr}.two{grid-template-columns:1fr}}
+@media (max-width:560px){.scn{grid-template-columns:1fr 1fr}.ebar{grid-template-columns:120px 1fr 52px}}
+@media (prefers-reduced-motion:reduce){.log li{animation:none}}
+
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <div>
+    <p class="eyebrow">통합과학 · 2-2-1 태양 에너지의 생성과 전환</p>
+    <h1>태양 에너지 탐구소</h1>
+  </div>
+  <div class="by">(made by. 무한쌤)</div>
+</header>
+
+<section class="question" aria-label="오늘의 질문">
+  <p class="eyebrow">오늘의 질문</p>
+  <p><b>우리 주변의 에너지는 어떤 형태로 존재할까? 태양은 에너지를 어떻게 만들고, 그 에너지는 지구에서 어떤 현상을 일으킬까?</b> 세 가지 활동을 탐구한 뒤 형성평가로 학습 목표를 점검하자.</p>
+</section>
+
+<div class="tabs" role="tablist" aria-label="탐구 활동">
+  <button class="tab" role="tab" aria-selected="true" data-t="e"><span class="k">활동 1</span><b>여러 형태의 에너지</b><small>늘어나고, 줄어들고, 이동한다</small></button>
+  <button class="tab" role="tab" aria-selected="false" data-t="fu"><span class="k">활동 2</span><b>수소 핵융합 반응</b><small>질량을 저울로 비교하면?</small></button>
+  <button class="tab" role="tab" aria-selected="false" data-t="fl"><span class="k">활동 3</span><b>태양 에너지의 전환</b><small>지구의 에너지 흐름</small></button>
+  <button class="tab" role="tab" aria-selected="false" data-t="quiz"><span class="k">활동 4</span><b>형성평가</b><small>학습 목표 점검</small></button>
+</div>
+
+<section class="panel" id="panel" role="tabpanel" aria-live="polite"></section>
+<p class="src" style="margin:0;text-align:center">그림 자료 출처: 통합과학 교과서 98~101쪽을 참고하여 재구성. 수치 일부는 변화를 보여 주기 위한 모형 값이다.</p>
+</div>
+<script>
+const $=id=>document.getElementById(id);
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v)),lerp=(a,b,k)=>a+(b-a)*k;
+const KEY="sun-energy-v1";
+let st={tab:"e",sc:0,q:{},seen:{},pred:null,L:0,R:0,mode:"core",txt:{},fl:"all",sun:true,w:{},qz:{},shown:{}};
+try{const s=JSON.parse(localStorage.getItem(KEY)||"null");if(s)st=Object.assign(st,s)}catch(e){}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(st))}catch(e){}}
+const RM=matchMedia("(prefers-reduced-motion: reduce)").matches;
+const isDark=()=>document.documentElement.dataset.theme==="dark"||(document.documentElement.dataset.theme!=="light"&&matchMedia("(prefers-color-scheme: dark)").matches);
+/* 에너지 형태별 색 */
+const EC={"빛":"#e8a317","열":"#d9483b","화학":"#4f8a2a","전기":"#8a4f9e","운동":"#2f7a8c","위치":"#3d72b4","핵":"#c2307a","합":"#1f2f5c"};
+const EN=f=>f==="합"?"역학적 에너지":f+(f==="빛"||f==="열"?"에너지":" 에너지");
+function mcq(id,opts,ans,okMsg,noMsg){const p=st.q[id];
+  return `<div class="chips">${opts.map((t,j)=>`<button type="button" class="chip ${p===j?(j===ans?'right':'wrong'):''}" data-q="${id}" data-j="${j}" aria-pressed="${p===j}">${t}</button>`).join("")}</div>
+  ${p===undefined?'<p class="fb"></p>':(p===ans?`<p class="fb ok">${okMsg}</p>`:`<p class="fb no">${noMsg}</p>`)}`}
+function answerBox(key,label,model){const t=st.txt[key]||"";
+  return `<div class="answer"><label for="a-${key}"><b>${label}</b></label><textarea id="a-${key}" data-txt="${key}" placeholder="관찰한 내용을 근거로 내 문장으로 써 보자.">${esc(t)}</textarea>
+  ${model?`<div class="row"><button class="btn ghost" type="button" data-show="${key}" ${t.trim().length<10?'disabled':''}>내 생각과 비교하기</button></div>${st.shown[key]?`<p class="model"><b>이렇게 설명할 수 있다</b> ${model}</p>`:''}`:''}</div>`}
+
+/* ---- 캔버스 공통 ---- */
+const CW=900,CH=440;
+function ctxOf(id){const cv=$(id);if(!cv)return null;const dpr=window.devicePixelRatio||1;if(cv.width!==CW*dpr){cv.width=CW*dpr;cv.height=CH*dpr}
+  const c=cv.getContext("2d");c.setTransform(dpr,0,0,dpr,0,0);c.clearRect(0,0,CW,CH);return c}
+function rr(c,x,y,w,h,r){c.beginPath();c.moveTo(x+r,y);c.arcTo(x+w,y,x+w,y+h,r);c.arcTo(x+w,y+h,x,y+h,r);c.arcTo(x,y+h,x,y,r);c.arcTo(x,y,x+w,y,r);c.closePath()}
+function pill(c,x,y,t,fill,fs=13,col="#fff"){c.font=`bold ${fs}px "IBM Plex Sans KR",sans-serif`;const w=c.measureText(t).width+18,h=fs+11;c.fillStyle=fill;rr(c,x-w/2,y-h/2,w,h,h/2);c.fill();c.fillStyle=col;c.textAlign="center";c.textBaseline="middle";c.fillText(t,x,y+1);c.textAlign="left";c.textBaseline="alphabetic";return w}
+function txt(c,t,x,y,fs=13,col,al="left",bold=false){c.font=`${bold?"bold ":""}${fs}px "IBM Plex Sans KR",sans-serif`;c.fillStyle=col||(isDark()?"#e9ecf5":"#18213a");c.textAlign=al;c.fillText(t,x,y);c.textAlign="left"}
+function arrowHead(c,x,y,ang,s,col){c.save();c.translate(x,y);c.rotate(ang);c.fillStyle=col;c.beginPath();c.moveTo(0,0);c.lineTo(-s,-s*.55);c.lineTo(-s,s*.55);c.closePath();c.fill();c.restore()}
+function arrow(c,x1,y1,x2,y2,col,w=3){c.strokeStyle=col;c.lineWidth=w;c.beginPath();c.moveTo(x1,y1);c.lineTo(x2,y2);c.stroke();arrowHead(c,x2,y2,Math.atan2(y2-y1,x2-x1),8+w*1.5,col)}
+function wave(c,x1,y1,x2,y2,col,ph=0,amp=5){const L=Math.hypot(x2-x1,y2-y1),a=Math.atan2(y2-y1,x2-x1);c.save();c.translate(x1,y1);c.rotate(a);c.strokeStyle=col;c.lineWidth=2.5;c.beginPath();
+  for(let s=0;s<=L-8;s+=2){const y=Math.sin(s/6+ph)*amp;s===0?c.moveTo(s,y):c.lineTo(s,y)}c.stroke();arrowHead(c,L,0,0,10,col);c.restore()}
+function sunDraw(c,x,y,r,t,glow=1){const g=c.createRadialGradient(x,y,r*.2,x,y,r*2.2);g.addColorStop(0,`rgba(255,214,90,${.9*glow})`);g.addColorStop(1,"rgba(255,214,90,0)");c.fillStyle=g;c.beginPath();c.arc(x,y,r*2.2,0,7);c.fill();
+  c.fillStyle="#f2b632";c.beginPath();c.arc(x,y,r,0,7);c.fill();c.strokeStyle="#f2b632";c.lineWidth=3;for(let i=0;i<10;i++){const a=i*Math.PI/5+t*.3;c.beginPath();c.moveTo(x+Math.cos(a)*(r+6),y+Math.sin(a)*(r+6));c.lineTo(x+Math.cos(a)*(r+16),y+Math.sin(a)*(r+16));c.stroke()}}
+function proton(c,x,y,r=9){const g=c.createRadialGradient(x-r*.35,y-r*.35,r*.15,x,y,r);g.addColorStop(0,"#ff8a8a");g.addColorStop(1,"#c0201f");c.fillStyle=g;c.beginPath();c.arc(x,y,r,0,7);c.fill()}
+function neutron(c,x,y,r=9){const g=c.createRadialGradient(x-r*.35,y-r*.35,r*.15,x,y,r);g.addColorStop(0,"#ffffff");g.addColorStop(1,"#9aa0aa");c.fillStyle=g;c.beginPath();c.arc(x,y,r,0,7);c.fill()}
+function helium(c,x,y,r=8){neutron(c,x-r*.7,y-r*.2,r);proton(c,x+r*.1,y-r*.8,r);neutron(c,x+r*.8,y+r*.1,r);proton(c,x,y+r*.7,r)}
+function bgFill(c,top,bot){const g=c.createLinearGradient(0,0,0,CH);g.addColorStop(0,top);g.addColorStop(1,bot);c.fillStyle=g;c.fillRect(0,0,CW,CH)}
+
+/* =========================================================
+   활동 1. 여러 형태의 에너지
+   ========================================================= */
+const ease=p=>1-(1-p)*(1-p);
+const SC=[
+ {id:"ball",t:"공 떨어뜨리기",s:"역학적 에너지",dur:2.6,loop:true,
+  h:p=>p<1?1-p*p:1-(2-p)*(2-p),
+  bars(p){const h=this.h(p);return [["공의 위치 에너지","위치",h],["공의 운동 에너지","운동",1-h],["역학적 에너지 (위치 + 운동)","합",1]]},
+  moves:["떨어질 때: 위치 에너지 → 운동 에너지","튀어 오를 때: 운동 에너지 → 위치 에너지","역학적 에너지 = 운동 에너지 + 위치 에너지"],
+  q:["공이 떨어지는 동안 에너지 변화로 옳은 것은?",["위치 에너지↓, 운동 에너지↑","위치 에너지↑, 운동 에너지↓","위치 에너지와 운동 에너지 모두↑"],0,"맞아요. 높이가 낮아지며 줄어든 위치 에너지만큼 빨라져 운동 에너지가 늘어난다.","공의 높이(위치 에너지)와 빠르기(운동 에너지) 막대를 다시 보자."]},
+ {id:"hot",t:"핫팩 쥐기",s:"열에너지의 이동",dur:7,
+  bars(p){const s=ease(p);return [["핫팩의 열에너지","열",.95-.45*s],["손의 열에너지","열",.35+.4*s]]},
+  temps(p){const s=ease(p);return [55-17*s,30+7*s]},
+  moves:["핫팩 → 손: 열에너지 이동","온도가 높은 물체 → 낮은 물체로 이동"],
+  q:["핫팩을 쥐고 있을 때 열에너지는 어떻게 이동할까?",["핫팩 → 손 (온도가 높은 곳 → 낮은 곳)","손 → 핫팩 (온도가 낮은 곳 → 높은 곳)","이동하지 않는다"],0,"맞아요. 열에너지는 온도가 높은 물체에서 낮은 물체로 이동한다.","온도계 두 개의 숫자가 어떻게 바뀌는지 보자."]},
+ {id:"bulb",t:"전지로 전구 켜기",s:"화학 → 전기 → 빛·열",dur:7,
+  bars(p){return [["전지의 화학 에너지","화학",1-.75*p],["전선을 흐르는 전기 에너지","전기",p<1?.4:0],["전구가 내보낸 빛에너지 (누적)","빛",.3*p],["전구가 내보낸 열에너지 (누적)","열",.45*p]]},
+  moves:["전지: 화학 에너지 → 전기 에너지","전구: 전기 에너지 → 빛에너지 + 열에너지"],
+  q:["전구가 켜져 있는 동안 줄어드는 에너지는?",["전지의 화학 에너지","전구가 내보낸 빛에너지","전구가 내보낸 열에너지"],0,"맞아요. 전지에 저장된 화학 에너지가 줄면서 전기 에너지를 거쳐 빛과 열로 바뀐다.","시간이 지날수록 짧아지는 막대를 찾아보자."]},
+ {id:"car",t:"자동차 달리기",s:"화학 → 운동·열",dur:7,
+  bars(p){const k=.3*Math.min(1,p*3);return [["연료의 화학 에너지","화학",1-.7*p],["자동차의 운동 에너지","운동",k],["주변으로 방출된 열에너지 (누적)","열",.7*p-k]]},
+  moves:["연료(화석 연료): 화학 에너지 → 운동 에너지","일부는 열에너지로 주변에 방출"],
+  q:["자동차가 출발해 빨라질 때 늘어나는 에너지는?",["연료의 화학 에너지","자동차의 운동 에너지","늘어나는 에너지는 없다"],1,"맞아요. 연료의 화학 에너지가 줄어든 만큼 운동 에너지와 열에너지가 늘어난다.","연료 게이지와 자동차의 빠르기를 비교해 보자."]},
+ {id:"solar",t:"태양 전지 선풍기",s:"빛 → 전기 → 운동",dur:7,
+  bars(p){const k=.3*Math.min(1,p*4);return [["태양 전지가 받은 빛에너지 (누적)","빛",.9*p],["만들어진 전기 에너지 (누적)","전기",.25*p],["선풍기 날개의 운동 에너지","운동",k]]},
+  moves:["태양 전지: 빛에너지 → 전기 에너지","선풍기: 전기 에너지 → 운동 에너지"],
+  q:["태양 전지 선풍기에서 일어나는 에너지 전환 순서로 옳은 것은?",["빛 → 전기 → 운동","전기 → 빛 → 운동","운동 → 전기 → 빛"],0,"맞아요. 햇빛이 전기 에너지로, 다시 날개의 운동 에너지로 바뀐다.","전선을 따라 움직이는 점이 어디에서 출발하는지 보자."]}
+];
+const E1={p:0,play:!RM,t:0,prev:null,parts:[]};
+function e1Reset(){E1.p=0;E1.parts=[];E1.play=true;const b=$("e1-play");if(b)b.textContent="일시정지"}
+function e1Step(dt){const S=SC[st.sc];E1.t+=dt;if(!E1.play)return;
+  const pmax=S.loop?2:1;E1.p+=dt/S.dur*(S.loop?2:1);
+  if(S.loop){if(E1.p>=2)E1.p-=2}else if(E1.p>=1){E1.p=1;E1.play=false;const b=$("e1-play");if(b)b.textContent="재생";if(!st.seen[S.id]){st.seen[S.id]=1;save();markSeen()}}
+  if(S.loop&&E1.p>1.95&&!st.seen[S.id]){st.seen[S.id]=1;save();markSeen()}}
+function markSeen(){document.querySelectorAll(".scn button").forEach((b,i)=>b.classList.toggle("seen",!!st.seen[SC[i].id]))}
+function e1Draw(){const c=ctxOf("e1Canvas");if(!c)return;const S=SC[st.sc],p=E1.p,t=E1.t,dk=isDark();
+  const ink=dk?"#e9ecf5":"#18213a";
+  if(S.id==="ball"){bgFill(c,dk?"#16203d":"#e8f2fb",dk?"#1d2a4d":"#f7fbff");
+    c.fillStyle=dk?"#5c5240":"#c9b48a";c.fillRect(0,392,CW,48);
+    // 눈금자
+    c.strokeStyle=dk?"#8a96b3":"#5b6478";c.lineWidth=2;c.beginPath();c.moveTo(250,80);c.lineTo(250,380);c.stroke();
+    for(let i=0;i<=6;i++){const y=380-i*50;c.beginPath();c.moveTo(242,y);c.lineTo(258,y);c.stroke();txt(c,`${i} m`,230,y+5,12,null,"right")}
+    const h=S.h(p),y=380-h*300+0,x=420;
+    for(let k=1;k<=4;k++){const pp=p-k*.06;const hh=S.h(((pp%2)+2)%2);c.fillStyle=`rgba(242,166,90,${.12*(5-k)/4})`;c.beginPath();c.arc(x,380-hh*300-14,14,0,7);c.fill()}
+    c.fillStyle="#f2a65a";c.beginPath();c.arc(x,y-14,16,0,7);c.fill();c.strokeStyle="#b46a1f";c.lineWidth=2;c.stroke();
+    const v=Math.sqrt(Math.max(0,1-h)),dn=p<1;if(v>.08)arrow(c,x+32,y-14,x+32,y-14+(dn?1:-1)*v*90,EC["운동"],4);
+    c.setLineDash([5,5]);c.strokeStyle=EC["위치"];c.lineWidth=2;c.beginPath();c.moveTo(270,y-14);c.lineTo(x-20,y-14);c.stroke();c.setLineDash([]);
+    pill(c,330,y-30,`높이 ${(h*6).toFixed(1)} m`,EC["위치"],12);
+    if(v>.08)pill(c,x+90,y-14+(dn?1:-1)*v*45,"빠르기",EC["운동"],12);
+    // 오른쪽 에너지 원그래프
+    const cx=700,cy=200,R=95;c.fillStyle=dk?"#24345e":"#fff";c.beginPath();c.arc(cx,cy,R+8,0,7);c.fill();
+    c.fillStyle=EC["위치"];c.beginPath();c.moveTo(cx,cy);c.arc(cx,cy,R,-Math.PI/2,-Math.PI/2+h*Math.PI*2);c.fill();
+    c.fillStyle=EC["운동"];c.beginPath();c.moveTo(cx,cy);c.arc(cx,cy,R,-Math.PI/2+h*Math.PI*2,Math.PI*1.5);c.fill();
+    txt(c,"역학적 에너지 = 일정",cx,cy+R+34,15,ink,"center",true);
+    pill(c,cx-60,60,`위치 ${Math.round(h*100)}%`,EC["위치"],13);pill(c,cx+60,60,`운동 ${Math.round((1-h)*100)}%`,EC["운동"],13);
+    txt(c,dn?"떨어지는 중: 위치 → 운동":"튀어 오르는 중: 운동 → 위치",450,428,15,"#fff","center",true);
+  }
+  if(S.id==="hot"){bgFill(c,dk?"#2a1d2a":"#fdf3ee",dk?"#1d1a2a":"#fff9f5");
+    const [Tp,Th]=S.temps(p);
+    // 손바닥
+    c.fillStyle=dk?"#c79a7a":"#f1c6a2";c.strokeStyle=dk?"#a07858":"#d7a27c";c.lineWidth=2;
+    rr(c,300,210,300,150,60);c.fill();c.stroke();
+    for(let i=0;i<4;i++){rr(c,318+i*68,120,52,130,26);c.fill();c.stroke()}
+    rr(c,210,250,130,56,28);c.fill();c.stroke();
+    // 손 온도 색 덧칠
+    c.fillStyle=`rgba(217,72,59,${(Th-30)/7*.25})`;rr(c,300,210,300,150,60);c.fill();
+    // 핫팩
+    c.fillStyle="#d9483b";rr(c,360,225,190,110,14);c.fill();c.fillStyle="rgba(255,255,255,.25)";rr(c,372,237,166,86,10);c.fill();
+    txt(c,"핫팩",455,290,22,"#fff","center",true);
+    // 열 입자: 핫팩 가장자리에서 손바닥으로 퍼져 나감
+    const rate=(Tp-Th)/25;if(E1.play&&Math.random()<rate*1.2){const a=Math.random()*Math.PI*2;E1.parts.push({a,r:0,life:1})}
+    E1.parts=E1.parts.filter(q=>{q.r+=E1.play?.9:0;q.life-=E1.play?.014:0;if(q.life<=0)return false;const ex=455+Math.cos(q.a)*(100+q.r),ey=280+Math.sin(q.a)*(60+q.r*.5);
+      c.globalAlpha=q.life;wave(c,455+Math.cos(q.a)*(80+q.r),280+Math.sin(q.a)*(48+q.r*.5),ex,ey,EC["열"],t*8+q.a*9,3);c.globalAlpha=1;return true});
+    // 온도계
+    const therm=(x,T,label)=>{c.fillStyle=dk?"#1a2140":"#fff";rr(c,x-16,90,32,250,16);c.fill();c.strokeStyle=dk?"#5b6782":"#b8c4d6";c.stroke();
+      const f=clamp((T-20)/40,0,1);c.fillStyle="#d9483b";rr(c,x-7,320-f*215,14,f*215+8,7);c.fill();c.beginPath();c.arc(x,330,14,0,7);c.fill();
+      txt(c,`${T.toFixed(1)}℃`,x,380,18,ink,"center",true);txt(c,label,x,402,14,ink,"center")};
+    therm(110,Tp,"핫팩");therm(790,Th,"손");
+    if(Tp-Th>1.2)pill(c,455,405,"열에너지 이동: 핫팩 → 손 (높은 온도 → 낮은 온도)",EC["열"],14);
+    else pill(c,455,405,"두 물체의 온도가 같아지면 이동이 멈춘다","#5b6478",14);
+  }
+  if(S.id==="bulb"){bgFill(c,dk?"#141a33":"#f4f6fb",dk?"#1a2140":"#ffffff");
+    const chem=1-.75*p,on=p<1;
+    // 회로 경로
+    const P=[[250,300],[250,130],[560,130],[560,300]];c.strokeStyle=dk?"#9aa3bd":"#5b6478";c.lineWidth=4;c.beginPath();c.moveTo(...P[0]);P.slice(1).forEach(q=>c.lineTo(...q));c.lineTo(250,300);c.stroke();
+    // 전지
+    c.fillStyle="#3a3f4b";rr(c,190,280,120,64,8);c.fill();c.fillStyle="#c9962b";rr(c,310,298,12,28,3);c.fill();
+    c.fillStyle=EC["화학"];rr(c,198,288,104*chem,48,5);c.fill();txt(c,"전지",250,318,15,"#fff","center",true);
+    pill(c,250,370,"화학 에너지",EC["화학"],13);
+    // 전자 흐름
+    if(on){const L=170+310+170+310;for(let i=0;i<14;i++){let s=((t*90+i*L/14)%L);let x,y;if(s<170){x=250;y=300-s}else if(s<480){x=250+(s-170);y=130}else if(s<650){x=560;y=130+(s-480)}else{x=560-(s-650);y=300}
+      c.fillStyle=EC["전기"];c.beginPath();c.arc(x,y,5,0,7);c.fill()}pill(c,405,105,"전기 에너지",EC["전기"],13)}
+    // 전구
+    const bx=560,by=215;if(on){const g=c.createRadialGradient(bx,by,10,bx,by,150);g.addColorStop(0,"rgba(255,220,100,.85)");g.addColorStop(1,"rgba(255,220,100,0)");c.fillStyle=g;c.beginPath();c.arc(bx,by,150,0,7);c.fill()}
+    c.fillStyle=on?"#ffe27a":(dk?"#5b6782":"#dfe3ea");c.strokeStyle="#9aa3bd";c.lineWidth=2;c.beginPath();c.arc(bx,by,42,0,7);c.fill();c.stroke();c.fillStyle="#8a93a8";rr(c,bx-20,by+38,40,26,4);c.fill();
+    if(on){for(let i=0;i<7;i++){const a=-Math.PI*.95+i*Math.PI*.32;arrow(c,bx+Math.cos(a)*55,by+Math.sin(a)*55,bx+Math.cos(a)*(90+6*Math.sin(t*4+i)),by+Math.sin(a)*(90+6*Math.sin(t*4+i)),EC["빛"],3)}
+      for(let i=0;i<3;i++)wave(c,640+i*14,250,700+i*30,200-i*10,EC["열"],t*6+i,4);
+      pill(c,700,90,"빛에너지",EC["빛"],13);pill(c,760,250,"열에너지",EC["열"],13)}
+    else txt(c,"전지의 화학 에너지가 대부분 바뀌었다",450,420,15,ink,"center",true);
+  }
+  if(S.id==="car"){bgFill(c,dk?"#16203d":"#dcecfa",dk?"#1d2a4d":"#f4f9ff");
+    c.fillStyle=dk?"#3d4a3a":"#a6c98a";c.fillRect(0,300,CW,140);c.fillStyle=dk?"#2c3140":"#59616f";c.fillRect(0,320,CW,80);
+    c.strokeStyle="#f2d16b";c.lineWidth=4;c.setLineDash([30,24]);c.lineDashOffset=-(t*E1.p*300)%54;c.beginPath();c.moveTo(0,360);c.lineTo(CW,360);c.stroke();c.setLineDash([]);
+    const k=Math.min(1,p*3),x=180+Math.min(1,p*1.6)*280,y=330;
+    // 배기 열
+    if(p<1&&E1.play&&Math.random()<.5)E1.parts.push({x:x-70,y:y+18,life:1});
+    E1.parts=E1.parts.filter(q=>{q.x-=1.5+3*k;q.y-=.3;q.life-=.015;if(q.life<=0)return false;c.globalAlpha=q.life;wave(c,q.x,q.y,q.x-30,q.y-6,EC["열"],t*8+q.x,3);c.globalAlpha=1;return true});
+    // 차
+    c.fillStyle="#2f7a8c";rr(c,x-70,y-30,150,44,12);c.fill();rr(c,x-40,y-62,90,40,12);c.fill();c.fillStyle="#cfe9f0";rr(c,x-30,y-56,32,26,5);c.fill();rr(c,x+8,y-56,34,26,5);c.fill();
+    [x-40,x+50].forEach(wx=>{c.fillStyle="#222";c.beginPath();c.arc(wx,y+16,17,0,7);c.fill();c.strokeStyle="#aaa";c.lineWidth=2;const a=t*k*12;c.beginPath();c.moveTo(wx+Math.cos(a)*10,y+16+Math.sin(a)*10);c.lineTo(wx-Math.cos(a)*10,y+16-Math.sin(a)*10);c.stroke()});
+    if(k>.2)for(let i=0;i<3;i++){c.strokeStyle=`rgba(47,122,140,${.5*k})`;c.lineWidth=3;c.beginPath();c.moveTo(x-90-i*14,y-30+i*14);c.lineTo(x-150-i*14-k*40,y-30+i*14);c.stroke()}
+    // 연료 게이지
+    const f=1-.7*p;c.fillStyle=dk?"#1a2140":"#fff";rr(c,40,40,230,70,12);c.fill();txt(c,"연료 (화학 에너지)",56,66,14,ink,"left",true);
+    c.fillStyle=dk?"#2e3760":"#dde1ea";rr(c,56,78,198,18,9);c.fill();c.fillStyle=EC["화학"];rr(c,56,78,198*f,18,9);c.fill();
+    c.fillStyle=dk?"#1a2140":"#fff";rr(c,630,40,230,70,12);c.fill();txt(c,"빠르기 (운동 에너지)",646,66,14,ink,"left",true);
+    c.fillStyle=dk?"#2e3760":"#dde1ea";rr(c,646,78,198,18,9);c.fill();c.fillStyle=EC["운동"];rr(c,646,78,198*k,18,9);c.fill();
+    pill(c,x-150,y-70,"열에너지 방출",EC["열"],12);
+  }
+  if(S.id==="solar"){bgFill(c,dk?"#16203d":"#d7ebfb",dk?"#1d2a4d":"#f5faff");c.fillStyle=dk?"#3d4a3a":"#b9d79c";c.fillRect(0,360,CW,80);
+    sunDraw(c,120,100,40,t);
+    const k=Math.min(1,p*4);
+    // 빛
+    for(let i=0;i<4;i++){const s=((t*.8+i/4)%1);const x=lerp(160,350,s),y=lerp(130,240,s);c.fillStyle=EC["빛"];c.beginPath();c.arc(x,y,6,0,7);c.fill()}
+    arrow(c,165,135,330,232,"rgba(232,163,23,.45)",3);pill(c,230,160,"빛에너지",EC["빛"],13);
+    // 패널
+    c.save();c.translate(380,280);c.rotate(-.35);c.fillStyle="#1f3a6d";rr(c,-80,-40,160,80,6);c.fill();c.strokeStyle="#7ea3d9";c.lineWidth=1.5;for(let i=1;i<4;i++){c.beginPath();c.moveTo(-80+i*40,-40);c.lineTo(-80+i*40,40);c.stroke()}c.beginPath();c.moveTo(-80,0);c.lineTo(80,0);c.stroke();c.restore();
+    c.fillStyle="#8a93a8";c.fillRect(372,310,14,50);txt(c,"태양 전지",380,395,15,ink,"center",true);
+    // 전선
+    c.strokeStyle=dk?"#9aa3bd":"#5b6478";c.lineWidth=4;c.beginPath();c.moveTo(440,300);c.lineTo(660,300);c.stroke();
+    if(p<1)for(let i=0;i<6;i++){const x=440+((t*80+i*37)%220);c.fillStyle=EC["전기"];c.beginPath();c.arc(x,300,5,0,7);c.fill()}
+    pill(c,550,275,"전기 에너지",EC["전기"],13);
+    // 선풍기
+    const fx=720,fy=220;c.fillStyle="#8a93a8";c.fillRect(fx-6,fy,12,140);rr(c,fx-50,352,100,14,6);c.fill();
+    c.strokeStyle=dk?"#9aa3bd":"#b8c4d6";c.lineWidth=2;c.beginPath();c.arc(fx,fy,80,0,7);c.stroke();
+    E1.ang=(E1.ang||0)+(E1.play?k*.35:0);for(let i=0;i<3;i++){const a=E1.ang+i*Math.PI*2/3;c.fillStyle=EC["운동"];c.save();c.translate(fx,fy);c.rotate(a);c.beginPath();c.ellipse(0,-38,18,38,0,0,7);c.fill();c.restore()}
+    c.fillStyle="#1f2f5c";c.beginPath();c.arc(fx,fy,12,0,7);c.fill();pill(c,fx,100,"운동 에너지",EC["운동"],13);
+  }
+}
+function e1Bars(){const S=SC[st.sc];const now=S.bars(E1.p);const dp=S.loop?.03:.02;const before=S.bars(Math.max(0,E1.p-dp));
+  now.forEach((b,i)=>{const bar=$("eb-"+i),d=$("ed-"+i);if(!bar)return;bar.style.width=Math.round(clamp(b[2],0,1)*100)+"%";
+    const diff=b[2]-before[i][2];const k=Math.abs(diff)<.002?"eq":diff>0?"up":"dn";if(E1.p===0)return;d.className="dir "+k;d.textContent=k==="up"?"↑ 증가":k==="dn"?"↓ 감소":"– 유지"})}
+function e1View(){const S=SC[st.sc];const bars=S.bars(0);const done=SC.filter(s=>{const i=SC.indexOf(s);return st.q["e"+i]===s.q[2]}).length;
+  return `<h2>활동 1. 여러 형태의 에너지</h2>
+  <p class="lead">에너지는 <b>일을 할 수 있는 능력</b>이며 여러 형태로 존재한다. 장면을 재생하면서 어떤 에너지가 <b>늘어나고(↑)</b>, <b>줄어들고(↓)</b>, <b>어디로 이동(→)</b>하는지 관찰하자.</p>
+  <div class="scn" role="group" aria-label="장면 고르기">${SC.map((s,i)=>`<button type="button" data-sc="${i}" aria-pressed="${st.sc===i}" class="${st.seen[s.id]?'seen':''}"><b>${s.t}</b><small>${s.s}</small></button>`).join("")}</div>
+  <div class="simbox"><canvas id="e1Canvas" width="900" height="440" role="img" aria-label="${S.t} 장면 애니메이션"></canvas></div>
+  <div class="ctrl"><div class="row"><button type="button" class="btn" id="e1-play">${E1.play?'일시정지':'재생'}</button><button type="button" class="chip" id="e1-reset">처음부터</button><span class="src">막대의 길이는 에너지의 많고 적음을 비교하기 위한 모형 값이다.</span></div>
+   <div class="ebars">${bars.map((b,i)=>`<div class="ebar"><span class="nm"><i class="dot" style="background:${EC[b[1]]}"></i>${b[0]}</span><span class="tr"><i id="eb-${i}" style="background:${EC[b[1]]}"></i></span><span class="dir eq" id="ed-${i}">–</span></div>`).join("")}</div>
+   <ul class="moves">${S.moves.map(m=>`<li>${m}</li>`).join("")}</ul></div>
+  <div class="step"><h3><span class="n">①</span>${S.q[0]}</h3>${mcq("e"+st.sc,S.q[1],S.q[2],S.q[3],S.q[4])}<p class="src" style="margin:0">다섯 장면 중 ${done}개 장면의 질문을 해결했다.</p></div>
+  <div class="step"><h3><span class="n">②</span>Q. 기억나는 에너지 사례는?</h3>${answerBox("e1","오늘 본 장면이나 생활 속 사례 하나를 골라 \"○○ 에너지가 △△ 에너지로 바뀌었다(이동했다)\"로 써 보자.",null)}</div>`}
+
+/* =========================================================
+   활동 2. 수소 핵융합 반응
+   ========================================================= */
+const MH=1.0073,MHE=4.0015,DM=4*MH-MHE; // u (원자핵 질량)
+const FU={ps:[],he:[],ph:[],grp:[],sp:[],n:0,timer:0,run:!RM,ang:0,bump:0};
+const CX=285,CY=225,CR=185;
+function fuInit(){if(FU.ps.length)return;for(let i=0;i<26;i++)FU.ps.push(newP())}
+function newP(edge){const a=Math.random()*7,r=edge?CR-14:Math.random()*(CR-20);const sp=st.mode==="core"?110:35,b=Math.random()*7;return {x:CX+Math.cos(a)*r,y:CY+Math.sin(a)*r,vx:Math.cos(b)*sp,vy:Math.sin(b)*sp,f:0}}
+function fuStep(dt){if(!FU.run)return;const core=st.mode==="core",sp=core?110:35;
+  FU.ps.forEach(p=>{if(p.f)return;const s=Math.hypot(p.vx,p.vy)||1;p.vx=p.vx/s*sp;p.vy=p.vy/s*sp;p.x+=p.vx*dt;p.y+=p.vy*dt;const d=Math.hypot(p.x-CX,p.y-CY);if(d>CR-12){const nx=(p.x-CX)/d,ny=(p.y-CY)/d,dot=p.vx*nx+p.vy*ny;p.vx-=2*dot*nx;p.vy-=2*dot*ny;p.x=CX+nx*(CR-13);p.y=CY+ny*(CR-13)}});
+  if(!core){for(let i=0;i<FU.ps.length;i++)for(let j=i+1;j<FU.ps.length;j++){const a=FU.ps[i],b=FU.ps[j],dx=b.x-a.x,dy=b.y-a.y,d=Math.hypot(dx,dy);if(d<26&&d>0){const nx=dx/d,ny=dy/d;a.vx-=nx*40;a.vy-=ny*40;b.vx+=nx*40;b.vy+=ny*40;if(FU.bump<=0){FU.sp.push({x:(a.x+b.x)/2,y:(a.y+b.y)/2,t:0});FU.bump=1.2}}}FU.bump-=dt}
+  FU.timer+=dt;
+  if(core&&FU.timer>1.5){const free=FU.ps.filter(p=>!p.f);if(free.length>=8){FU.timer=0;const a=free[Math.floor(Math.random()*free.length)];
+    const near=free.filter(p=>p!==a).sort((p,q)=>Math.hypot(p.x-a.x,p.y-a.y)-Math.hypot(q.x-a.x,q.y-a.y)).slice(0,3);const m=[a,...near];
+    const cx=m.reduce((s,p)=>s+p.x,0)/4,cy=m.reduce((s,p)=>s+p.y,0)/4;m.forEach(p=>{p.f=1;p.sx=p.x;p.sy=p.y});FU.grp.push({m,cx,cy,t:0})}}
+  FU.grp=FU.grp.filter(g=>{g.t+=dt;const k=Math.min(1,g.t/1.0);const e=k*k*(3-2*k);g.m.forEach((p,i)=>{const ox=Math.cos(i*Math.PI/2)*10*(1-e),oy=Math.sin(i*Math.PI/2)*10*(1-e);p.x=lerp(p.sx,g.cx,e)+ox;p.y=lerp(p.sy,g.cy,e)+oy});
+    if(g.t>=1.0){FU.ps=FU.ps.filter(p=>!g.m.includes(p));for(let i=0;i<4;i++)FU.ps.push(newP(true));const b=Math.random()*7;FU.he.push({x:g.cx,y:g.cy,vx:Math.cos(b)*25,vy:Math.sin(b)*25,age:0});if(FU.he.length>7)FU.he.shift();
+      for(let i=0;i<5;i++){const a=i*Math.PI*2/5+Math.random();FU.ph.push({x:g.cx,y:g.cy,a,d:0})}FU.sp.push({x:g.cx,y:g.cy,t:0,flash:1});FU.n++;fuUi();return false}return true});
+  FU.he.forEach(h=>{h.age+=dt;h.x+=h.vx*dt;h.y+=h.vy*dt;const d=Math.hypot(h.x-CX,h.y-CY);if(d>CR-16){const nx=(h.x-CX)/d,ny=(h.y-CY)/d,dot=h.vx*nx+h.vy*ny;h.vx-=2*dot*nx;h.vy-=2*dot*ny}});
+  FU.ph=FU.ph.filter(q=>{q.d+=dt*170;return q.d<CR+120});FU.sp=FU.sp.filter(s=>{s.t+=dt;return s.t<1})}
+function fuDraw(){const c=ctxOf("fuCanvas");if(!c)return;const dk=isDark(),core=st.mode==="core",ink=dk?"#e9ecf5":"#18213a";
+  c.fillStyle=dk?"#141a33":"#fbf7f0";c.fillRect(0,0,CW,CH);
+  const g=c.createRadialGradient(CX,CY,20,CX,CY,CR);if(core){g.addColorStop(0,"#fff3b0");g.addColorStop(.6,"#ffc04d");g.addColorStop(1,"#f08a24")}else{g.addColorStop(0,"#ffd9a8");g.addColorStop(1,"#f2a65a")}
+  c.fillStyle=g;c.beginPath();c.arc(CX,CY,CR,0,7);c.fill();c.strokeStyle=core?"#e06a10":"#d58a3a";c.lineWidth=3;c.stroke();
+  // 에너지 방출(광자)
+  FU.ph.forEach(q=>{const x1=q.x+Math.cos(q.a)*q.d,y1=q.y+Math.sin(q.a)*q.d;c.globalAlpha=clamp(1-q.d/(CR+120),0,1);wave(c,x1,y1,x1+Math.cos(q.a)*36,y1+Math.sin(q.a)*36,"#e2553b",q.d/8,4);c.globalAlpha=1});
+  FU.he.forEach(h=>helium(c,h.x,h.y,7));
+  FU.ps.forEach(p=>proton(c,p.x,p.y,9));
+  FU.sp.forEach(s=>{if(s.flash){c.fillStyle=`rgba(255,255,255,${1-s.t})`;c.beginPath();c.arc(s.x,s.y,14+s.t*50,0,7);c.fill();if(s.t<.8)pill(c,s.x,s.y-34,"에너지 방출!","#d9483b",12)}else{pill(c,s.x,s.y-22,"반발 → 융합 X","#5b6478",11)}});
+  pill(c,CX,CY-CR-0+16,core?"태양 중심부 · 약 1500만 K":"태양 표면 · 약 6000 K",core?"#b4472f":"#8a5a2b",13);
+  // 범례
+  proton(c,40,420,7);txt(c,"수소 원자핵 (양성자)",54,425,13,ink);helium(c,230,418,6);txt(c,"헬륨 원자핵",248,425,13,ink);wave(c,350,420,390,420,"#e2553b",0,3);txt(c,"방출되는 에너지",398,425,13,ink);
+  // 저울
+  scaleDraw(c,dk,ink)}
+function scaleDraw(c,dk,ink){const px=715,py=150,L=105;const mL=st.L?4*MH:0,mR=st.R?MHE:0;
+  let target=0;if(st.L&&st.R)target=.09;else if(st.L)target=.22;else if(st.R)target=-.22;FU.ang+=(target-FU.ang)*.08;const a=FU.ang;
+  c.fillStyle=dk?"#5b6782":"#8a93a8";c.fillRect(px-6,py,12,230);rr(c,px-70,375,140,18,8);c.fill();
+  const lx=px-Math.cos(a)*L,ly=py+Math.sin(a)*L,rx=px+Math.cos(a)*L,ry=py-Math.sin(a)*L;
+  c.strokeStyle=dk?"#c9cfdc":"#3a3f4b";c.lineWidth=7;c.beginPath();c.moveTo(lx,ly);c.lineTo(rx,ry);c.stroke();c.fillStyle="#c9962b";c.beginPath();c.arc(px,py,10,0,7);c.fill();
+  // 바늘
+  c.strokeStyle="#c9962b";c.lineWidth=3;c.beginPath();c.moveTo(px,py);c.lineTo(px+Math.sin(a)*60,py-Math.cos(a)*60);c.stroke();
+  const pan=(x,y,lab,m,has,draw)=>{c.strokeStyle=dk?"#9aa3bd":"#5b6478";c.lineWidth=1.5;c.beginPath();c.moveTo(x,y);c.lineTo(x-45,y+80);c.moveTo(x,y);c.lineTo(x+45,y+80);c.stroke();
+    c.fillStyle=dk?"#9aa3bd":"#5b6478";c.beginPath();c.ellipse(x,y+82,55,10,0,0,7);c.fill();if(has)draw(x,y+60);
+    c.fillStyle=dk?"#0e1326":"#18213a";rr(c,x-52,y+100,104,30,6);c.fill();txt(c,has?`${m.toFixed(4)} u`:"0.0000 u",x,y+121,15,"#7fe0a0","center",true);txt(c,lab,x,y+150,13,ink,"center",true)};
+  pan(lx,ly,"반응물",mL,st.L,(x,y)=>{proton(c,x-11,y-2,9);proton(c,x+11,y-2,9);proton(c,x,y-18,9);proton(c,x,y+10,9)});
+  pan(rx,ry,"생성물",mR,st.R,(x,y)=>helium(c,x,y-4,9));
+  if(st.L&&st.R){txt(c,"질량 차이를 확대해 보여 줌",px,40,12,dk?"#a3abc2":"#5b6478","center");pill(c,px,68,`줄어든 질량 ${DM.toFixed(4)} u (약 0.7%)`,"#b4472f",13)}
+  else txt(c,"질량 비교 저울",px,50,15,ink,"center",true)}
+function fuUi(){const set=(id,v)=>{const e=$(id);if(e)e.textContent=v};set("f-n",FU.n+"회");set("f-m",(FU.n*DM).toFixed(4)+" u");
+  const E=FU.n*4.1;set("f-e",FU.n?`${E.toFixed(1)} × 10⁻¹² J`:"0 J");const s=$("f-sun");if(s)s.style.width=Math.min(100,FU.n*4)+"%";
+  const tab=document.querySelector('.tab[data-t="fu"]');if(tab)tab.classList.toggle("done",isDone("fu"))}
+function fuView(){const P=["반응물 쪽으로 기운다","수평을 이룬다","생성물 쪽으로 기운다"];const pr=st.pred;
+  return `<h2>활동 2. 수소 핵융합 반응 관찰하기</h2>
+  <p class="lead">태양 에너지는 <b>수소 핵융합 반응</b>으로 생성된다. 중심부에서 <b>수소 원자핵 4개</b>가 융합해 <b>헬륨 원자핵 1개</b>가 되는 모습을 관찰하고, 반응물과 생성물의 질량을 저울로 비교하자.</p>
+  <div class="simbox"><canvas id="fuCanvas" width="900" height="440" role="img" aria-label="태양 중심부의 수소 핵융합 반응과 질량 비교 저울"></canvas></div>
+  <div class="ctrl"><div class="row"><b>관찰 장소</b><button type="button" class="chip" data-mode="core" aria-pressed="${st.mode==='core'}">태양 중심부 (약 1500만 K)</button><button type="button" class="chip" data-mode="surf" aria-pressed="${st.mode==='surf'}">태양 표면 (약 6000 K)</button><button type="button" class="chip" id="fu-run">${FU.run?'일시정지':'재생'}</button></div>
+  <p class="src" style="margin:0">표면에서는 원자핵이 느려 서로 밀어내기만 한다. 핵융합은 온도가 매우 높은 중심부에서만 일어난다.</p></div>
+  <div class="cards"><div class="rcard"><small>핵융합 반응 횟수</small><b id="f-n">${FU.n}회</b></div><div class="rcard"><small>줄어든 질량 (누적)</small><b id="f-m" class="tnum">${(FU.n*DM).toFixed(4)} u</b></div><div class="rcard"><small>생성된 태양 에너지 (누적)</small><b id="f-e" class="tnum">0 J</b><div class="mbar" style="height:8px;background:var(--line);border-radius:4px;overflow:hidden"><i id="f-sun" style="display:block;height:100%;width:0;background:#e2553b;transition:width .3s"></i></div></div><div class="rcard"><small>실제 태양에서는 1초마다</small><b style="font-size:1.05rem">약 9×10³⁷번 핵융합</b><small>질량 약 43억 kg 감소 → 약 3.8×10²⁶ J 방출</small></div></div>
+  <div class="step"><h3><span class="n">①</span>예상하기: 반응물(수소 원자핵 4개)과 생성물(헬륨 원자핵 1개)을 저울에 올리면?</h3>
+   <div class="chips">${P.map((t,j)=>`<button type="button" class="chip ${st.L&&st.R&&pr===j?(j===0?'right':'wrong'):''}" data-pred="${j}" aria-pressed="${pr===j}" ${st.L&&st.R?'disabled':''}>${t}</button>`).join("")}</div>
+   <div class="row"><button type="button" class="btn" id="put-L" ${pr===null||st.L?'disabled':''}>왼쪽 접시: 수소 원자핵 4개 올리기</button><button type="button" class="btn" id="put-R" ${pr===null||st.R?'disabled':''}>오른쪽 접시: 헬륨 원자핵 1개 올리기</button><button type="button" class="chip" id="put-0">저울 비우기</button></div>
+   ${pr===null?'<p class="fb">먼저 예상을 고르면 저울을 쓸 수 있다.</p>':''}
+   ${st.L&&st.R?`<p class="fb ${pr===0?'ok':'no'}">${pr===0?'예상이 맞았다!':'예상과 달랐다.'} 반응물 ${(4*MH).toFixed(4)} u &gt; 생성물 ${MHE.toFixed(4)} u. 반응 후 질량이 <b>${DM.toFixed(4)} u (약 0.7%)</b> 줄었다.</p>
+   <p class="big"><b>줄어든 질량은 어디로 갔을까?</b> 핵융합 반응이 일어날 때마다 줄어든 질량만큼 에너지가 생성된다. 질량과 에너지는 서로 전환될 수 있다 (아인슈타인). 반응 1번에 약 4.1×10⁻¹² J의 에너지가 생긴다.</p>`:''}</div>
+  <div class="step"><h3><span class="n">②</span>Q. 핵융합 반응에서 질량이 줄어든 이유는?</h3>${answerBox("fu","저울의 결과와 생성된 에너지를 근거로 설명해 보자.","수소 원자핵 4개가 헬륨 원자핵 1개로 융합할 때 생성물(헬륨 원자핵)의 질량이 반응물(수소 원자핵 4개)의 질량 합보다 작다. 줄어든 질량은 에너지로 전환되어 태양 에너지로 방출되기 때문이다.")}</div>`}
+
+/* =========================================================
+   활동 3. 태양 에너지의 전환
+   ========================================================= */
+const SUN=[835,62];
+const NODES={plant:[520,268,"화학 에너지 (광합성)","화학"],fossil:[590,418,"화학 에너지 (화석 연료)","화학"],car:[745,330,"운동 에너지 (자동차)","운동"],
+ panel:[790,214,"전기 에너지 (태양 전지)","전기"],land:[420,300,"열에너지 (지표 가열)","열"],wind:[610,150,"운동 에너지 (바람)","운동"],
+ sea:[150,330,"열에너지 (바닷물 가열)","열"],vapor:[95,215,"위치 에너지 (수증기 상승)","위치"],cloud:[245,70,"위치 에너지 (구름)","위치"],rain:[330,215,"운동 에너지 (비)","운동"]};
+const PATHS={
+ photo:{t:"광합성 → 화석 연료",c:"빛 → 화학 → 운동",seg:[[SUN,[520,288],"빛","plant"],[[520,288],[590,410],"화학","fossil"],[[590,410],[700,352],"화학","car"],[[700,352],[880,352],"운동"]],
+  log:{plant:"빛에너지 → 화학 에너지: 광합성으로 포도당에 저장",fossil:"화학 에너지: 유해가 묻혀 화석 연료가 됨",car:"화학 에너지 → 운동 에너지: 화석 연료로 자동차가 달림"},
+  steps:["태양 에너지(빛에너지)가 식물에 도달한다.","광합성: 포도당에 화학 에너지로 저장된다.","생물의 유해가 오랜 세월 묻혀 화석 연료(화학 에너지)가 된다.","화석 연료를 태워 자동차가 달린다(운동 에너지)."]},
+ solar:{t:"태양 전지",c:"빛 → 전기",seg:[[SUN,[770,236],"빛","panel"],[[770,236],[790,300],"전기"]],
+  log:{panel:"빛에너지 → 전기 에너지: 태양 전지"},steps:["태양 에너지(빛에너지)가 지붕의 태양 전지에 도달한다.","태양 전지가 빛에너지를 전기 에너지로 바꾼다.","전기 에너지로 집 안의 전기 기구를 사용한다."]},
+ wind:{t:"바람",c:"열 → 운동",seg:[[SUN,[430,300],"열","land"],[[40,175],[700,175],"운동","wind",1]],
+  log:{land:"열에너지: 지표면이 가열되어 온도 차(기압 차)가 생김",wind:"열에너지 → 운동 에너지: 기압 차로 바람이 붊"},steps:["태양 에너지(열에너지)가 지표면을 가열한다.","지표면의 상태에 따라 온도 차가 생기고, 기압 차가 생긴다.","기압이 높은 곳에서 낮은 곳으로 바람이 분다(운동 에너지).","바람이 풍력 발전기의 날개를 돌린다."]},
+ water:{t:"물의 순환",c:"열 → 위치 → 운동",seg:[[SUN,[150,330],"열","sea"],[[150,330],[110,110],"위치","vapor"],[[110,110],[230,80],"위치","cloud"],[[300,100],[330,298],"운동","rain",1]],
+  log:{sea:"열에너지: 바닷물이 가열되어 증발",vapor:"열에너지 → 위치 에너지: 수증기가 높이 올라감 (높이↑)",cloud:"위치 에너지: 수증기가 응결해 구름이 됨",rain:"위치 에너지 → 운동 에너지: 비가 내림 (높이↓)"},
+  steps:["태양 에너지(열에너지)가 지표의 물을 가열한다.","물이 증발해 수증기가 높이 올라간다(위치 에너지↑).","수증기가 응결해 구름이 된다.","비나 눈이 내리며 위치 에너지가 운동 에너지로 바뀐다(높이↓)."]}};
+const FL={parts:[],t:0,emit:{},logs:[],pulse:{},turb:0,lastLog:{}};
+function flStep(dt){FL.t+=dt;
+  if(st.sun)Object.keys(PATHS).forEach(k=>{if(st.fl!=="all"&&st.fl!==k&&Math.random()<.6)return;FL.emit[k]=(FL.emit[k]||0)+dt;if(FL.emit[k]>.9){FL.emit[k]=0;FL.parts.push({k,s:0,d:0})}});
+  FL.parts=FL.parts.filter(p=>{const P=PATHS[p.k],sg=P.seg[p.s];const L=Math.hypot(sg[1][0]-sg[0][0],sg[1][1]-sg[0][1]);p.d+=dt*(sg[2]==="빛"||sg[2]==="열"?240:120);
+    if(p.d>=L){const node=sg[3];if(node){FL.pulse[node]=1;const key=p.k+node;if(!FL.lastLog[key]||FL.t-FL.lastLog[key]>4){FL.lastLog[key]=FL.t;addLog(P.log[node],sg[2])}}p.s++;p.d=0;if(p.s>=P.seg.length)return false}return true});
+  Object.keys(FL.pulse).forEach(k=>FL.pulse[k]=Math.max(0,FL.pulse[k]-dt*1.2));
+  const windOn=FL.parts.some(p=>p.k==="wind"&&p.s===1);FL.turb+=dt*(windOn?6:.3)}
+function addLog(t,f){FL.logs=FL.logs.filter(l=>l.t!==t);FL.logs.unshift({t,f});FL.logs=FL.logs.slice(0,6);const ul=$("fl-log");if(ul)ul.innerHTML=FL.logs.map(l=>`<li><i class="dot" style="background:${EC[l.f]}"></i> ${l.t}</li>`).join("")}
+function flDraw(){const c=ctxOf("flCanvas");if(!c)return;const dk=isDark(),t=FL.t;
+  const sky=c.createLinearGradient(0,0,0,300);sky.addColorStop(0,st.sun?(dk?"#1c2d55":"#bfe0fb"):(dk?"#0c1124":"#55607a"));sky.addColorStop(1,st.sun?(dk?"#2a3f6b":"#eef7ff"):(dk?"#161d38":"#8a93a8"));c.fillStyle=sky;c.fillRect(0,0,CW,300);
+  // 바다
+  c.fillStyle=dk?"#1f4a7a":"#4f9bd6";c.beginPath();c.moveTo(0,292);c.lineTo(340,292);c.lineTo(370,440);c.lineTo(0,440);c.fill();
+  for(let i=0;i<6;i++){c.strokeStyle="rgba(255,255,255,.35)";c.lineWidth=2;c.beginPath();const y=310+i*20;for(let x=10;x<330;x+=8)c.lineTo(x,y+Math.sin(x/18+t*2+i)*2);c.stroke()}
+  // 땅
+  c.fillStyle=dk?"#3d5a32":"#8cc06a";c.beginPath();c.moveTo(340,292);c.quadraticCurveTo(600,270,900,280);c.lineTo(900,440);c.lineTo(370,440);c.fill();
+  c.fillStyle=dk?"#3a2e22":"#7a5a3a";c.fillRect(440,398,300,34);c.fillStyle=dk?"#1e1712":"#2b2018";for(let i=0;i<10;i++){c.beginPath();c.ellipse(460+i*28,415,12,6,0,0,7);c.fill()}
+  // 도로
+  c.fillStyle=dk?"#2c3140":"#6b7280";c.fillRect(620,340,280,26);
+  // 식물
+  for(let i=0;i<5;i++){const x=470+i*24,y=292;c.fillStyle="#6b4a2b";c.fillRect(x-2,y-24,4,24);c.fillStyle=dk?"#4f8a2a":"#3f8a2a";c.beginPath();c.arc(x,y-30,13,0,7);c.fill()}
+  // 풍력 발전기
+  const tx=470,ty=110;c.fillStyle="#e6e9ef";c.fillRect(tx-3,ty,6,180);for(let i=0;i<3;i++){const a=FL.turb+i*Math.PI*2/3;c.save();c.translate(tx,ty);c.rotate(a);c.fillStyle="#f4f6fa";c.strokeStyle="#9aa3bd";c.lineWidth=1;c.beginPath();c.ellipse(0,-26,5,26,0,0,7);c.fill();c.stroke();c.restore()}c.fillStyle="#9aa3bd";c.beginPath();c.arc(tx,ty,5,0,7);c.fill();
+  // 집과 태양 전지
+  c.fillStyle=dk?"#c9b48a":"#f3e6c8";c.fillRect(745,240,120,70);c.fillStyle="#b4472f";c.beginPath();c.moveTo(735,242);c.lineTo(805,196);c.lineTo(875,242);c.fill();
+  c.save();c.translate(775,222);c.rotate(-.58);c.fillStyle="#1f3a6d";c.fillRect(-22,-8,44,16);c.restore();
+  const litH=FL.parts.some(p=>p.k==="solar"&&p.s===1);c.fillStyle=litH?"#ffe27a":(dk?"#4a5268":"#cfd6e2");c.fillRect(780,262,26,22);c.fillRect(822,262,26,22);
+  // 구름
+  const cl=(x,y,s)=>{c.fillStyle=dk?"#9aa6c0":"#ffffff";[[-30,6,20],[-8,-8,24],[18,0,22],[38,8,16],[0,10,22]].forEach(([dx,dy,r])=>{c.beginPath();c.arc(x+dx*s,y+dy*s,r*s,0,7);c.fill()})};cl(255,92,1.25);
+  // 자동차
+  const carOn=FL.parts.some(p=>p.k==="photo"&&p.s===3);FL.cx=((FL.cx||640)+(carOn?2.2:.4));if(FL.cx>900)FL.cx=620;const cx=FL.cx;c.fillStyle="#2f7a8c";rr(c,cx-26,334,52,18,6);c.fill();rr(c,cx-14,322,30,14,5);c.fill();c.fillStyle="#222";c.beginPath();c.arc(cx-14,354,6,0,7);c.arc(cx+14,354,6,0,7);c.fill();
+  // 태양
+  sunDraw(c,SUN[0],SUN[1],30,t,st.sun?1:.15);if(!st.sun){c.fillStyle="rgba(20,25,45,.55)";c.beginPath();c.arc(SUN[0],SUN[1],31,0,7);c.fill()}
+  // 경로 안내선
+  Object.entries(PATHS).forEach(([k,P])=>{const on=st.fl==="all"||st.fl===k;P.seg.forEach(sg=>{c.globalAlpha=on?.35:.08;c.setLineDash([6,6]);c.strokeStyle=EC[sg[2]];c.lineWidth=3;c.beginPath();c.moveTo(...sg[0]);c.lineTo(...sg[1]);c.stroke();c.setLineDash([])});c.globalAlpha=1});
+  // 입자
+  FL.parts.forEach(p=>{const P=PATHS[p.k],sg=P.seg[p.s];const on=st.fl==="all"||st.fl===p.k;const L=Math.hypot(sg[1][0]-sg[0][0],sg[1][1]-sg[0][1]);const k=Math.min(1,p.d/L);const x=lerp(sg[0][0],sg[1][0],k),y=lerp(sg[0][1],sg[1][1],k);
+    c.globalAlpha=on?1:.18;const col=EC[sg[2]];if(sg[2]==="열"){const a=Math.atan2(sg[1][1]-sg[0][1],sg[1][0]-sg[0][0]);wave(c,x-Math.cos(a)*16,y-Math.sin(a)*16,x+Math.cos(a)*10,y+Math.sin(a)*10,col,p.d/6,4)}
+    else if(sg[2]==="운동"&&p.k==="rain"){}else{c.fillStyle=col;c.beginPath();c.arc(x,y,sg[2]==="빛"?6:5.5,0,7);c.fill();c.strokeStyle="#fff";c.lineWidth=1.5;c.stroke()}
+    if(p.k==="water"&&sg[3]==="rain"){c.strokeStyle=EC["운동"];c.lineWidth=2.5;for(let i=0;i<4;i++){c.beginPath();c.moveTo(x-12+i*8,y-8+i*3);c.lineTo(x-14+i*8,y+6+i*3);c.stroke()}}
+    if(p.k==="wind"&&p.s===1){c.strokeStyle=col;c.lineWidth=3;c.beginPath();c.moveTo(x-30,y+Math.sin(x/20)*4);c.quadraticCurveTo(x-15,y-6,x,y);c.stroke()}
+    c.globalAlpha=1});
+  // 노드 라벨
+  Object.entries(NODES).forEach(([k,n])=>{const pk=Object.keys(PATHS).find(q=>PATHS[q].seg.some(sg=>sg[3]===k));const on=st.fl==="all"||st.fl===pk;c.globalAlpha=on?1:.25;const s=1+(FL.pulse[k]||0)*.25;
+    c.save();c.translate(n[0],n[1]);c.scale(s,s);pill(c,0,0,n[2],EC[n[3]],12);c.restore();c.globalAlpha=1});
+  pill(c,SUN[0]-10,SUN[1]+56,"태양 에너지",st.sun?"#c9962b":"#5b6478",12);
+  if(!st.sun)txt(c,"햇빛이 없으면 새로운 에너지 흐름이 생기지 않는다",450,30,16,"#fff","center",true)}
+function flView(){const P=st.fl!=="all"?PATHS[st.fl]:null;const C=[["c1","광합성으로 식물(포도당)에 저장되는 에너지는?",["빛에너지","화학 에너지","운동 에너지"],1,"맞아요. 빛에너지가 광합성으로 포도당의 화학 에너지가 된다.","식물 위의 라벨 색을 범례와 비교해 보자."],
+  ["c2","바람이 가지는 에너지는?",["위치 에너지","운동 에너지","전기 에너지"],1,"맞아요. 움직이는 공기는 운동 에너지를 가진다.","풍력 발전기의 날개를 돌리는 것은 무엇일까?"],
+  ["c3","높이 올라간 수증기와 구름이 가지는 에너지는?",["위치 에너지","화학 에너지","빛에너지"],0,"맞아요. 높이 올라간 만큼 위치 에너지가 커지고, 비가 내리면 운동 에너지로 바뀐다.","높이와 관련된 에너지를 떠올려 보자."],
+  ["c4","화석 연료에 저장된 에너지의 근원은?",["지구 내부 에너지","태양 에너지","전기 에너지"],1,"맞아요. 광합성으로 저장된 태양 에너지가 화석 연료 속에 남아 있다.","광합성 흐름을 처음부터 따라가 보자."]];
+  return `<h2>활동 3. 태양 에너지의 전환</h2>
+  <p class="lead">한 형태의 에너지가 다른 형태로 바뀌는 것을 <b>에너지 전환</b>이라고 한다. 지구에 도달한 태양 에너지가 어떤 형태로 바뀌며 흐르는지 실시간으로 관찰하자. 점의 색이 에너지의 형태를 나타낸다.</p>
+  <div class="legend">${["빛","열","화학","전기","운동","위치"].map(f=>`<span><i class="dot" style="background:${EC[f]}"></i>${EN(f)}</span>`).join("")}</div>
+  <div class="simbox"><canvas id="flCanvas" width="900" height="440" role="img" aria-label="태양 에너지가 지구에서 다양한 에너지로 전환되는 흐름"></canvas></div>
+  <div class="ctrl"><div class="row"><button type="button" class="btn" id="fl-sun">${st.sun?'햇빛 끄기':'햇빛 켜기'}</button><span class="src">흐름 하나를 골라 따라가 보자.</span></div>
+   <div class="paths"><button type="button" data-fl="all" aria-pressed="${st.fl==='all'}"><b>전체 보기</b><small>모든 흐름</small></button>${Object.entries(PATHS).map(([k,v])=>`<button type="button" data-fl="${k}" aria-pressed="${st.fl===k}"><b>${v.t}</b><small>${v.c}</small></button>`).join("")}</div>
+   ${P?`<ol class="steps">${P.steps.map(s=>`<li>${s}</li>`).join("")}</ol>`:''}</div>
+  <div class="two"><div class="step"><h3>실시간 전환 기록</h3><ul class="log" id="fl-log">${FL.logs.map(l=>`<li><i class="dot" style="background:${EC[l.f]}"></i> ${l.t}</li>`).join("")}</ul></div>
+  <div class="note"><b>태양 에너지 = 지구 에너지의 근원</b><br>태양 에너지는 지구시스템을 순환하며 자연 현상(바람, 구름, 비)을 일으키고, 생명체가 살아가는 데 필요한 에너지원이 된다.</div></div>
+  ${C.map((q,i)=>`<div class="step"><h3><span class="n">${"①②③④"[i]}</span>${q[1]}</h3>${mcq(q[0],q[2],q[3],q[4],q[5])}</div>`).join("")}
+  <div class="step"><h3><span class="n">⑤</span>Q. 기억나는 에너지 사례는?</h3>${answerBox("fl","태양 에너지에서 출발하는 흐름 하나를 화살표로 이어 써 보자. (예: 태양(빛E) → …)",null)}</div>`}
+
+/* =========================================================
+   활동 4. 형성평가
+   ========================================================= */
+const WQ=[
+ {id:"w1",lv:"기본",goal:"태양 중심부에서는 수소 핵융합 반응이 일어나 에너지가 생성됨을 이해할 수 있다.",
+  q:"태양이 에너지를 생성하는 방법을 '중심부', '수소 원자핵', '헬륨 원자핵'을 넣어 설명하시오.",
+  model:"태양의 중심부에서는 수소 핵융합 반응이 일어난다. 수소 원자핵 4개가 융합하여 헬륨 원자핵 1개가 만들어지고, 이 과정에서 에너지가 생성된다.",
+  keys:[["태양 중심부에서 일어남",[/중심/]],["수소 핵융합 반응",[/핵\s*융합/]],["수소 원자핵 4개",[/수소[^.]{0,12}4/]],["헬륨 원자핵 1개 생성",[/헬륨/]],["에너지 생성",[/에너지[^.]{0,10}(생성|생기|만들|방출|발생)/]]]},
+ {id:"w2",lv:"기본",goal:"태양 에너지의 일부가 지구에 에너지 흐름을 일으켜 다양한 에너지의 형태로 전환됨을 이해할 수 있다.",
+  q:"태양 에너지가 지구에서 다른 형태의 에너지로 전환되는 예를 두 가지 들어, 에너지 형태가 어떻게 바뀌는지 설명하시오.",
+  model:"태양의 빛에너지는 식물의 광합성을 통해 포도당의 화학 에너지로 전환되고, 생물의 유해가 묻히면 화석 연료의 화학 에너지가 된다. 태양의 열에너지는 지표면을 가열해 기압 차를 만들고, 그 결과 바람이 불어 운동 에너지로 전환된다. 또 물을 증발시켜 수증기의 위치 에너지가 되고, 비가 내리며 운동 에너지로 바뀐다.",
+  keys:[["빛에너지 → 화학 에너지 (광합성)",[/광합성|화학\s*에너지/]],["열에너지로 지표(물)를 가열",[/열\s*에너지|가열|증발/]],["바람 또는 비: 운동 에너지",[/운동\s*에너지/]],["수증기·구름: 위치 에너지 또는 화석 연료",[/위치\s*에너지|화석\s*연료|전기\s*에너지/]],["태양 에너지가 출발점",[/태양/]]]},
+ {id:"w3",lv:"심화",goal:"수소가 헬륨으로 핵융합하는 과정에서 질량이 줄어든 만큼 에너지가 생성되는 과정을 설명할 수 있다.",
+  q:"수소 핵융합 반응에서 에너지가 생성되는 까닭을 반응물과 생성물의 질량을 비교하여 설명하시오.",
+  model:"수소 핵융합 반응에서 반응물인 수소 원자핵 4개의 질량 합보다 생성물인 헬륨 원자핵 1개의 질량이 작다(약 0.7% 감소). 질량과 에너지는 서로 전환될 수 있으므로, 반응 후 줄어든 질량만큼 에너지가 생성된다.",
+  keys:[["반응물: 수소 원자핵 4개",[/수소/]],["생성물: 헬륨 원자핵 1개",[/헬륨/]],["반응물의 질량 > 생성물의 질량 (질량 감소)",[/(질량[^.]{0,20}(줄|감소|작|적|가벼)|반응물[^.]{0,20}(크|많|무거))/]],["줄어든 질량만큼 에너지 생성",[/(줄어든|감소한|사라진)[^.]{0,15}(질량|만큼)[^.]{0,20}에너지|질량[^.]{0,15}에너지로/]],["질량과 에너지는 서로 전환됨",[/(질량[^.]{0,6}에너지[^.]{0,10}전환|전환|아인슈타인|E\s*=\s*mc)/]]]}
+];
+const QZ=[
+ {q:"에너지에 대한 설명으로 옳은 것은?",o:["일을 할 수 있는 능력이다","빛의 형태로만 존재한다","물체의 무게를 뜻한다","한 가지 형태로만 존재한다"],a:0,h:"교과서에서 에너지를 무엇이라고 정의했는지 떠올려 보자.",e:"에너지는 일을 할 수 있는 능력이며 빛, 열, 화학, 전기, 역학적, 핵에너지 등 여러 형태로 존재한다."},
+ {q:"물질에 저장되어 있다가 화학 반응이 일어날 때 흡수하거나 방출하는 에너지는?",o:["열에너지","화학 에너지","위치 에너지","빛에너지"],a:1,h:"음식물, 배터리, 석유에 저장된 에너지다.",e:"화학 에너지는 물질에 저장되어 있으며 화학 반응이 일어날 때 흡수하거나 방출된다."},
+ {q:"역학적 에너지를 바르게 나타낸 것은?",o:["열에너지 + 빛에너지","운동 에너지 + 위치 에너지","화학 에너지 + 전기 에너지","핵에너지 + 운동 에너지"],a:1,h:"활동 1의 '공 떨어뜨리기'를 떠올려 보자.",e:"역학적 에너지는 물체의 빠르기에 따른 운동 에너지와 높이에 따른 위치 에너지의 합이다."},
+ {q:"핫팩을 손에 쥐었을 때 열에너지의 이동 방향으로 옳은 것은?",o:["손 → 핫팩","핫팩 → 손","이동하지 않는다","양쪽으로 같은 양이 동시에 이동한다"],a:1,h:"열에너지는 온도가 높은 물체에서 낮은 물체로 이동한다.",e:"온도가 높은 핫팩에서 온도가 낮은 손으로 열에너지가 이동한다."},
+ {q:"태양 에너지가 생성되는 반응은?",o:["석탄이 타는 연소 반응","수소 핵융합 반응","광합성","산화 환원 반응"],a:1,h:"태양이 거대한 석탄 덩어리라면 수천 년밖에 버티지 못한다.",e:"태양 중심부에서는 수소 원자핵이 융합하는 수소 핵융합 반응으로 에너지가 생성된다."},
+ {q:"수소 핵융합 반응을 바르게 나타낸 것은?",o:["헬륨 원자핵 1개 → 수소 원자핵 4개","수소 원자핵 4개 → 헬륨 원자핵 1개","수소 원자핵 2개 → 헬륨 원자핵 2개","수소 원자핵 1개 → 헬륨 원자핵 4개"],a:1,h:"활동 2에서 몇 개의 빨간 공이 모였는지 떠올려 보자.",e:"수소 원자핵 4개가 융합하여 헬륨 원자핵 1개가 생성된다."},
+ {q:"[O, X] 수소 핵융합 반응 후 생성물의 질량은 반응물의 질량 합보다 크다.",o:["O","X"],a:1,h:"저울이 어느 쪽으로 기울었는지 떠올려 보자.",e:"생성물(헬륨 원자핵)의 질량이 반응물(수소 원자핵 4개)의 질량 합보다 작다. 줄어든 질량만큼 에너지가 생성된다."},
+ {q:"수소 핵융합 반응이 태양 전체가 아니라 중심부에서만 일어나는 까닭은?",o:["중심부의 온도가 약 1500만 K로 매우 높기 때문","중심부에 산소가 많기 때문","중심부가 가장 차갑기 때문","중심부에만 빛이 있기 때문"],a:0,h:"활동 2에서 '태양 표면'을 골랐을 때 원자핵이 어떻게 움직였는지 떠올려 보자.",e:"온도가 매우 높은 중심부에서만 원자핵이 서로 밀어내는 힘을 이기고 융합할 수 있다."},
+ {q:"지표면이 가열되어 바람이 부는 과정의 에너지 전환으로 옳은 것은?",o:["빛에너지 → 화학 에너지","열에너지 → 운동 에너지","전기 에너지 → 빛에너지","운동 에너지 → 화학 에너지"],a:1,h:"지표면 가열 → 기압 차 → 공기의 이동",e:"태양의 열에너지가 지표면을 가열해 기압 차가 생기고, 바람(운동 에너지)이 분다."},
+ {q:"다음 중 에너지의 근원이 태양 에너지가 아닌 것은?",o:["석탄과 석유","바람","비와 구름","원자력 발전소의 핵에너지"],a:3,h:"태양 에너지에서 출발하지 않은 흐름을 찾아보자.",e:"화석 연료, 바람, 비와 구름은 모두 태양 에너지에서 비롯된다. 원자력 발전의 핵에너지는 우라늄 원자핵에서 나온다."}
+];
+function wqView(){
+  return WQ.map(w=>{const a=st.w[w.id]||{};const txt=a.t||"";
+    const auto=w.keys.map(k=>k[1].every(r=>r.test(txt.replace(/\s+/g," "))));
+    const got=w.keys.map((k,i)=>auto[i]||!!(a.c&&a.c[i]));const n=got.filter(Boolean).length,N=w.keys.length,p=Math.round(n/N*100);
+    const lvl=p>=80?["목표 달성! 핵심 요소를 거의 모두 설명했다.","ok"]:p>=50?["거의 다 왔다. 빠진 요소를 넣어 고쳐 쓰자.",""]:["다시 도전! 모범 답안의 흐름을 참고해 고쳐 쓰자.","no"];
+    return `<div class="wq"><span class="tag ${w.lv==='심화'?'adv':''}">${w.lv}</span><p class="goal">학습 목표: ${w.goal}</p><p class="q">${w.q}</p>
+    <label class="src" for="t-${w.id}">내 문장으로 답 쓰기</label><textarea id="t-${w.id}" data-w="${w.id}" placeholder="내 말로 설명해 보자.">${esc(txt)}</textarea>
+    <div class="row"><button class="btn" type="button" data-cmp="${w.id}" ${txt.trim().length<15?'disabled':''}>모범 답안과 비교하기</button>${a.shown?'<span class="src">답을 고친 뒤 다시 누르면 점검이 갱신된다.</span>':''}</div>
+    ${a.shown?`<p class="model"><b>모범 답안</b> ${esc(w.model)}</p>
+    <p class="src" style="margin:0">핵심 요소 점검: 자동으로 찾은 요소는 체크되어 있다. 내 답에 들어 있는데 체크되지 않았다면 직접 체크하자.</p>
+    <ul class="checks">${w.keys.map((k,i)=>`<li><input type="checkbox" id="c-${w.id}-${i}" data-ck="${w.id}" data-i="${i}" ${got[i]?'checked':''} ${auto[i]?'disabled':''}><label for="c-${w.id}-${i}">${k[0]} ${auto[i]?'<span class="auto">자동 확인</span>':''}</label></li>`).join("")}</ul>
+    <div class="meter" aria-label="목표 도달도"><span style="width:${p}%"></span></div>
+    <p class="level fb ${lvl[1]}">목표 도달도 ${n}/${N} · ${lvl[0]}</p>`:''}</div>`}).join("");
+}
+function wqScore(w){const a=st.w[w.id]||{};const txt=(a.t||"").replace(/\s+/g," ");return w.keys.filter((k,i)=>k[1].every(r=>r.test(txt))||(a.c&&a.c[i])).length}
+function quizScore(){return QZ.filter((x,i)=>st.qz[i]===x.a).length}
+function quizView(){const n=quizScore();
+  return `<h2>활동 4. 형성평가</h2>
+  <p class="question" style="margin:0"><b>Q. 기본 목표와 심화 목표 중 달성하지 못한 부분은?</b> 선택형과 서술형을 풀고, 아직 부족한 목표를 찾아 해당 활동으로 돌아가 다시 탐구하자.</p>
+  <p class="lead"><b>Part 1. 선택형</b> 답을 고르면 바로 채점된다. 틀리면 힌트를 읽고 다시 골라 보자.</p>
+  <div class="quizbox">${QZ.map((x,i)=>{const p=st.qz[i];const ok=p===x.a;
+    return `<div class="quizq"><p class="q">${i+1}. ${x.q}</p><div class="opts">${x.o.map((t,j)=>`<button type="button" class="opt ${p===j?(ok?'right':'wrong'):''}" data-qz="${i}" data-j="${j}" ${ok?'disabled':''}>${String.fromCharCode(9312+j)} ${t}</button>`).join("")}</div>
+    ${p===undefined?'':(ok?`<p class="fb ok">정답! ${x.e}</p>`:`<p class="fb no">다시 생각해 보자. 힌트: ${x.h}</p>`)}</div>`}).join("")}</div>
+  <div class="qscore">선택형 ${n} / ${QZ.length}${n===QZ.length?"  · 모두 맞혔다!":""}</div>
+  <p class="lead"><b>Part 2. 서술형</b> 내 문장으로 답을 쓰고, <b>모범 답안과 비교하기</b>를 눌러 학습 목표에 얼마나 가까워졌는지 점검하자.</p>
+  ${wqView()}`}
+
+/* =========================================================
+   공통
+   ========================================================= */
+const VIEWS={e:e1View,fu:fuView,fl:flView,quiz:quizView};
+function isDone(t){
+  if(t==="e")return SC.every((s,i)=>st.q["e"+i]===s.q[2]);
+  if(t==="fu")return st.L&&st.R&&st.pred!==null&&FU.n>=3;
+  if(t==="fl")return st.q.c1===1&&st.q.c2===1&&st.q.c3===0&&st.q.c4===1;
+  return quizScore()===QZ.length&&WQ.every(w=>{const a=st.w[w.id];return a&&a.shown&&wqScore(w)/w.keys.length>=.8});
+}
+function render(){
+  document.querySelectorAll(".tab").forEach(b=>{b.setAttribute("aria-selected",String(b.dataset.t===st.tab));b.classList.toggle("done",isDone(b.dataset.t))});
+  $("panel").innerHTML=VIEWS[st.tab]()+nextBtn();save();
+  if(st.tab==="e"){e1Draw();e1Bars()}if(st.tab==="fu"){fuInit();fuUi()}
+}
+function nextBtn(){const order=["e","fu","fl","quiz"],i=order.indexOf(st.tab);if(i===order.length-1)return "";
+  const names={fu:"활동 2로",fl:"활동 3으로",quiz:"형성평가로"};return `<div class="row"><button class="btn ghost" type="button" data-t="${order[i+1]}">${names[order[i+1]]} 가기 →</button></div>`}
+let last=0;
+function loop(ts){requestAnimationFrame(loop);const dt=Math.min(.05,(ts-last)/1000||0);last=ts;
+  if(st.tab==="e"&&$("e1Canvas")){e1Step(dt);e1Draw();if(Math.floor(ts/120)!==Math.floor((ts-dt*1000)/120))e1Bars()}
+  else if(st.tab==="fu"&&$("fuCanvas")){fuStep(dt);fuDraw()}
+  else if(st.tab==="fl"&&$("flCanvas")){flStep(dt);flDraw()}}
+document.addEventListener("click",e=>{
+  const b=e.target.closest("button");if(!b)return;
+  if(b.dataset.t){const fromTab=b.classList.contains("tab");st.tab=b.dataset.t;render();if(!fromTab)document.querySelector(".tabs").scrollIntoView({behavior:"smooth",block:"start"});return}
+  if(b.dataset.sc!==undefined){st.sc=+b.dataset.sc;e1Reset();render();return}
+  if(b.id==="e1-play"){if(!E1.play&&!SC[st.sc].loop&&E1.p>=1){E1.p=0;E1.parts=[]}E1.play=!E1.play;b.textContent=E1.play?"일시정지":"재생";return}
+  if(b.id==="e1-reset"){e1Reset();e1Bars();document.querySelectorAll(".ebar .dir").forEach(d=>{d.className="dir eq";d.textContent="–"});return}
+  if(b.dataset.q){st.q[b.dataset.q]=+b.dataset.j;const y=scrollY;render();scrollTo(0,y);return}
+  if(b.dataset.mode){st.mode=b.dataset.mode;FU.grp.forEach(g=>g.m.forEach(p=>p.f=0));FU.grp=[];render();return}
+  if(b.id==="fu-run"){FU.run=!FU.run;b.textContent=FU.run?"일시정지":"재생";return}
+  if(b.dataset.pred!==undefined){st.pred=+b.dataset.pred;render();return}
+  if(b.id==="put-L"){st.L=1;render();return}
+  if(b.id==="put-R"){st.R=1;render();return}
+  if(b.id==="put-0"){st.L=0;st.R=0;render();return}
+  if(b.dataset.show){st.shown[b.dataset.show]=1;render();return}
+  if(b.id==="fl-sun"){st.sun=!st.sun;render();return}
+  if(b.dataset.fl){st.fl=b.dataset.fl;render();return}
+  if(b.dataset.cmp){const a=st.w[b.dataset.cmp]=st.w[b.dataset.cmp]||{};a.shown=true;render();return}
+  if(b.dataset.qz!==undefined){st.qz[b.dataset.qz]=+b.dataset.j;const y=scrollY;render();scrollTo(0,y);return}
+});
+document.addEventListener("input",e=>{const el=e.target;
+  if(el.dataset.txt){st.txt[el.dataset.txt]=el.value;const bt=document.querySelector(`[data-show="${el.dataset.txt}"]`);if(bt)bt.disabled=el.value.trim().length<10;save();return}
+  if(el.dataset.w){const a=st.w[el.dataset.w]=st.w[el.dataset.w]||{};a.t=el.value;const bt=document.querySelector(`[data-cmp="${el.dataset.w}"]`);if(bt)bt.disabled=el.value.trim().length<15;save();return}
+});
+document.addEventListener("change",e=>{const el=e.target;if(el.dataset.ck){const a=st.w[el.dataset.ck]=st.w[el.dataset.ck]||{};a.c=a.c||{};a.c[el.dataset.i]=el.checked;const y=scrollY;render();scrollTo(0,y)}});
+render();requestAnimationFrame(loop);
+
+</script>
+</body>
+</html>
