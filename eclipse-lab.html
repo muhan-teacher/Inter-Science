@@ -95,6 +95,7 @@ textarea{width:100%;min-height:76px;font:inherit;font-size:15.5px;padding:10px;b
 .small{font-size:13px;color:var(--muted)}
 @media (max-width:980px){.view,.qz{grid-template-columns:minmax(0,1fr)}}
 @media (max-width:560px){nav.tabs{grid-template-columns:repeat(2,minmax(0,1fr))}.sky canvas{width:120px;height:120px}}
+#sMoonV,#lMoonV,#sObsV,#pPhiV{font-variant-numeric:tabular-nums;display:inline-block;min-width:4.5ch;text-align:right}
 </style>
 </head>
 <body>
@@ -263,7 +264,7 @@ function drawSkySolar(){const st=solarState();const c=skyS,W=300;c.clearRect(0,0
   c.fillStyle='#14161C';c.beginPath();c.arc(150,150-off,mR,0,7);c.fill();
   const N={total:['개기일식','관측자가 달의 본그림자 안에 있어 태양이 완전히 가려진다.'],annular:['금환일식','달이 멀어 작게 보여 태양 가장자리가 고리처럼 보인다.'],partial:['부분일식','관측자가 달의 반그림자 안에 있어 태양의 일부만 가려진다.'],none:['일식 없음','관측자가 달의 그림자 밖에 있다.']}[st.type];
   document.getElementById('sVerdict').innerHTML=`<strong>${N[0]}</strong><p>${N[1]}</p>`;
-  document.getElementById('sMoonV').textContent=S.moon;document.getElementById('sObsV').textContent=(S.obs>0?'북 ':S.obs<0?'남 ':'')+Math.abs(S.obs)+'°';}
+  document.getElementById('sMoonV').textContent=Math.round(S.moon);document.getElementById('sObsV').textContent=(S.obs>0?'북 ':S.obs<0?'남 ':'')+Math.abs(Math.round(S.obs))+'°';}
 function solarAll(){stS.render();drawSkySolar();}
 const sMoon=document.getElementById('sMoon'),sObs=document.getElementById('sObs'),sPlay=document.getElementById('sPlay');let sRaf=0;
 sMoon.oninput=()=>{S.moon=+sMoon.value;solarAll();};sObs.oninput=()=>{S.obs=+sObs.value;solarAll();};
@@ -302,7 +303,7 @@ function drawSkyLunar(){const st=lunarState();const c=skyL,W=300;c.clearRect(0,0
   const pg=c.createRadialGradient(cx,ay,st.Ru*k,cx,ay,st.Rp*k);pg.addColorStop(0,'rgba(0,0,0,.45)');pg.addColorStop(1,'rgba(0,0,0,0)');c.fillStyle=pg;c.beginPath();c.arc(cx,ay,st.Rp*k,0,7);c.fill();
   c.fillStyle='rgba(120,34,14,.9)';c.beginPath();c.arc(cx,ay,st.Ru*k,0,7);c.fill();c.restore();
   const N={total:['개기월식','달 전체가 지구의 본그림자에 들어가 붉게 보인다.'],partial:['부분월식','달의 일부가 지구의 본그림자에 걸쳐 가려진다.'],penumbral:['반영식','달이 반그림자만 지나 달빛이 약간 흐려진다.'],none:['월식 없음','달이 지구 그림자 밖에 있는 보름달이다.']}[st.type];
-  document.getElementById('lVerdict').innerHTML=`<strong>${N[0]}</strong><p>${N[1]}</p>`;document.getElementById('lMoonV').textContent=Lm.moon;}
+  document.getElementById('lVerdict').innerHTML=`<strong>${N[0]}</strong><p>${N[1]}</p>`;document.getElementById('lMoonV').textContent=Math.round(Lm.moon);}
 function lunarAll(){stL.render();drawSkyLunar();}
 const lMoon=document.getElementById('lMoon'),lPlay=document.getElementById('lPlay');let lRaf=0;
 lMoon.oninput=()=>{Lm.moon=+lMoon.value;lunarAll();};
@@ -364,7 +365,7 @@ function drawSide(c){const {W2:W,H2:H}=P;space(c,W,H);const y0=150;
 }
 const stP=makeStage(cvP,P.W,P.H,drawPlane),stP2=makeStage(cvP2,P.W2,P.H2,drawSide);
 function planeAll(){stP.render();stP2.render();const d=Math.min(P.phi%180,180-P.phi%180);
-  document.getElementById('pPhiV').textContent=P.phi+'°';
+  document.getElementById('pPhiV').textContent=Math.round(P.phi)+'°';
   const sN=pState('new'),sF=pState('full');const near=d<=20;
   document.getElementById('pChips').innerHTML=`<span class="chip ${near?'ok':'no'}">${near?'교선 근처: 궤도면이 만나는 곳':'교선에서 멀다: 궤도면이 만나지 않는 곳'}</span><span class="chip ${sN[0]}">삭일 때: ${sN[1]}</span><span class="chip ${sF[0]}">망일 때: ${sF[1]}</span>`;
   const cur=P.ph==='new'?sN:sF;document.getElementById('pVerdict').innerHTML=`<strong>${cur[1]}</strong><p>${cur[2]}. 교선에서 ${d}° 떨어진 위치.</p>`;
