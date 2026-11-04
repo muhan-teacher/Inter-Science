@@ -1,0 +1,522 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>변성 작용 탐구실</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=IBM+Plex+Mono:wght@500&family=IBM+Plex+Sans+KR:wght@400;500;700&display=swap">
+<style>
+/* Layout: a 1280x720 projector deck scaled to fit, with a slim control bar. Single light look on purpose (classroom projector). */
+:root{
+  --bg:#E8EBEE; --paper:#FFFFFF; --sunk:#F2F4F6; --ink:#1D2733; --muted:#5C6672; --line:#D5DAE0;
+  --slate:#2B3A4A; --garnet:#A8324A; --garnet-soft:#F7E4E8; --heat:#D2632A; --heat-soft:#FCEADF;
+  --press:#2F65A0; --press-soft:#E3ECF7; --sun:#B88A10; --sun-soft:#F8F0D6; --focus:#2F6FE0;
+  --font-display:"Black Han Sans","IBM Plex Sans KR","Malgun Gothic",sans-serif;
+  --font-body:"IBM Plex Sans KR","Malgun Gothic","Apple SD Gothic Neo",sans-serif;
+  --font-num:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+  color-scheme:light;
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html,body{height:100%}
+body{background:var(--bg);color:var(--ink);font-family:var(--font-body);margin:0;overflow:hidden;display:flex;flex-direction:column}
+#viewport{flex:1;min-height:0;display:grid;place-items:center;padding-left:max(8px,env(safe-area-inset-left,0px));padding-right:max(8px,env(safe-area-inset-right,0px));padding-block:8px}
+#frame{position:relative;overflow:hidden;border-radius:10px;box-shadow:0 6px 30px rgba(20,30,45,.18)}
+#deck{position:absolute;left:0;top:0;width:1280px;height:720px;transform-origin:0 0}
+.slide{position:absolute;inset:0;background:var(--paper);padding:34px 48px 30px;display:flex;flex-direction:column;gap:18px;overflow:hidden}
+.kicker{font-size:19px;font-weight:700;letter-spacing:.06em;color:var(--garnet)}
+.slide h2{font-family:var(--font-display);font-weight:400;font-size:48px;line-height:1.1;margin:0;color:var(--slate);text-wrap:balance}
+.slide p{margin:0;line-height:1.6}
+.lead{font-size:27px;line-height:1.5}
+.muted{color:var(--muted)}
+.row{display:flex;gap:20px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+.card{background:var(--sunk);border-radius:14px;padding:18px 20px}
+.card h3{margin:0 0 6px;font-size:25px}
+.tag{display:inline-block;font-size:18px;font-weight:700;padding:3px 11px;border-radius:999px}
+.t-heat{background:var(--heat-soft);color:var(--heat)}
+.t-press{background:var(--press-soft);color:var(--press)}
+.t-garnet{background:var(--garnet-soft);color:var(--garnet)}
+.t-sun{background:var(--sun-soft);color:var(--sun)}
+b.hl{color:var(--garnet)}
+
+/* title */
+.s-title{background:var(--slate);color:#fff;justify-content:center}
+.s-title .kicker{color:#E8B4BF}
+.s-title h1{font-family:var(--font-display);font-weight:400;font-size:84px;line-height:1.05;margin:6px 0 10px}
+.s-title p{font-size:28px;color:#C8D2DE}
+.s-title canvas{position:absolute;right:0;top:0;width:520px;height:720px;opacity:.9}
+
+/* tables */
+table.sum{border-collapse:separate;border-spacing:0;width:100%;font-size:24px}
+table.sum th,table.sum td{padding:10px 14px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top;line-height:1.45}
+table.sum thead th{background:var(--slate);color:#fff;font-size:22px}
+table.sum thead th:first-child{border-top-left-radius:10px}
+table.sum thead th:last-child{border-top-right-radius:10px}
+table.sum tbody th{background:var(--sunk);font-size:21px;color:var(--muted);width:170px}
+
+/* sims */
+.simwrap{display:grid;grid-template-columns:1fr 430px;gap:20px;flex:1;min-height:0}
+.simcanvas{background:var(--sunk);border-radius:14px;padding:10px;display:flex;flex-direction:column;gap:8px;min-width:0}
+.simcanvas canvas,.simcanvas svg{width:100%;display:block;border-radius:10px;background:#fff}
+.panel{display:flex;flex-direction:column;gap:12px;min-width:0}
+.seg{display:flex;border:1px solid var(--line);border-radius:12px;overflow:hidden;background:#fff}
+.seg button{flex:1;font:inherit;font-weight:700;font-size:20px;padding:10px 8px;border:0;background:transparent;color:var(--ink);cursor:pointer;line-height:1.25}
+.seg button+button{border-left:1px solid var(--line)}
+.seg button[aria-pressed="true"]{background:var(--slate);color:#fff}
+.seg.small button{font-size:18px;padding:8px 6px}
+.ctl{display:flex;flex-direction:column;gap:6px}
+.ctl label{font-size:18px;font-weight:700;color:var(--muted);display:flex;justify-content:space-between}
+.ctl label span{font-family:var(--font-num);color:var(--ink)}
+input[type=range]{width:100%;accent-color:var(--garnet);height:26px}
+.btns{display:flex;gap:8px;flex-wrap:wrap}
+.btn{font:inherit;font-weight:700;font-size:19px;padding:9px 14px;border-radius:10px;border:1px solid var(--line);background:#fff;color:var(--ink);cursor:pointer}
+.btn.primary{background:var(--garnet);border-color:var(--garnet);color:#fff}
+.btn:hover{border-color:var(--ink)}
+.btn.primary:hover{filter:brightness(1.08)}
+button:focus-visible,input:focus-visible{outline:3px solid var(--focus);outline-offset:2px}
+.readouts{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.readouts div{background:var(--sunk);border-radius:10px;padding:7px 11px}
+.readouts dt{font-size:16px;color:var(--muted)}
+.readouts dd{margin:0;font-family:var(--font-num);font-size:22px;white-space:nowrap}
+.result{background:var(--slate);color:#fff;border-radius:12px;padding:12px 16px}
+.result strong{font-family:var(--font-display);font-weight:400;font-size:38px;display:block;line-height:1.1}
+.result p{font-size:19px;line-height:1.5;color:#DDE4EC;margin-top:4px}
+.stages{display:flex;gap:4px;align-items:center;flex-wrap:wrap}
+.stages span{font-size:17px;font-weight:700;padding:4px 9px;border-radius:999px;background:var(--sunk);color:var(--muted)}
+.stages span.on{background:var(--garnet);color:#fff}
+.stages i{font-style:normal;color:var(--muted);font-size:12px}
+.cap{font-size:16px;color:var(--muted)}
+
+/* rock cycle */
+#cyc .arc{fill:none;stroke-width:4;cursor:default;transition:opacity .2s}
+#cyc .arc.go{cursor:pointer;stroke-width:6}
+#cyc .lbl rect{fill:#fff}
+#cyc .lbl text{font:700 16px var(--font-body);fill:var(--ink)}
+#cyc .node circle{stroke-width:3}
+#cyc .node text{font:700 22px var(--font-body);fill:var(--ink);text-anchor:middle}
+#cyc .node .ex{font:500 13.5px var(--font-body);fill:var(--muted)}
+.log{background:var(--sunk);border-radius:12px;padding:10px 14px;font-size:18px;line-height:1.6;min-height:96px;max-height:180px;overflow:auto}
+.log b{color:var(--slate)}
+.log .via{color:var(--muted);font-size:16px}
+
+/* bar */
+.bar{display:flex;align-items:center;gap:10px;padding:6px max(12px,env(safe-area-inset-left,0px)) calc(6px + env(safe-area-inset-bottom,0px));background:var(--slate);color:#fff;flex-wrap:wrap}
+.bar button{font:inherit;font-weight:700;font-size:16px;padding:6px 12px;border-radius:8px;border:1px solid rgba(255,255,255,.25);background:transparent;color:#fff;cursor:pointer}
+.bar button:hover{background:rgba(255,255,255,.1)}
+.bar .count{font-family:var(--font-num);font-size:14px;min-width:56px;text-align:center}
+.bar .title{font-size:14px;color:#C8D2DE;flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dots{display:flex;gap:5px}
+.dots button{width:10px;height:10px;padding:0;border-radius:50%;border:0;background:rgba(255,255,255,.3)}
+.dots button[aria-current="true"]{background:#E8B4BF}
+
+.qprog{display:flex;gap:6px}
+.qprog i{flex:1;height:8px;border-radius:4px;background:var(--line)}
+.qprog i.ok{background:#2E8B57}.qprog i.no{background:var(--garnet)}.qprog i.cur{background:var(--slate)}
+.qq{font-size:31px;font-weight:700;line-height:1.4;margin:0}
+.qopts{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.qopt{font:inherit;font-size:24px;text-align:left;padding:16px 20px;border-radius:14px;border:2px solid var(--line);background:#fff;color:var(--ink);cursor:pointer;display:flex;gap:12px;align-items:center}
+.qopt:hover{border-color:var(--slate)}
+.qopt b{font-family:var(--font-num);font-size:20px;width:34px;height:34px;border-radius:50%;display:grid;place-items:center;background:var(--sunk);flex:none}
+.qopt.ok{border-color:#2E8B57;background:#E5F4EC}.qopt.ok b{background:#2E8B57;color:#fff}
+.qopt.no{border-color:var(--garnet);background:var(--garnet-soft)}.qopt.no b{background:var(--garnet);color:#fff}
+.qopt[disabled]{cursor:default}
+.qfb{border-radius:14px;padding:14px 18px;font-size:22px;line-height:1.5}
+.qfb.ok{background:#E5F4EC}.qfb.no{background:var(--garnet-soft)}
+.qfb strong{display:block;font-size:24px}
+.qscore{font-family:var(--font-display);font-size:96px;line-height:1;color:var(--slate)}
+.dots button.tab{width:auto;height:auto;padding:5px 12px;border-radius:999px;font-size:15px;font-weight:700;color:#fff;background:rgba(255,255,255,.12)}
+.dots button.tab[aria-current="true"]{background:#E8B4BF;color:#2B3A4A}
+@media (max-width:640px){.bar .title{display:none}}
+</style>
+</head>
+<body>
+
+<div id="viewport"><div id="frame"><div id="deck">
+
+<!-- 1 -->
+<section class="slide s-title" data-id="start" data-title="시작" data-short="시작">
+  <canvas id="titleCv" width="520" height="720" aria-hidden="true"></canvas>
+  <div class="kicker">지구과학Ⅱ · Ⅱ-04 변성 작용과 암석의 순환</div>
+  <h1 style="font-size:76px">변성 작용 탐구실</h1>
+  <p style="max-width:620px;position:relative">아래 탭을 차례로 눌러 탐구하고, 마지막에 형성평가를 풀어 보세요.</p>
+  <div style="display:flex;flex-direction:column;gap:10px;margin-top:22px;max-width:640px;position:relative">
+    <button class="btn" type="button" data-go="lab1" style="text-align:left;font-size:22px">① 실험실 1 · 셰일의 변신 (접촉·광역 변성)</button>
+    <button class="btn" type="button" data-go="lab2" style="text-align:left;font-size:22px">② 실험실 2 · 판의 경계와 지질 구조</button>
+    <button class="btn" type="button" data-go="lab3" style="text-align:left;font-size:22px">③ 실험실 3 · 암석의 순환 여행</button>
+    <button class="btn primary" type="button" data-go="quiz" style="text-align:left;font-size:22px">④ 형성평가 (10문항)</button>
+  </div>
+</section>
+
+
+
+
+
+
+
+<!-- 5 SIM 1 -->
+<section class="slide" data-id="lab1" data-title="실험실 1 · 셰일의 변신" data-short="실험실 1">
+  <div class="kicker">실험실 1 · 탐구: 접촉 변성과 광역 변성에서 광물 알갱이의 모양과 배열은 어떻게 다를까?</div>
+  <h2 style="font-size:44px">셰일의 변신: 재결정 작용을 현미경으로 보기</h2>
+  <div class="simwrap">
+    <div class="simcanvas"><canvas id="m1cv" width="1280" height="800" style="aspect-ratio:640/400" aria-label="암석 조직이 재결정되는 모습의 모식도"></canvas>
+      <div class="cap">현미경으로 본 조직의 모식도 · 색이 같은 한 덩어리가 광물 입자 하나</div></div>
+    <div class="panel">
+      <div class="seg" id="m1mode"><button type="button" data-v="contact" aria-pressed="true">접촉 변성</button><button type="button" data-v="regional" aria-pressed="false">광역 변성</button></div>
+      <div class="ctl" id="m1rockWrap"><label>처음 암석</label>
+        <div class="seg small" id="m1rock"><button type="button" data-v="shale" aria-pressed="true">셰일</button><button type="button" data-v="sandstone" aria-pressed="false">사암</button><button type="button" data-v="limestone" aria-pressed="false">석회암</button></div></div>
+      <div class="ctl"><label for="m1g"><b id="m1gl">마그마의 열 (온도)</b><span id="m1gv">0%</span></label><input type="range" id="m1g" min="0" max="1" step="0.005" value="0"></div>
+      <div class="btns"><button class="btn primary" type="button" id="m1play">▶ 변성 시작</button><button class="btn" type="button" id="m1reset">↺ 처음으로</button></div>
+      <dl class="readouts" style="margin:0"><div><dt>온도</dt><dd id="m1t">200 °C</dd></div><div><dt>압력</dt><dd id="m1p">낮음</dd></div></dl>
+      <div class="stages" id="m1stages"></div>
+      <div class="result" id="m1res"><strong>셰일</strong><p>퇴적암. 점토 알갱이가 아주 작고 층리가 있다.</p></div>
+    </div>
+  </div>
+</section>
+
+
+
+
+
+<!-- 8 SIM 2 -->
+<section class="slide" data-id="lab2" data-title="실험실 2 · 변동대의 지질 구조" data-short="실험실 2">
+  <div class="kicker">실험실 2 · 탐구: 힘의 방향에 따라 상반은 어느 쪽으로 움직일까? 습곡을 침식시키면?</div>
+  <h2 style="font-size:44px">판의 경계에서 지질 구조가 생기는 과정</h2>
+  <div class="simwrap">
+    <div class="simcanvas"><canvas id="m2cv" width="1520" height="840" style="aspect-ratio:760/420" aria-label="지질 구조 형성 과정 모식도"></canvas>
+      <div class="cap" id="m2cap">단면 모식도</div></div>
+    <div class="panel">
+      <div class="ctl"><label>판의 경계와 위치</label>
+        <div class="seg small" id="m2sc" style="flex-direction:column">
+          <button type="button" data-v="fold" aria-pressed="true">수렴형 · 깊은 곳</button>
+          <button type="button" data-v="reverse" aria-pressed="false" style="border-left:0;border-top:1px solid var(--line)">수렴형 · 얕은 곳</button>
+          <button type="button" data-v="normal" aria-pressed="false" style="border-left:0;border-top:1px solid var(--line)">발산형</button>
+          <button type="button" data-v="strike" aria-pressed="false" style="border-left:0;border-top:1px solid var(--line)">보존형</button>
+        </div></div>
+      <div class="ctl"><label for="m2g"><b id="m2gl">힘이 작용한 정도</b><span id="m2gv">0%</span></label><input type="range" id="m2g" min="0" max="2" step="0.005" value="0"></div>
+      <div class="btns"><button class="btn primary" type="button" id="m2play">▶ 힘 가하기</button><button class="btn" type="button" id="m2reset">↺ 처음으로</button></div>
+      <dl class="readouts" style="margin:0"><div><dt>힘의 종류</dt><dd id="m2f" style="font-family:var(--font-body);font-weight:700;font-size:21px">횡압력</dd></div><div><dt>상반의 이동</dt><dd id="m2m" style="font-family:var(--font-body);font-weight:700;font-size:21px">–</dd></div></dl>
+      <div class="result" id="m2res"><strong>?</strong><p>힘을 가하면 어떤 구조가 생길지 예상해 보자.</p></div>
+    </div>
+  </div>
+</section>
+
+
+
+
+
+<!-- 11 SIM 3 -->
+<section class="slide" data-id="lab3" data-title="실험실 3 · 암석의 순환" data-short="실험실 3">
+  <div class="kicker">실험실 3 · 탐구: 미션 3개를 모두 해결해 보자</div>
+  <h2 style="font-size:44px">암석의 순환 여행: 화살표를 눌러 길을 고르자</h2>
+  <div class="simwrap">
+    <div class="simcanvas"><svg id="cyc" viewBox="0 0 760 480" role="img" aria-label="암석의 순환 모식도"></svg></div>
+    <div class="panel">
+      <div class="seg small" id="m3e"><button type="button" data-v="all" aria-pressed="true">전체</button><button type="button" data-v="in" aria-pressed="false">지구 내부 에너지</button><button type="button" data-v="sun" aria-pressed="false">태양 에너지</button></div>
+      <div class="btns"><button class="btn primary" type="button" id="m3rand">⤳ 무작위로 3걸음</button><button class="btn" type="button" id="m3reset">↺ 화성암에서 다시</button></div>
+      <div class="log" id="m3log" aria-live="polite"></div>
+      <div class="card" style="padding:12px 14px"><b style="font-size:18px">미션</b><p style="font-size:18px;margin-top:4px">① 사암이 규암이 되는 길은?<br>② 화강암이 다시 마그마가 되는 길을 두 가지 찾아보자.<br>③ 퇴적암을 거치지 않고 퇴적물이 되는 암석은?</p></div>
+    </div>
+  </div>
+</section>
+
+
+
+
+
+<section class="slide" data-id="quiz" data-title="형성평가" data-short="형성평가">
+  <div class="kicker" id="qzKick">형성평가</div>
+  <div id="qz" style="flex:1;display:flex;flex-direction:column;gap:16px;min-height:0"></div>
+</section>
+</div></div></div>
+
+<nav class="bar" aria-label="슬라이드 이동">
+  <button type="button" id="prev">◀ 이전</button>
+  <span class="count" id="count" hidden>1</span>
+  <button type="button" id="next">다음 ▶</button>
+  <div class="dots" id="dots"></div>
+  <span class="title" id="stitle" hidden></span>
+  <button type="button" id="fs">전체 화면</button>
+</nav>
+
+<script>
+(() => {
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+const lerp=(a,b,t)=>a+(b-a)*t;
+const seg=(t,a,b)=>clamp((t-a)/(b-a),0,1);
+const ease=x=>x*x*(3-2*x);
+const mix=(c1,c2,t)=>c1.map((v,i)=>lerp(v,c2[i],t));
+function rng(seed){return function(){seed|=0;seed=seed+0x6D2B79F5|0;let t=Math.imul(seed^seed>>>15,1|seed);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+const FONT='"IBM Plex Sans KR","Malgun Gothic",sans-serif';
+const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
+function rr(c,x,y,w,h,r){c.beginPath();c.moveTo(x+r,y);c.arcTo(x+w,y,x+w,y+h,r);c.arcTo(x+w,y+h,x,y+h,r);c.arcTo(x,y+h,x,y,r);c.arcTo(x,y,x+w,y,r);c.closePath();}
+function pill(c,t,x,y,o={}){const s=(o.size||16)+3;c.save();c.globalAlpha*=(o.alpha??1);c.font=`700 ${s}px ${FONT}`;const w=c.measureText(t).width+s*1.2,h=s*1.8,x0=o.align==='left'?x:o.align==='right'?x-w:x-w/2;
+  rr(c,x0,y-h/2,w,h,h/2);c.fillStyle=o.fill||'#fff';c.fill();if(!o.fill){c.strokeStyle='#D5DAE0';c.lineWidth=1.3;c.stroke();}c.fillStyle=o.color||'#1D2733';c.textAlign='center';c.textBaseline='middle';c.fillText(t,x0+w/2,y+1);c.restore();}
+function arrow(c,x1,y1,x2,y2,o={}){const a0=o.alpha??1;if(a0<=0)return;const hd=o.head||14,col=o.color||'#A8324A';c.save();c.globalAlpha*=a0;c.strokeStyle=col;c.fillStyle=col;c.lineWidth=o.width||5;c.lineCap='round';
+  const a=Math.atan2(y2-y1,x2-x1);c.beginPath();c.moveTo(x1,y1);c.lineTo(x2-Math.cos(a)*hd*.7,y2-Math.sin(a)*hd*.7);c.stroke();c.beginPath();c.moveTo(x2,y2);c.lineTo(x2-Math.cos(a-.5)*hd,y2-Math.sin(a-.5)*hd);c.lineTo(x2-Math.cos(a+.5)*hd,y2-Math.sin(a+.5)*hd);c.closePath();c.fill();c.restore();}
+
+/* ================= deck ================= */
+const slides=[...document.querySelectorAll('.slide')];const N=slides.length;let cur=0;
+const deck=document.getElementById('deck'),frame=document.getElementById('frame'),vp=document.getElementById('viewport');
+function fit(){const r=vp.getBoundingClientRect();const cs=getComputedStyle(vp);const w=r.width-parseFloat(cs.paddingLeft)-parseFloat(cs.paddingRight),h=r.height-parseFloat(cs.paddingTop)-parseFloat(cs.paddingBottom);
+  const s=Math.max(.1,Math.min(w/1280,h/720));deck.style.transform=`scale(${s})`;frame.style.width=1280*s+'px';frame.style.height=720*s+'px';}
+new ResizeObserver(fit).observe(vp);
+const dots=document.getElementById('dots');slides.forEach((s,i)=>{const b=document.createElement('button');b.type='button';b.className='tab';b.id='tab-'+s.dataset.id;b.textContent=s.dataset.short;b.onclick=()=>go(i);dots.appendChild(b);});
+const hooks={};
+function go(i){cur=clamp(i,0,N-1);slides.forEach((s,k)=>s.hidden=k!==cur);document.getElementById('count').textContent=`${cur+1} / ${N}`;
+  document.getElementById('stitle').textContent=slides[cur].dataset.title;[...dots.children].forEach((b,k)=>b.setAttribute('aria-current',k===cur));
+  try{history.replaceState(null,'','#'+slides[cur].dataset.id);}catch(e){}const h=hooks[slides[cur].dataset.id];if(h)h();}
+document.getElementById('prev').onclick=()=>go(cur-1);document.getElementById('next').onclick=()=>go(cur+1);
+document.getElementById('fs').onclick=()=>{try{if(document.fullscreenElement)document.exitFullscreen();else{const p=document.documentElement.requestFullscreen?.();p&&p.catch&&p.catch(()=>{});}}catch(e){}};
+document.addEventListener('keydown',e=>{const t=(e.target.tagName||'').toLowerCase();if(t==='input')return;
+  if(['ArrowRight','PageDown'].includes(e.key)||(e.key===' '&&t!=='button')){e.preventDefault();go(cur+1);}
+  else if(['ArrowLeft','PageUp'].includes(e.key)){e.preventDefault();go(cur-1);}
+  else if(e.key==='Home')go(0);else if(e.key==='End')go(N-1);});
+
+/* title art: foliated bands */
+(()=>{const c=document.getElementById('titleCv').getContext('2d');const r=rng(3);
+  for(let i=0;i<34;i++){const x0=i*18-40;c.beginPath();c.moveTo(x0,0);for(let y=0;y<=720;y+=12)c.lineTo(x0+Math.sin(y/90+i*.4)*26+Math.sin(y/23)*3,y);for(let y=720;y>=0;y-=12)c.lineTo(x0+16+Math.sin(y/90+(i+1)*.4)*26,y);c.closePath();
+    const k=r();c.fillStyle=k<.45?'#202B37':k<.8?'#5E6B78':k<.95?'#C8CDD2':'#8E2E42';c.fill();}
+  for(let i=0;i<20;i++){c.fillStyle='#A8324A';c.beginPath();c.arc(r()*520,r()*720,4+r()*6,0,7);c.fill();}
+  const g=c.createLinearGradient(0,0,200,0);g.addColorStop(0,'#2B3A4A');g.addColorStop(1,'rgba(43,58,74,0)');c.fillStyle=g;c.fillRect(0,0,200,720);})();
+
+/* ================= SIM 1: recrystallization ================= */
+const GW=160,GH=100,NS=1700;
+const seeds=[];{const r=rng(42);for(let i=0;i<NS;i++)seeds.push({x:r()*GW,y:r()*GH,a:r(),b:r(),c:r()});}
+const m1={mode:'contact',rock:'shale',g:0,raf:0};
+const m1c=document.getElementById('m1cv'),m1x=m1c.getContext('2d');
+const off=document.createElement('canvas');off.width=GW;off.height=GH;const ox=off.getContext('2d');const img=ox.createImageData(GW,GH);const owner=new Int32Array(GW*GH);
+function seedColor(s,g,reg,rock){
+  const j=(s.b-.5)*22;
+  if(!reg&&rock==='limestone'){const base=mix([168,168,162],[238,238,233],ease(seg(g,.12,.7)));return (s.a<.25?mix(base,[192,198,204],.7):base).map(v=>v+j*.6);}
+  if(!reg&&rock==='sandstone'){const q=s.a<.78;const base=q?mix([206,178,128],[228,216,194],ease(seg(g,.12,.7))):mix([118,96,74],[160,146,126],g);return base.map(v=>v+j);}
+  if(!reg){const t=ease(seg(g,.1,.7));const base=s.a<.55?mix([88,84,80],[40,42,48],t):s.a<.9?mix([112,108,102],[96,100,108],t):mix([100,96,90],[150,140,128],t);return base.map(v=>v+j);}
+  const gn=seg(g,.72,.95);
+  if(g<.45){const sheen=seg(g,.28,.45);const base=mix([88,84,80],[58,62,70],ease(seg(g,.06,.28)));
+    return (s.c<.45*sheen?mix(base,[156,162,170],.7):base).map(v=>v+j);}
+  if(s.c>.968&&g<.9)return [150,38,52];
+  const band=Math.sin(s.x/GW*Math.PI*2*4.5);
+  const pDark=lerp(.4,band>0?.93:.06,gn);
+  if(s.a<pDark)return mix([62,62,66],[34,32,33],gn).map(v=>v+j*.6);
+  return (s.c<.5?mix([178,180,178],[230,224,214],gn):mix([196,196,188],[232,196,182],gn)).map(v=>v+j*.6);
+}
+function m1compute(){
+  const g=m1.g,reg=m1.mode==='regional',e=ease(g);
+  const n=Math.round(Math.exp(lerp(Math.log(NS),Math.log(reg?140:120),e)));
+  const k=reg?1+2.5*ease(Math.min(1,g/.72))-.7*seg(g,.78,1):1;
+  const W=GW*k,bs=Math.max(1.5,Math.sqrt(W*GH/n)),bw=Math.ceil(W/bs)+1,bh=Math.ceil(GH/bs)+1;
+  const heads=new Int32Array(bw*bh).fill(-1),nxt=new Int32Array(n);
+  for(let i=0;i<n;i++){const s=seeds[i];const b=Math.floor(s.y/bs)*bw+Math.floor(s.x*k/bs);nxt[i]=heads[b];heads[b]=i;}
+  for(let y=0;y<GH;y++)for(let x=0;x<GW;x++){const X=(x+.5)*k,Y=y+.5,bx=Math.floor(X/bs),by=Math.floor(Y/bs);let best=-1,bd=1e18;
+    for(let yy=by-2;yy<=by+2;yy++){if(yy<0||yy>=bh)continue;for(let xx=bx-2;xx<=bx+2;xx++){if(xx<0||xx>=bw)continue;for(let i=heads[yy*bw+xx];i!==-1;i=nxt[i]){const s=seeds[i],dx=s.x*k-X,dy=s.y-Y,d=dx*dx+dy*dy;if(d<bd){bd=d;best=i;}}}}
+    if(best<0){for(let i=0;i<n;i++){const s=seeds[i],dx=s.x*k-X,dy=s.y-Y,d=dx*dx+dy*dy;if(d<bd){bd=d;best=i;}}}
+    owner[y*GW+x]=best;}
+  const cols=new Array(n);for(let i=0;i<n;i++)cols[i]=seedColor(seeds[i],g,reg,m1.rock);
+  const edge=lerp(1,.78,seg(GW*GH/n,8,45));const lam=1-seg(g,0,reg?.3:.55);const d=img.data;
+  for(let y=0;y<GH;y++)for(let x=0;x<GW;x++){const i=y*GW+x,o=owner[i];let c=cols[o];let f=1;
+    const rt=x<GW-1?owner[i+1]:o,bt=y<GH-1?owner[i+GW]:o;if(rt!==o||bt!==o)f=edge;
+    const l=(m1.rock==='limestone'&&!reg?6:12)*lam*Math.sin(y*.75+Math.sin(x*.05)*1.5);
+    const p=i*4;d[p]=c[0]*f+l;d[p+1]=c[1]*f+l;d[p+2]=c[2]*f+l;d[p+3]=255;}
+  ox.putImageData(img,0,0);
+}
+function m1stage(){const g=m1.g;
+  if(m1.mode==='regional'){const L=[['셰일',.12,'퇴적암. 점토 알갱이가 아주 작고, 퇴적될 때 생긴 층리(가로 줄무늬)가 있다.'],['점판암',.3,'아주 작은 광물이 압력에 수직으로 나란히 늘어서기 시작한다. 얇은 판으로 잘 쪼개진다.'],['천매암',.45,'운모가 자라 표면에 비단 같은 광택이 난다. 줄무늬가 얇은 편리가 생긴다.'],['편암',.72,'광물이 눈에 보일 만큼 커지고 편리가 뚜렷하다. 석류석(붉은 알갱이) 같은 새 광물이 생기기도 한다.'],['편마암',1.01,'밝은 광물과 어두운 광물이 두꺼운 띠로 나뉜 편마 구조가 나타난다.']];
+    const i=L.findIndex(x=>g<x[1]);return {i,name:L[i][0],text:L[i][2],list:L.map(x=>x[0])};}
+  const R={shale:['셰일','혼펠스','퇴적암. 점토 알갱이가 아주 작고 층리가 있다.','광물이 재결정되어 치밀하고 단단해졌다. 압력이 낮아 엽리는 생기지 않는다.'],
+    sandstone:['사암','규암','모래 크기의 석영 알갱이가 다져지고 굳어진 퇴적암.','석영 알갱이가 서로 맞물리게 재결정되어 매우 단단하다. 엽리는 없다.'],
+    limestone:['석회암','대리암','방해석 알갱이가 작은 퇴적암.','방해석이 크게 재결정되어 반짝이는 결정이 보인다. 엽리는 없다.']}[m1.rock];
+  if(g<.15)return {i:0,name:R[0],text:R[2],list:[R[0],R[1]]};
+  if(g<.45)return {i:0,name:R[0]+' → '+R[1],text:'재결정 작용이 진행 중이다. 작은 알갱이가 사라지고 큰 알갱이가 자란다.',list:[R[0],R[1]],mid:true};
+  return {i:1,name:R[1],text:R[3],list:[R[0],R[1]]};
+}
+function m1draw(){
+  m1compute();const c=m1x,W=640,H=400,reg=m1.mode==='regional',g=m1.g;c.setTransform(2,0,0,2,0,0);c.clearRect(0,0,W,H);
+  c.save();rr(c,0,0,W,H,10);c.clip();c.imageSmoothingEnabled=false;c.drawImage(off,0,0,W,H);
+  const tg=c.createLinearGradient(0,0,0,H);tg.addColorStop(0,`rgba(230,100,40,${.22*g})`);tg.addColorStop(.25,'rgba(230,100,40,0)');tg.addColorStop(.75,'rgba(230,100,40,0)');tg.addColorStop(1,`rgba(230,100,40,${.22*g})`);c.fillStyle=tg;c.fillRect(0,0,W,H);c.restore();
+  if(reg){[90,200,310].forEach(y=>{arrow(c,4,y,18+44*g,y,{color:'#2F65A0',width:6,alpha:.3+.7*g});arrow(c,W-4,y,W-18-44*g,y,{color:'#2F65A0',width:6,alpha:.3+.7*g});});
+    pill(c,'압력',40,50,{fill:'#2F65A0',color:'#fff',size:15});pill(c,'압력',W-40,50,{fill:'#2F65A0',color:'#fff',size:15});
+    if(g>.2)pill(c,'광물이 압력에 수직으로 배열 → 엽리',W/2,H-24,{size:15,alpha:seg(g,.2,.3)});}
+  else{c.save();const hg=c.createLinearGradient(0,0,70,0);hg.addColorStop(0,`rgba(232,104,42,${.9*g})`);hg.addColorStop(1,'rgba(232,104,42,0)');c.fillStyle=hg;c.fillRect(0,0,70,H);c.restore();
+    [100,200,300].forEach(y=>arrow(c,8,y,30+40*g,y,{color:'#E8682A',width:5,alpha:.25+.75*g}));pill(c,'마그마의 열',60,40,{fill:'#D2632A',color:'#fff',size:15,align:'left'});
+    if(g>.45)pill(c,'방향성 없이 치밀하고 단단한 조직',W/2,H-24,{size:15,alpha:seg(g,.45,.55)});}
+  const st=m1stage();
+  document.getElementById('m1gv').textContent=Math.round(g*100)+'%';
+  document.getElementById('m1t').textContent=Math.round(reg?200+500*g:200+600*g)+' °C';
+  document.getElementById('m1p').textContent=reg?`깊이 약 ${Math.round(5+25*g)} km`:'낮음 (얕은 곳)';
+  document.getElementById('m1stages').innerHTML=st.list.map((n,i)=>`<span class="${i===st.i&&!st.mid?'on':''}">${n}</span>`).join('<i>→</i>');
+  document.getElementById('m1res').innerHTML=`<strong>${st.name}</strong><p>${st.text}</p>`;
+}
+const m1g=document.getElementById('m1g'),m1play=document.getElementById('m1play');
+function m1set(g){m1.g=g;m1g.value=g;m1draw();}
+function m1stop(){if(m1.raf)cancelAnimationFrame(m1.raf);m1.raf=0;m1play.textContent=m1.g>=1?'▶ 다시 보기':'▶ 변성 시작';}
+m1g.oninput=()=>{m1stop();m1set(+m1g.value);};
+m1play.onclick=()=>{if(m1.raf){m1stop();return;}if(m1.g>=1)m1set(0);if(reduce){m1set(1);m1stop();return;}let last=performance.now();m1play.textContent='❚❚ 멈춤';
+  const step=t=>{const dt=Math.min(.05,(t-last)/1000);last=t;m1set(Math.min(1,m1.g+dt/9));if(m1.g>=1){m1stop();return;}m1.raf=requestAnimationFrame(step);};m1.raf=requestAnimationFrame(step);};
+document.getElementById('m1reset').onclick=()=>{m1stop();m1set(0);m1stop();};
+function segBind(id,fn){const el=document.getElementById(id);el.querySelectorAll('button').forEach(b=>b.onclick=()=>{el.querySelectorAll('button').forEach(x=>x.setAttribute('aria-pressed',x===b));fn(b.dataset.v);});}
+segBind('m1mode',v=>{m1stop();m1.mode=v;if(v==='regional')m1.rock='shale';document.getElementById('m1rockWrap').hidden=v==='regional';
+  document.getElementById('m1rock').querySelectorAll('button').forEach(x=>x.setAttribute('aria-pressed',x.dataset.v===m1.rock));
+  document.getElementById('m1gl').textContent=v==='regional'?'변성 정도 (온도·압력)':'마그마의 열 (온도)';m1set(0);m1stop();});
+segBind('m1rock',v=>{m1stop();m1.rock=v;m1set(0);m1stop();});
+hooks.lab1=()=>m1draw();
+
+/* ================= SIM 2: structures ================= */
+const m2={sc:'fold',g:0,raf:0};
+const m2c=document.getElementById('m2cv'),m2x=m2c.getContext('2d');
+const LC=['#D9C58F','#B98A5E','#E6D7B4','#9C7A5A','#CBA97B','#7E6450'];
+const SC={
+  fold:{max:2,force:'횡압력 (→ ←)',move:'–',cap:'단면 모식도 · 지하 깊은 곳 (고온·고압)',label:['힘이 작용한 정도','침식까지 보기'],res:['습곡','지층이 끊어지지 않고 휘어졌다. 위로 볼록한 부분은 배사, 아래로 볼록한 부분은 향사.'],res2:['습곡 + 침식','지표가 깎이면 배사의 중심부에는 오래된 지층이, 향사의 중심부에는 젊은 지층이 드러난다.']},
+  reverse:{max:1,force:'횡압력 (→ ←)',move:'위로',cap:'단면 모식도 · 지표 부근',res:['역단층','양쪽에서 미는 힘을 받아 상반이 단층면을 따라 위로 올라갔다.']},
+  normal:{max:1,force:'장력 (← →)',move:'아래로',cap:'단면 모식도 · 지표 부근',res:['정단층','양쪽으로 당기는 힘을 받아 상반이 중력에 의해 아래로 내려갔다.']},
+  strike:{max:1,force:'수평 방향의 힘 (⇅)',move:'수평 이동',cap:'위에서 본 모습 (지도)',res:['주향이동 단층','두 암반이 수평으로 서로 반대 방향으로 이동해 강과 길이 어긋났다.']}
+};
+function layersBands(c,top,x0,x1,th=34){LC.forEach((col,i)=>{c.fillStyle=col;c.fillRect(x0,top+i*th,x1-x0,th+1);});c.fillStyle='#6E5C4D';c.fillRect(x0,top+LC.length*th,x1-x0,800);
+  c.fillStyle='#6F9A4E';c.fillRect(x0,top-8,x1-x0,9);}
+function m2draw(){
+  const c=m2x,W=760,H=420,g=m2.g,s=SC[m2.sc];c.setTransform(2,0,0,2,0,0);c.clearRect(0,0,W,H);
+  c.save();rr(c,0,0,W,H,10);c.clip();c.fillStyle='#DCE7F0';c.fillRect(0,0,W,H);
+  let resKey='res';
+  if(m2.sc==='fold'){
+    const p1=ease(clamp(g,0,1)),p2=ease(clamp(g-1,0,1)),A=70*p1,th=34,top0=150;
+    const yb=(i,x)=>top0+i*th-A*Math.cos(2*Math.PI*(x-380)/300);
+    const cut=p2>0?lerp(70,205,p2):-1;
+    for(let i=0;i<=LC.length;i++){c.beginPath();c.moveTo(0,H+10);for(let x=0;x<=W;x+=4)c.lineTo(x,yb(i,x));c.lineTo(W,H+10);c.closePath();c.fillStyle=i===LC.length?'#6E5C4D':LC[i];c.fill();}
+    c.beginPath();for(let x=0;x<=W;x+=4)x?c.lineTo(x,yb(0,x)):c.moveTo(x,yb(0,x));c.strokeStyle='#6F9A4E';c.lineWidth=7;c.stroke();
+    if(cut>0){c.fillStyle='#DCE7F0';c.fillRect(0,0,W,cut);
+      c.beginPath();for(let x=0;x<=W;x+=4){const y=Math.max(cut,yb(0,x));x?c.lineTo(x,y):c.moveTo(x,y);}c.strokeStyle='#6F9A4E';c.lineWidth=6;c.stroke();resKey='res2';}
+    const fa=1-seg(g,1,1.15);arrow(c,8,300,70,300,{alpha:fa*(.3+.7*p1),width:8,head:20});arrow(c,W-8,300,W-70,300,{alpha:fa*(.3+.7*p1),width:8,head:20});
+    if(p1>.4){const a=seg(g,.4,.6);c.save();c.globalAlpha=a;c.setLineDash([6,5]);c.strokeStyle='#1D2733';c.lineWidth=2;[380,530].forEach(x=>{c.beginPath();c.moveTo(x,60);c.lineTo(x,H);c.stroke();});c.restore();
+      pill(c,'배사',380,cut>0?40:yb(0,380)-28,{alpha:a});pill(c,'향사',530,cut>0?40:yb(0,530)-28,{alpha:a});pill(c,'습곡축',650,90,{size:14,alpha:a*(1-seg(g,1,1.2))});}
+    if(cut>0){const a=seg(g,1.6,1.9);pill(c,'오래된 지층',380,cut+40,{alpha:a,fill:'#A8324A',color:'#fff',size:15});pill(c,'젊은 지층',530,yb(0,530)+30,{alpha:a,fill:'#2F65A0',color:'#fff',size:15});}
+    pill(c,'가장 젊은 지층',20,yb(0,20)+17,{size:13,align:'left',alpha:1-seg(g,1,1.1)});pill(c,'가장 오래된 지층',20,yb(5,20)+17,{size:13,align:'left',alpha:1-seg(g,1,1.1)});
+  } else if(m2.sc==='strike'){
+    const d=60*ease(g),fx=380;
+    const drawSide=(left,dy)=>{c.save();c.beginPath();left?c.rect(0,0,fx,H):c.rect(fx,0,W-fx,H);c.clip();c.translate(0,dy);
+      c.fillStyle='#A9C47F';c.fillRect(0,-100,W,H+200);c.fillStyle='#C8D99E';[[60,40,120,70],[520,280,150,90],[200,300,110,80],[560,40,140,70]].forEach(r=>c.fillRect(...r));
+      c.strokeStyle='#4A8FC4';c.lineWidth=16;c.lineCap='round';c.beginPath();c.moveTo(-20,170);c.bezierCurveTo(150,120,250,230,380,190);c.bezierCurveTo(500,150,620,240,780,200);c.stroke();
+      c.strokeStyle='#8A8F96';c.lineWidth=12;c.beginPath();c.moveTo(-20,300);c.lineTo(780,250);c.stroke();c.strokeStyle='#fff';c.lineWidth=2;c.setLineDash([10,10]);c.stroke();c.setLineDash([]);c.restore();};
+    drawSide(true,-d);drawSide(false,d);
+    c.strokeStyle='#A8324A';c.lineWidth=4;c.beginPath();c.moveTo(fx,0);c.lineTo(fx,H);c.stroke();
+    arrow(c,fx-40,280,fx-40,180,{width:7,head:18,alpha:.3+.7*ease(g)});arrow(c,fx+40,140,fx+40,240,{width:7,head:18,alpha:.3+.7*ease(g)});
+    pill(c,'단층선',fx,30,{fill:'#A8324A',color:'#fff',size:15});pill(c,'강',90,120,{size:14});pill(c,'도로',90,330,{size:14});
+    if(g>.5)pill(c,'수평으로 어긋남',fx,H-30,{alpha:seg(g,.5,.7)});
+  } else {
+    const top=170,u=[.5,-.866],d=70*ease(g)*(m2.sc==='reverse'?1:-1),px=420,py=300;
+    const side=(x,y)=>(x-px)*u[1]-(y-py)*u[0];
+    const L=1500,P1=[px-u[0]*L,py-u[1]*L],P2=[px+u[0]*L,py+u[1]*L];
+    c.save();c.beginPath();c.moveTo(P1[0],P1[1]);c.lineTo(P2[0],P2[1]);c.lineTo(-2000,P2[1]);c.lineTo(-2000,P1[1]);c.closePath();c.clip();c.translate(u[0]*d,u[1]*d);layersBands(c,top,-400,1200);c.restore();
+    c.save();c.beginPath();c.moveTo(P1[0],P1[1]);c.lineTo(P2[0],P2[1]);c.lineTo(3000,P2[1]);c.lineTo(3000,P1[1]);c.closePath();c.clip();layersBands(c,top,-400,1200);c.restore();
+    c.strokeStyle='#A8324A';c.lineWidth=4;c.beginPath();c.moveTo(px-u[0]*400,py-u[1]*400);c.lineTo(px+u[0]*400,py+u[1]*400);c.stroke();
+    const out=m2.sc==='normal',fa=.3+.7*ease(g);
+    if(out){arrow(c,140,120,40,120,{width:8,head:20,alpha:fa});arrow(c,W-140,120,W-40,120,{width:8,head:20,alpha:fa});}
+    else{arrow(c,40,120,140,120,{width:8,head:20,alpha:fa});arrow(c,W-40,120,W-140,120,{width:8,head:20,alpha:fa});}
+    const sgn=m2.sc==='reverse'?1:-1;
+    if(g>.15){const a=seg(g,.15,.3);arrow(c,px-50+u[0]*(-30*sgn),py+40+u[1]*(-30*sgn),px-50+u[0]*(30*sgn),py+40+u[1]*(30*sgn),{width:4,head:11,alpha:a,color:'#1D2733'});
+      arrow(c,px+50+u[0]*(30*sgn),py+u[1]*(30*sgn),px+50+u[0]*(-30*sgn),py+u[1]*(-30*sgn),{width:4,head:11,alpha:a,color:'#1D2733'});}
+    pill(c,'상반',160+u[0]*d,330+u[1]*d,{fill:'#2B3A4A',color:'#fff'});pill(c,'하반',620,340,{fill:'#2B3A4A',color:'#fff'});
+    pill(c,'단층면',px+u[0]*170+50,py+u[1]*170,{fill:'#A8324A',color:'#fff',size:15});
+  }
+  c.restore();
+  document.getElementById('m2gv').textContent=Math.round(g/s.max*100)+'%';
+  document.getElementById('m2f').textContent=s.force;document.getElementById('m2m').textContent=s.move;document.getElementById('m2cap').textContent=s.cap;
+  const done=m2.sc==='fold'?g>=.6:g>=.5;const r=s[resKey];
+  document.getElementById('m2res').innerHTML=done?`<strong>${r[0]}</strong><p>${r[1]}</p>`:`<strong>?</strong><p>힘을 가하면 어떤 구조가 생길지 예상해 보자.</p>`;
+  document.getElementById('m2gl').textContent=m2.sc==='fold'&&g>1?'침식':'힘이 작용한 정도';
+}
+const m2g=document.getElementById('m2g'),m2play=document.getElementById('m2play');
+function m2set(g){m2.g=g;m2g.value=g;m2draw();}
+function m2stop(){if(m2.raf)cancelAnimationFrame(m2.raf);m2.raf=0;const s=SC[m2.sc];m2play.textContent=m2.g>=s.max?'▶ 다시 보기':m2.sc==='fold'&&m2.g>=1?'▶ 침식시키기':'▶ 힘 가하기';}
+m2g.oninput=()=>{m2stop();m2set(+m2g.value);m2stop();};
+m2play.onclick=()=>{if(m2.raf){m2stop();return;}const s=SC[m2.sc];if(m2.g>=s.max)m2set(0);const target=m2.sc==='fold'&&m2.g>=1?2:(m2.sc==='fold'?1:s.max);
+  if(reduce){m2set(target);m2stop();return;}let last=performance.now();m2play.textContent='❚❚ 멈춤';
+  const step=t=>{const dt=Math.min(.05,(t-last)/1000);last=t;m2set(Math.min(target,m2.g+dt/4));if(m2.g>=target){m2stop();return;}m2.raf=requestAnimationFrame(step);};m2.raf=requestAnimationFrame(step);};
+document.getElementById('m2reset').onclick=()=>{m2stop();m2set(0);m2stop();};
+segBind('m2sc',v=>{m2stop();m2.sc=v;m2g.max=SC[v].max;m2set(0);m2stop();});
+hooks.lab2=()=>m2draw();
+
+/* ================= SIM 3: rock cycle ================= */
+const NODES={mag:{x:230,y:92,n:'마그마',ex:'',col:'#E8682A'},ign:{x:530,y:92,n:'화성암',ex:'화강암 · 현무암',col:'#8E6E66'},sed:{x:652,y:270,n:'퇴적물',ex:'자갈 · 모래 · 점토',col:'#C9A77A'},
+  sr:{x:380,y:410,n:'퇴적암',ex:'사암 · 셰일 · 석회암',col:'#B98A5E'},met:{x:110,y:270,n:'변성암',ex:'규암 · 편마암 · 대리암',col:'#5E6B78'}};
+const E=[
+  {f:'mag',t:'ign',l:'냉각',e:'in',bend:-60},{f:'ign',t:'sed',l:'풍화·침식·퇴적',e:'sun',bend:-50},{f:'sed',t:'sr',l:'다져짐·굳어짐',e:'grav',bend:-50},
+  {f:'sr',t:'met',l:'변성 (열·압력)',e:'in',bend:-50,lt:.32},{f:'met',t:'mag',l:'용융',e:'in',bend:-50},
+  {f:'ign',t:'mag',l:'용융',e:'in',bend:-18},{f:'ign',t:'met',l:'변성 (열·압력)',e:'in',bend:0,lt:.3},{f:'met',t:'sed',l:'풍화·침식·퇴적',e:'sun',bend:0,lt:.62},
+  {f:'sr',t:'sed',l:'풍화·침식·퇴적',e:'sun',bend:10},{f:'sr',t:'mag',l:'용융',e:'in',bend:0,lt:.62},{f:'met',t:'met',l:'변성 (열·압력)',e:'in',loop:true}];
+const ECOL={in:'#D2632A',sun:'#2F65A0',grav:'#7A7F86'};
+const svg=document.getElementById('cyc');const NS_='http://www.w3.org/2000/svg';const R=50;
+const el=(t,a,p)=>{const e=document.createElementNS(NS_,t);for(const k in a)e.setAttribute(k,a[k]);(p||svg).appendChild(e);return e;};
+const defs=el('defs',{});['in','sun','grav'].forEach(k=>{const m=el('marker',{id:'mk-'+k,viewBox:'0 0 10 10',refX:'7',refY:'5',markerWidth:'4',markerHeight:'4',orient:'auto-start-reverse'},defs);el('path',{d:'M0 0L10 5L0 10Z',fill:ECOL[k]},m);});
+const gA=el('g',{}),gL=el('g',{}),gN=el('g',{});
+E.forEach((e,i)=>{let d,lx,ly;const A=NODES[e.f],B=NODES[e.t];
+  if(e.loop){d=`M ${A.x-30} ${A.y+40} C ${A.x-80} ${A.y+120}, ${A.x+30} ${A.y+135}, ${A.x+12} ${A.y+52}`;lx=A.x-12;ly=A.y+128;}
+  else{const dx=B.x-A.x,dy=B.y-A.y,L=Math.hypot(dx,dy),ux=dx/L,uy=dy/L,nx=-uy,ny=ux;const sx=A.x+ux*R,sy=A.y+uy*R,tx=B.x-ux*(R+6),ty=B.y-uy*(R+6);
+    const mx=(sx+tx)/2+nx*e.bend*2,my=(sy+ty)/2+ny*e.bend*2;d=`M ${sx} ${sy} Q ${mx} ${my} ${tx} ${ty}`;const t=e.lt??.5;
+    lx=(1-t)*(1-t)*sx+2*(1-t)*t*mx+t*t*tx;ly=(1-t)*(1-t)*sy+2*(1-t)*t*my+t*t*ty;}
+  e.path=el('path',{d,class:'arc',stroke:ECOL[e.e],'marker-end':`url(#mk-${e.e})`,'data-i':i},gA);
+  if(e.loop)e.path.setAttribute('stroke-dasharray','5 5');
+  const g=el('g',{class:'lbl'},gL);const tx=el('text',{x:lx,y:ly+5,'text-anchor':'middle'},g);tx.textContent=e.l;
+  requestAnimationFrame(()=>{try{const b=tx.getBBox();const r=el('rect',{x:b.x-5,y:b.y-2,width:b.width+10,height:b.height+4,rx:6},g);g.insertBefore(r,tx);r.setAttribute('stroke',ECOL[e.e]);r.setAttribute('stroke-width','1.2');}catch(err){}});
+  e.lbl=g;e.path.addEventListener('click',()=>travel(i));g.style.cursor='pointer';g.addEventListener('click',()=>travel(i));});
+Object.entries(NODES).forEach(([k,n])=>{const g=el('g',{class:'node'},gN);el('circle',{cx:n.x,cy:n.y,r:R,fill:'#fff',stroke:n.col},g);
+  const t=el('text',{x:n.x,y:n.y+(n.ex?-2:7)},g);t.textContent=n.n;if(n.ex){const e2=el('text',{x:n.x,y:n.y+20,class:'ex'},g);e2.textContent=n.ex;}n.g=g;n.c=g.querySelector('circle');});
+const token=el('circle',{r:13,fill:'#A8324A',stroke:'#fff','stroke-width':3});
+const m3={at:'ign',filter:'all',busy:false,log:[]};
+function m3render(){
+  E.forEach(e=>{const on=m3.filter==='all'||e.e===m3.filter;const go=e.f===m3.at&&!m3.busy;e.path.classList.toggle('go',go);e.path.style.opacity=on?(go?1:.45):.1;e.lbl.style.opacity=on?(go?1:.6):.12;});
+  Object.entries(NODES).forEach(([k,n])=>{n.c.setAttribute('stroke-width',k===m3.at?6:3);n.c.setAttribute('fill',k===m3.at?'#F7E4E8':'#fff');});
+  const n=NODES[m3.at];if(!m3.busy){token.setAttribute('cx',n.x+36);token.setAttribute('cy',n.y-36);}
+  const lg=document.getElementById('m3log');lg.innerHTML=`<b>출발: 화성암</b>`+m3.log.map(s=>`<br><span class="via">— ${s.l} →</span> <b>${s.to}</b>`).join('')+(m3.log.length?'':'<br><span class="via">현재 위치에서 나가는 굵은 화살표를 눌러 보자.</span>');lg.scrollTop=1e6;
+}
+function travel(i,cb){const e=E[i];if(m3.busy||e.f!==m3.at){cb&&cb();return;}m3.busy=true;m3render();const p=e.path,L=p.getTotalLength();const t0=performance.now(),dur=reduce?1:900;
+  const step=t=>{const k=Math.min(1,(t-t0)/dur);const pt=p.getPointAtLength(L*ease(k));token.setAttribute('cx',pt.x);token.setAttribute('cy',pt.y);
+    if(k<1)requestAnimationFrame(step);else{m3.at=e.t;m3.busy=false;m3.log.push({l:e.l,to:NODES[e.t].n});m3render();cb&&cb();}};requestAnimationFrame(step);}
+document.getElementById('m3rand').onclick=()=>{let n=3;const r=rng(Date.now()&0xffff);const hop=()=>{if(n--<=0)return;const opts=E.map((e,i)=>i).filter(i=>E[i].f===m3.at&&(m3.filter==='all'||E[i].e===m3.filter));
+  if(!opts.length)return;travel(opts[Math.floor(r()*opts.length)],()=>setTimeout(hop,250));};hop();};
+document.getElementById('m3reset').onclick=()=>{if(m3.busy)return;m3.at='ign';m3.log=[];m3render();};
+segBind('m3e',v=>{m3.filter=v;m3render();});
+m3render();
+
+
+/* ================= QUIZ ================= */
+const QZ=[
+ {q:'마그마가 관입하면서 주변 암석이 주로 열을 받아 변하는 작용은?',o:['광역 변성 작용','접촉 변성 작용','풍화 작용','다져짐 작용'],a:1,ex:'관입한 마그마의 열과 휘발 성분 때문에 맞닿은 부분에서 일어나는 변성 작용이 접촉 변성 작용이다.',lab:'lab1'},
+ {q:'셰일이 접촉 변성 작용을 받아 만들어지는 암석은?',o:['규암','대리암','혼펠스','편마암'],a:2,ex:'셰일 → 혼펠스, 사암 → 규암, 석회암 → 대리암',lab:'lab1'},
+ {q:'광역 변성 작용으로 셰일이 변하는 순서로 옳은 것은?',o:['셰일 → 점판암 → 천매암 → 편암 → 편마암','셰일 → 편암 → 천매암 → 점판암 → 편마암','셰일 → 천매암 → 점판암 → 편마암 → 편암','셰일 → 혼펠스 → 편암 → 편마암 → 점판암'],a:0,ex:'변성 정도가 커질수록 점판암, 천매암, 편암, 편마암 순으로 변한다.',lab:'lab1'},
+ {q:'엽리에 대한 설명으로 옳은 것은?',o:['퇴적될 때 생긴 가로 줄무늬이다','열만 받으면 생긴다','압력과 같은 방향으로 광물이 늘어선다','압력에 수직한 방향으로 광물이 나란히 배열된다'],a:3,ex:'광역 변성 작용에서 압력이 작용한 방향에 수직으로 광물이 배열되어 엽리가 생긴다. 퇴적 줄무늬는 층리이다.',lab:'lab1'},
+ {q:'재결정 작용에 대한 설명으로 옳은 것은?',o:['새 온도·압력 조건에 맞는 광물이 생기거나 광물 입자가 커진다','암석이 녹아 마그마가 된다','암석이 잘게 부서져 퇴적물이 된다','퇴적물이 다져지고 굳어진다'],a:0,ex:'재결정 작용은 고체 상태에서 일어난다. 녹는 것은 용융이다.',lab:'lab1'},
+ {q:'양쪽으로 당기는 장력이 작용하는 발산형 경계에서 주로 생기는 지질 구조는?',o:['역단층','습곡','정단층','주향이동 단층'],a:2,ex:'장력을 받으면 상반이 중력에 의해 아래로 내려가는 정단층이 생긴다.',lab:'lab2'},
+ {q:'상반이 단층면을 따라 위로 올라간 단층과, 이때 작용한 힘을 바르게 짝 지은 것은?',o:['정단층 – 장력','역단층 – 횡압력','역단층 – 장력','정단층 – 횡압력'],a:1,ex:'양쪽에서 미는 횡압력을 받으면 상반이 위로 올라가는 역단층이 생긴다.',lab:'lab2'},
+ {q:'습곡이 침식되어 지표에 드러났을 때, 배사의 중심부에 분포하는 지층은?',o:['가장 젊은 지층','가장 오래된 지층','화성암','항상 같은 나이의 지층'],a:1,ex:'배사 중심부에는 오래된 지층이, 향사 중심부에는 젊은 지층이 드러난다.',lab:'lab2'},
+ {q:'두 판이 수평으로 서로 반대 방향으로 어긋나는 보존형 경계에서 생기는 단층은?',o:['정단층','역단층','습곡','주향이동 단층'],a:3,ex:'보존형 경계에서는 주향이동 단층인 변환 단층이 생긴다.',lab:'lab2'},
+ {q:'암석의 순환에서 풍화·침식과 퇴적물의 이동을 일으키는 에너지는?',o:['태양 에너지','지구 내부 에너지','조력 에너지','핵에너지'],a:0,ex:'풍화·침식·퇴적은 물의 순환을 일으키는 태양 에너지, 변성과 용융은 지구 내부 에너지 때문에 일어난다.',lab:'lab3'}
+];
+const qz={i:0,ans:[]};const qbox=document.getElementById('qz');const LABN={lab1:'실험실 1',lab2:'실험실 2',lab3:'실험실 3'};
+const prog=()=>`<div class="qprog">${QZ.map((_,k)=>`<i class="${k<qz.ans.length?(qz.ans[k]===QZ[k].a?'ok':'no'):k===qz.i?'cur':''}"></i>`).join('')}</div>`;
+function qrender(){
+  if(qz.i>=QZ.length){const sc=qz.ans.filter((a,k)=>a===QZ[k].a).length;const wrong=QZ.map((x,k)=>({x,k})).filter(o=>qz.ans[o.k]!==o.x.a);
+    document.getElementById('qzKick').textContent='형성평가 · 결과';
+    qbox.innerHTML=prog()+`<div style="display:flex;gap:28px;align-items:center"><div class="qscore">${sc}<span style="font-size:44px"> / ${QZ.length}</span></div>
+      <p class="lead">${sc===QZ.length?'모두 맞혔어요! 남은 질문 “산봉우리는 모두 배사일까?”에 도전해 보세요.':sc>=7?'잘했어요. 틀린 문제의 실험실을 다시 살펴보세요.':'틀린 문제와 연결된 실험실을 다시 탐구한 뒤 한 번 더 풀어 보세요.'}</p></div>
+      ${wrong.length?`<div class="card" style="overflow:auto;flex:1;min-height:0"><b style="font-size:22px">다시 볼 문제</b>${wrong.map(o=>`<p style="font-size:20px;margin-top:8px">${o.k+1}. ${o.x.q}<br><span class="muted">정답: ${o.x.o[o.x.a]}</span> &nbsp;<button class="btn" type="button" data-go="${o.x.lab}" style="font-size:16px;padding:4px 10px">${LABN[o.x.lab]} 다시 보기</button></p>`).join('')}</div>`:''}
+      <div class="btns"><button class="btn primary" type="button" id="qAgain">↺ 다시 풀기</button></div>`;
+    document.getElementById('qAgain').onclick=()=>{qz.i=0;qz.ans=[];qrender();};bindGo(qbox);return;}
+  const x=QZ[qz.i],done=qz.ans.length>qz.i;document.getElementById('qzKick').textContent=`형성평가 · ${qz.i+1} / ${QZ.length}`;
+  qbox.innerHTML=prog()+`<p class="qq">${qz.i+1}. ${x.q}</p><div class="qopts">${x.o.map((o,k)=>`<button class="qopt${done?(k===x.a?' ok':k===qz.ans[qz.i]?' no':''):''}" type="button" data-k="${k}" ${done?'disabled':''}><b>${k+1}</b><span>${o}</span></button>`).join('')}</div>`+
+    (done?`<div class="qfb ${qz.ans[qz.i]===x.a?'ok':'no'}"><strong>${qz.ans[qz.i]===x.a?'정답입니다!':'다시 생각해 봐요. 정답은 '+(x.a+1)+'번'}</strong>${x.ex}</div><div class="btns" style="margin-top:auto"><button class="btn primary" type="button" id="qNext">${qz.i===QZ.length-1?'결과 보기':'다음 문제 ▶'}</button></div>`:'');
+  qbox.querySelectorAll('.qopt').forEach(b=>b.onclick=()=>{if(qz.ans.length>qz.i)return;qz.ans.push(+b.dataset.k);qrender();});
+  const n=document.getElementById('qNext');if(n)n.onclick=()=>{qz.i++;qrender();};
+}
+function bindGo(root){root.querySelectorAll('[data-go]').forEach(b=>b.onclick=()=>go(slides.findIndex(s=>s.dataset.id===b.dataset.go)));}
+bindGo(document);qrender();
+
+/* start */
+const id=(location.hash||'').slice(1);const si=slides.findIndex(s=>s.dataset.id===id);
+fit();go(si>=0?si:0);
+if(document.fonts&&document.fonts.ready)document.fonts.ready.then(()=>{const h=hooks[slides[cur].dataset.id];if(h)h();});
+})();
+</script>
+</body>
+</html>
