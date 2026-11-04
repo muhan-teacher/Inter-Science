@@ -1,0 +1,311 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>질문 광장</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=IBM+Plex+Sans+KR:wght@400;500;700&display=swap">
+<style>
+/* 질문 광장: warm paper plaza. Left column = write a question, right = the square where questions gather. */
+:root{
+  --bg:#F6F1E7;--paper:#FFFDF8;--ink:#1D2A44;--muted:#6B7280;--line:#E4DCCB;
+  --navy:#1F3A68;--accent:#E8622C;--accent-soft:#FDEBDF;--gold:#C98A12;--gold-soft:#FBF1D6;--ok:#2F8F5B;
+  --font-display:"Black Han Sans","Malgun Gothic",sans-serif;
+  --font-body:"IBM Plex Sans KR","Malgun Gothic","Apple SD Gothic Neo",sans-serif;
+  color-scheme:light;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#141922;--paper:#1C2330;--ink:#EEF0F4;--muted:#A0A8B8;--line:#2C3545;--navy:#9DB8F0;--accent:#FF8A57;--accent-soft:#3A2A22;--gold:#E8B54A;--gold-soft:#332B19;--ok:#5CC48A;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#141922;--paper:#1C2330;--ink:#EEF0F4;--muted:#A0A8B8;--line:#2C3545;--navy:#9DB8F0;--accent:#FF8A57;--accent-soft:#3A2A22;--gold:#E8B54A;--gold-soft:#332B19;--ok:#5CC48A;color-scheme:dark}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font-family:var(--font-body);font-size:18px;line-height:1.6;-webkit-text-size-adjust:100%}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.wrap{max-width:1180px;margin:0 auto;padding:24px 16px 56px}
+header{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:12px;margin-bottom:20px}
+.kicker{font-weight:700;color:var(--accent);font-size:15px;letter-spacing:.02em}
+h1{font-family:var(--font-display);font-weight:400;font-size:clamp(40px,6vw,60px);line-height:1.05;margin:2px 0 0;color:var(--navy)}
+.sub{color:var(--muted);font-size:16px;margin:6px 0 0}
+.grid{display:grid;grid-template-columns:minmax(0,360px) minmax(0,1fr);gap:24px;align-items:start}
+@media (max-width:860px){.grid{grid-template-columns:1fr}}
+.panel{background:var(--paper);border:1px solid var(--line);border-radius:18px;padding:20px}
+.compose{position:sticky;top:16px}
+@media (max-width:860px){.compose{position:static}}
+.compose h2{font-size:22px;margin:0 0 4px}
+.hint{font-size:14px;color:var(--muted);margin:0 0 14px}
+label.f{display:block;font-weight:700;font-size:15px;margin:12px 0 6px}
+input.t,select.t,textarea.t{width:100%;border:1.5px solid var(--line);background:var(--bg);border-radius:12px;padding:10px 12px;font-size:17px}
+textarea.t{min-height:130px;resize:vertical;line-height:1.55}
+.count{text-align:right;font-size:13px;color:var(--muted);margin-top:2px}
+.btn{border:0;border-radius:12px;padding:12px 18px;font-weight:700;font-size:17px;background:var(--accent);color:#fff}
+.btn:disabled{opacity:.5;cursor:default}
+.btn.wide{width:100%;margin-top:12px}
+.btn.ghost{background:transparent;color:var(--ink);border:1.5px solid var(--line);padding:8px 14px;font-size:15px}
+.msg{min-height:1.4em;font-size:15px;margin-top:8px}
+.msg.err{color:var(--accent)} .msg.ok{color:var(--ok)}
+.bar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:14px}
+.chips{display:flex;flex-wrap:wrap;gap:8px;flex:1 1 auto}
+.chip{border:1.5px solid var(--line);background:var(--paper);border-radius:999px;padding:6px 14px;font-size:15px;font-weight:500}
+.chip .cnt{display:inline-block;margin-left:6px;min-width:1.6em;padding:0 6px;border-radius:999px;background:var(--accent-soft);color:var(--accent);font-size:13px;font-weight:700}
+.chip[aria-pressed="true"]{background:var(--navy);border-color:var(--navy);color:var(--paper)}
+.tools{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.seg{display:inline-flex;border:1.5px solid var(--line);border-radius:999px;overflow:hidden}
+.seg button{border:0;background:transparent;padding:6px 14px;font-size:15px}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--paper)}
+.stamp{font-size:13px;color:var(--muted)}
+.feed{display:flex;flex-direction:column;gap:14px}
+.card{background:var(--paper);border:1px solid var(--line);border-radius:18px;padding:18px 20px}
+.card.pinned{border:2px solid var(--gold);background:linear-gradient(var(--gold-soft),var(--paper) 60%)}
+.card.hid{opacity:.55;border-style:dashed}
+.meta{display:flex;flex-wrap:wrap;gap:8px;align-items:center;font-size:14px;color:var(--muted)}
+.tag{background:var(--accent-soft);color:var(--accent);font-weight:700;border-radius:8px;padding:2px 10px;font-size:13px}
+.badge{background:var(--gold);color:#fff;font-weight:700;border-radius:8px;padding:2px 10px;font-size:13px}
+.badge.h{background:var(--muted)}
+.q{font-size:21px;font-weight:700;margin:8px 0 10px;white-space:pre-wrap;word-break:keep-all;overflow-wrap:anywhere}
+.acts{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.act{border:1.5px solid var(--line);background:transparent;border-radius:999px;padding:5px 14px;font-size:15px;display:inline-flex;gap:6px;align-items:center}
+.act.on{border-color:var(--accent);color:var(--accent);background:var(--accent-soft)}
+.act.mod{font-size:13px;padding:4px 10px;border-style:dashed}
+.thread{margin-top:14px;border-top:1px solid var(--line);padding-top:12px}
+.ans{padding:10px 14px;border-radius:12px;background:var(--bg);margin-bottom:8px}
+.ans p{margin:4px 0 6px;white-space:pre-wrap;word-break:keep-all;overflow-wrap:anywhere;font-size:17px}
+.ans.hid{opacity:.55}
+.reply{display:flex;gap:8px;align-items:flex-end;margin-top:6px}
+.reply textarea{min-height:56px;flex:1}
+.empty{text-align:center;color:var(--muted);padding:40px 12px;border:2px dashed var(--line);border-radius:18px}
+.notice{background:var(--gold-soft);border:1px solid var(--gold);border-radius:12px;padding:10px 14px;font-size:15px;margin-bottom:14px}
+footer{margin-top:28px;display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;font-size:14px;color:var(--muted)}
+.linkish{background:none;border:0;color:var(--muted);text-decoration:underline;font-size:14px;padding:0}
+.tbox{display:flex;gap:8px;align-items:center}
+.tbox input{width:140px;padding:6px 10px;font-size:15px}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div>
+      <div class="kicker">지구과학Ⅱ · 함께 묻고 함께 답하기</div>
+      <h1>질문 광장</h1>
+      <p class="sub">수업이 끝난 뒤 새로 생긴 질문을 올리고, 친구의 질문에 내 생각을 답해 보세요.</p>
+    </div>
+  </header>
+
+  <div class="grid">
+    <section class="panel compose" aria-labelledby="cTitle">
+      <h2 id="cTitle">새로 생긴 질문 올리기</h2>
+      <p class="hint">자기평가를 마친 뒤, 아직 궁금한 것을 한 문장 이상으로 써 보세요. 이름·연락처 같은 개인정보는 쓰지 않아요.</p>
+      <label class="f" for="nick">닉네임</label>
+      <input class="t" id="nick" maxlength="12" placeholder="예: 별빛탐험가" autocomplete="off">
+      <label class="f" for="unit">단원</label>
+      <select class="t" id="unit"></select>
+      <label class="f" for="qText">질문</label>
+      <textarea class="t" id="qText" maxlength="400" placeholder="예: 달이 지구에서 더 멀어지면 개기일식은 앞으로 사라질까?"></textarea>
+      <div class="count"><span id="qCount">0</span> / 400</div>
+      <button class="btn wide" id="qSend">광장에 게시하기</button>
+      <div class="msg" id="qMsg" role="status" aria-live="polite"></div>
+    </section>
+
+    <section aria-labelledby="fTitle">
+      <h2 id="fTitle" class="sr">광장에 모인 질문</h2>
+      <div class="notice" id="setupNote" hidden>광장이 아직 서버와 연결되지 않았어요. 선생님께 알려 주세요.</div>
+      <div class="bar">
+        <div class="chips" id="chips" role="group" aria-label="단원 고르기"></div>
+        <div class="tools">
+          <div class="seg" role="group" aria-label="정렬">
+            <button id="sNew" aria-pressed="true">최신순</button><button id="sLike" aria-pressed="false">공감순</button>
+          </div>
+          <button class="btn ghost" id="refresh">새로고침</button>
+          <span class="stamp" id="stamp"></span>
+        </div>
+      </div>
+      <div class="feed" id="feed"><div class="empty">질문을 불러오는 중…</div></div>
+    </section>
+  </div>
+
+  <footer>
+    <span>질문은 선생님의 구글 시트에 저장돼요. 부적절한 글은 선생님이 숨길 수 있어요.</span>
+    <span class="tbox" id="tBox"><button class="linkish" id="tOpen">교사 모드</button></span>
+  </footer>
+</div>
+
+<script>
+(()=>{
+const API = 'https://script.google.com/macros/s/AKfycbwLidPLj12_EPKccx74qMUKS4L6KPqFDcdsThc6XPyJcB9rl9_udlTyX5JTI9FyAT40Uw/exec';   // ← Apps Script 웹앱 URL
+const $ = id => document.getElementById(id);
+const store = { get(k,d){ try{ const v=localStorage.getItem(k); return v==null?d:JSON.parse(v);}catch(e){return d;} }, set(k,v){ try{localStorage.setItem(k,JSON.stringify(v));}catch(e){} } };
+const sess = { get(k){ try{return sessionStorage.getItem(k);}catch(e){return null;} }, set(k,v){ try{ v==null?sessionStorage.removeItem(k):sessionStorage.setItem(k,v);}catch(e){} } };
+let device = store.get('plaza.device', null); if(!device){ device = Math.random().toString(36).slice(2,10)+Date.now().toString(36).slice(-4); store.set('plaza.device', device); }
+const liked = new Set(store.get('plaza.liked', []));
+const S = { units:[], posts:[], filter:store.get('plaza.filter','전체'), sort:'new', open:new Set(), drafts:{}, key:sess.get('plaza.key'), teacher:false, loaded:false, at:0 };
+
+// prefill from a lesson app: ?unit=...&q=...
+const P = new URLSearchParams(location.search);
+$('nick').value = store.get('plaza.nick','');
+if(P.get('q')) $('qText').value = P.get('q').slice(0,400);
+const preUnit = P.get('unit');
+if(preUnit) S.filter = preUnit;
+$('qCount').textContent = $('qText').value.length;
+
+async function call(body){
+  const r = await fetch(API,{method:'POST',body:JSON.stringify(body)});
+  return r.json();
+}
+async function load(manual){
+  if(!API){ $('setupNote').hidden=false; S.loaded=true; S.units=['기타 질문']; render(); return; }
+  try{
+    const r = await fetch(API + (S.key ? '?key='+encodeURIComponent(S.key) : ''), {cache:'no-store'});
+    const d = await r.json();
+    if(!d.ok) throw new Error(d.error||'');
+    S.units=d.units; S.posts=d.posts; S.teacher=d.teacher; S.loaded=true; S.at=Date.now();
+    if(S.key && !d.teacher){ S.key=null; sess.set('plaza.key',null); tMsg('비밀번호가 맞지 않아요.'); }
+    render();
+  }catch(e){
+    if(!S.loaded) $('feed').innerHTML='<div class="empty">광장을 불러오지 못했어요. 인터넷 연결을 확인하고 새로고침을 눌러 주세요.</div>';
+    else if(manual) flash('불러오기 실패 — 잠시 후 다시 시도해 주세요.');
+  }
+}
+function flash(t){ $('stamp').textContent=t; }
+
+function ago(t){ const s=(Date.now()-t)/1000; if(s<60) return '방금'; if(s<3600) return Math.floor(s/60)+'분 전'; if(s<86400) return Math.floor(s/3600)+'시간 전'; const d=new Date(t); return (d.getMonth()+1)+'/'+d.getDate(); }
+function el(tag, cls, text){ const e=document.createElement(tag); if(cls) e.className=cls; if(text!=null) e.textContent=text; return e; }
+
+function renderUnits(){
+  const sel=$('unit'), cur=sel.value || (preUnit && S.units.includes(preUnit) ? preUnit : (S.filter!=='전체'?S.filter:''));
+  sel.innerHTML=''; S.units.forEach(u=>{ const o=el('option',null,u); o.value=u; sel.appendChild(o); });
+  if(cur && S.units.includes(cur)) sel.value=cur;
+  const ch=$('chips'); ch.innerHTML='';
+  if(S.filter!=='전체' && !S.units.includes(S.filter)) S.filter='전체';
+  ['전체',...S.units].forEach(u=>{
+    const b=el('button','chip',u==='전체'?'전체':u.replace(/^(\S+-\d+)\s.*/,'$1')); b.title=u; b.setAttribute('aria-pressed', String(S.filter===u));
+    const n = u==='전체' ? S.posts.filter(p=>p.type==='q').length : S.posts.filter(p=>p.type==='q'&&p.unit===u).length;
+    if(n){ const c=el('span','cnt',String(n)); b.appendChild(c); }
+    b.onclick=()=>{ S.filter=u; store.set('plaza.filter',u); render(); };
+    ch.appendChild(b);
+  });
+}
+
+function render(){
+  renderUnits();
+  $('sNew').setAttribute('aria-pressed',String(S.sort==='new')); $('sLike').setAttribute('aria-pressed',String(S.sort==='like'));
+  renderTeacher();
+  const feed=$('feed'); feed.innerHTML='';
+  let qs=S.posts.filter(p=>p.type==='q' && (S.filter==='전체'||p.unit===S.filter));
+  const answers={}; S.posts.filter(p=>p.type==='a').forEach(a=>{ (answers[a.parent]=answers[a.parent]||[]).push(a); });
+  qs.sort((a,b)=> (b.pinned-a.pinned) || (S.sort==='like' ? (b.likes-a.likes)||(b.created-a.created) : b.created-a.created));
+  if(!qs.length){ feed.appendChild(el('div','empty', S.filter==='전체' ? '아직 올라온 질문이 없어요. 첫 질문을 올려 보세요!' : '이 단원에는 아직 질문이 없어요.')); stampNow(); return; }
+  qs.forEach(q=>feed.appendChild(card(q, (answers[q.id]||[]).sort((a,b)=>a.created-b.created))));
+  stampNow();
+}
+function stampNow(){ if(S.at) $('stamp').textContent = '업데이트 '+new Date(S.at).toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit'}); }
+
+function likeBtn(p){
+  const on=liked.has(p.id), b=el('button','act'+(on?' on':''));
+  b.setAttribute('aria-pressed',String(on)); b.setAttribute('aria-label','공감 '+p.likes);
+  b.append(el('span',null,on?'♥':'♡'), el('span',null,'공감 '+p.likes));
+  b.onclick=async()=>{
+    if(liked.has(p.id)) return;
+    liked.add(p.id); store.set('plaza.liked',[...liked]); p.likes++; render();
+    try{ const d=await call({action:'like',id:p.id,device}); if(d.ok){ p.likes=d.likes; render(); } }catch(e){}
+  };
+  return b;
+}
+function modBtns(p, wrap){
+  if(!S.teacher) return;
+  const mk=(t,op)=>{ const b=el('button','act mod',t); b.onclick=async()=>{ b.disabled=true; const d=await call({action:'mod',id:p.id,op,key:S.key}).catch(()=>({ok:false})); if(!d.ok) alertMsg(d.error||'실패'); load(); }; wrap.appendChild(b); };
+  if(p.type==='q') mk(p.pinned?'고정 해제':'📌 고정', p.pinned?'unpin':'pin');
+  mk(p.hidden?'다시 보이기':'숨기기', p.hidden?'unhide':'hide');
+}
+function alertMsg(t){ $('qMsg').className='msg err'; $('qMsg').textContent=t; }
+
+function card(q, ans){
+  const c=el('article','card'+(q.pinned?' pinned':'')+(q.hidden?' hid':''));
+  const m=el('div','meta');
+  if(q.pinned) m.appendChild(el('span','badge','📌 선생님 추천'));
+  if(q.hidden) m.appendChild(el('span','badge h','숨김'));
+  m.append(el('span','tag',q.unit||'기타'), el('span',null,q.nick+' · '+ago(q.created)));
+  c.append(m, el('p','q',q.text));
+  const acts=el('div','acts');
+  acts.appendChild(likeBtn(q));
+  const vis=ans.filter(a=>!a.hidden).length;
+  const open=S.open.has(q.id);
+  const tb=el('button','act'+(open?' on':''), (open?'답변 접기':'💬 답변 '+(S.teacher?ans.length:vis)));
+  tb.setAttribute('aria-expanded',String(open));
+  tb.onclick=()=>{ open?S.open.delete(q.id):S.open.add(q.id); render(); if(!open) setTimeout(()=>{ const t=document.getElementById('r-'+q.id); t&&t.focus(); },0); };
+  acts.appendChild(tb); modBtns(q, acts); c.appendChild(acts);
+  if(open){
+    const th=el('div','thread');
+    if(!ans.length) th.appendChild(el('p','hint','아직 답변이 없어요. 내 생각을 먼저 나눠 보세요.'));
+    ans.forEach(a=>{
+      const d=el('div','ans'+(a.hidden?' hid':''));
+      const mm=el('div','meta'); if(a.hidden) mm.appendChild(el('span','badge h','숨김')); mm.appendChild(el('span',null,a.nick+' · '+ago(a.created)));
+      const aa=el('div','acts'); aa.appendChild(likeBtn(a)); modBtns(a, aa);
+      d.append(mm, el('p',null,a.text), aa); th.appendChild(d);
+    });
+    const rp=el('div','reply'); const ta=el('textarea','t'); ta.id='r-'+q.id; ta.maxLength=400; ta.placeholder='내 생각이나 근거를 써 보세요'; ta.setAttribute('aria-label','답변 쓰기');
+    ta.value=S.drafts[q.id]||''; ta.oninput=()=>{ S.drafts[q.id]=ta.value; };
+    const sb=el('button','btn','답하기');
+    const msg=el('div','msg'); msg.setAttribute('role','status');
+    sb.onclick=async()=>{
+      const text=ta.value.trim(); const nick=$('nick').value.trim();
+      if(!nick){ msg.className='msg err'; msg.textContent='왼쪽에 닉네임을 먼저 써 주세요.'; $('nick').focus(); return; }
+      if(text.length<2){ msg.className='msg err'; msg.textContent='두 글자 이상 써 주세요.'; return; }
+      sb.disabled=true; store.set('plaza.nick',nick);
+      const d=await call({action:'post',type:'a',parent:q.id,unit:q.unit,nick,text}).catch(()=>({ok:false,error:'연결이 끊겼어요. 다시 시도해 주세요.'}));
+      sb.disabled=false;
+      if(!d.ok){ msg.className='msg err'; msg.textContent=d.error; return; }
+      delete S.drafts[q.id]; await load();
+    };
+    rp.append(ta,sb); th.append(rp,msg); c.appendChild(th);
+  }
+  return c;
+}
+
+$('qText').oninput=()=>{ $('qCount').textContent=$('qText').value.length; };
+$('qSend').onclick=async()=>{
+  const nick=$('nick').value.trim(), text=$('qText').value.trim(), unit=$('unit').value, m=$('qMsg');
+  if(!API){ m.className='msg err'; m.textContent='아직 서버와 연결되지 않았어요.'; return; }
+  if(!nick){ m.className='msg err'; m.textContent='닉네임을 써 주세요.'; $('nick').focus(); return; }
+  if(text.length<2){ m.className='msg err'; m.textContent='질문을 두 글자 이상 써 주세요.'; $('qText').focus(); return; }
+  $('qSend').disabled=true; m.className='msg'; m.textContent='게시하는 중…';
+  const d=await call({action:'post',type:'q',unit,nick,text}).catch(()=>({ok:false,error:'연결이 끊겼어요. 다시 시도해 주세요.'}));
+  $('qSend').disabled=false;
+  if(!d.ok){ m.className='msg err'; m.textContent=d.error; return; }
+  store.set('plaza.nick',nick); $('qText').value=''; $('qCount').textContent='0';
+  m.className='msg ok'; m.textContent='광장에 올라갔어요! 친구들의 질문에도 답해 보세요.';
+  S.filter=unit; store.set('plaza.filter',unit); S.sort='new'; await load();
+};
+$('sNew').onclick=()=>{ S.sort='new'; render(); };
+$('sLike').onclick=()=>{ S.sort='like'; render(); };
+$('refresh').onclick=()=>load(true);
+
+// teacher mode
+function tMsg(t){ $('stamp').textContent=t; }
+function renderTeacher(){
+  const box=$('tBox'); box.innerHTML='';
+  if(S.teacher){
+    box.append(el('span',null,'교사 모드 · 숨긴 글도 보여요'));
+    const b=el('button','linkish','나가기'); b.onclick=()=>{ S.key=null; sess.set('plaza.key',null); S.teacher=false; load(); }; box.appendChild(b);
+  } else if(box.dataset.form==='1'){
+    const i=el('input','t'); i.type='password'; i.placeholder='교사 비밀번호'; i.setAttribute('aria-label','교사 비밀번호');
+    const b=el('button','btn ghost','확인');
+    const go=()=>{ S.key=i.value.trim(); sess.set('plaza.key',S.key); box.dataset.form=''; load(true); };
+    b.onclick=go; i.onkeydown=e=>{ if(e.key==='Enter') go(); };
+    box.append(i,b); setTimeout(()=>i.focus(),0);
+  } else {
+    const b=el('button','linkish','교사 모드'); b.onclick=()=>{ box.dataset.form='1'; renderTeacher(); }; box.appendChild(b);
+  }
+}
+
+load();
+setInterval(()=>{ const a=document.activeElement; if(document.hidden) return; if(a && ((a.tagName==='TEXTAREA' && a.closest('#feed')) || a.closest('#tBox'))) return; load(); }, 20000);
+setInterval(()=>{ if(S.loaded) stampNow(); }, 60000);
+})();
+</script>
+</body>
+</html>
