@@ -175,7 +175,7 @@ textarea{width:100%;min-height:76px;font:inherit;font-size:15.5px;padding:10px;b
       <div class="q self" id="self">
         <h3 style="margin:0;font-size:19px">학습 목표, 스스로 돌아보기</h3>
         <div id="selfRows"></div>
-        <div class="srow"><p><b>오늘 새로 생긴 질문</b> (예: 수성이나 금성도 일식을 일으킬 수 있을까?)</p><textarea id="selfQ" placeholder="궁금한 점을 적어 보세요."></textarea></div>
+        <div class="srow"><p><b>오늘 새로 생긴 질문</b> (예: 수성이나 금성도 일식을 일으킬 수 있을까?)</p><textarea id="selfQ" placeholder="궁금한 점을 적어 보세요."></textarea><button class="btn" type="button" id="toPlaza" style="margin-top:8px">질문 광장에 올리기 →</button><p class="small" style="margin:6px 0 0">새 창에서 질문 광장이 열리고, 내 질문이 미리 채워져요.</p></div>
         <div class="box" id="selfSum" style="background:var(--panel2)"></div>
         <p class="small">이 화면의 기록은 이 기기에만 남습니다. 제출이 필요하면 결과 화면을 캡처하세요.</p>
       </div>
@@ -425,6 +425,7 @@ qrender();selfRender();drawSkySolar();drawSkyLunar();planeAll();
 show((location.hash||'').slice(1));
 if(document.fonts&&document.fonts.ready)document.fonts.ready.then(()=>stages.forEach(s=>s.render()));
 })();
+document.getElementById('toPlaza').onclick=()=>{const q=document.getElementById('selfQ').value.trim();window.open('https://muhan-teacher.github.io/Inter-Science/question-plaza.html?unit='+encodeURIComponent('Ⅲ-01 태양-지구-달 시스템과 식 현상')+(q?'&q='+encodeURIComponent(q):''),'_blank','noopener');};
 </script>
 </body>
 </html>
