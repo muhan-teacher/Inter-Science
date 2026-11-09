@@ -1,0 +1,496 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>행성 운동 탐구실</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=IBM+Plex+Mono:wght@500&family=IBM+Plex+Sans+KR:wght@400;500;700&display=swap">
+<style>
+/* Layout: night-sky lab (same family as 식 현상 탐구실). Each sim tab: full-width "sky strip" on top, orbit view + panel below. Single dark look (space). */
+:root{
+  --bg:#0A1322; --panel:#111E34; --panel2:#182A49; --ink:#E9EEF7; --muted:#A3B3CB; --line:#2A3C5E;
+  --sun:#FFC94A; --accent:#FF8A3D; --cyan:#73D4FF; --good:#5BD39A; --bad:#FF7A7A; --focus:#9CC3FF;
+  --pro:#FFC94A; --retro:#FF6B6B;
+  --font-display:"Black Han Sans","IBM Plex Sans KR","Malgun Gothic",sans-serif;
+  --font-body:"IBM Plex Sans KR","Malgun Gothic","Apple SD Gothic Neo",sans-serif;
+  --font-num:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font-family:var(--font-body);font-size:17px;line-height:1.55}
+.wrap{max-width:1280px;margin:0 auto;padding-block:18px 40px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:flex;flex-direction:column;gap:16px}
+header{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:flex-end;gap:10px}
+.eyebrow{font-size:14px;font-weight:700;letter-spacing:.06em;color:var(--sun)}
+h1{font-family:var(--font-display);font-weight:400;font-size:clamp(30px,4.5vw,44px);line-height:1.1;margin:2px 0 0}
+.goal{font-size:15px;color:var(--muted);max-width:560px;margin:0}
+nav.tabs{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+.tab{font:inherit;font-weight:700;font-size:17px;padding:12px 10px;border-radius:12px;border:1px solid var(--line);background:var(--panel);color:var(--ink);cursor:pointer;display:flex;flex-direction:column;align-items:flex-start;gap:2px;text-align:left}
+.tab small{font-weight:500;font-size:13px;color:var(--muted)}
+.tab[aria-selected="true"]{background:var(--sun);border-color:var(--sun);color:#1A1405}
+.tab[aria-selected="true"] small{color:#3D3108}
+.tab:hover{border-color:var(--sun)}
+button:focus-visible,input:focus-visible,textarea:focus-visible{outline:3px solid var(--focus);outline-offset:2px}
+.sim{display:flex;flex-direction:column;gap:14px}
+.below{display:grid;grid-template-columns:minmax(0,1fr) 380px;gap:14px;align-items:start}
+.stage{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:10px;display:flex;flex-direction:column;gap:8px;min-width:0}
+.stage canvas{width:100%;display:block;border-radius:10px}
+.stage h2{font-size:16px;margin:2px 4px 0;display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap}
+.stage h2 small{font-weight:500;color:var(--muted);font-size:13.5px}
+.cap{font-size:13.5px;color:var(--muted)}
+.orbitwrap{max-width:600px;width:100%;margin:0 auto}
+.panel{display:flex;flex-direction:column;gap:12px;min-width:0}
+.box{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:14px;display:flex;flex-direction:column;gap:10px}
+.box h3{margin:0;font-size:17px}
+.ctl{display:flex;flex-direction:column;gap:4px}
+.ctl label{font-size:14.5px;font-weight:700;color:var(--muted);display:flex;justify-content:space-between;gap:8px}
+.ctl label span{font-family:var(--font-num);color:var(--ink);font-variant-numeric:tabular-nums;min-width:7ch;text-align:right}
+input[type=range]{width:100%;accent-color:var(--sun);height:28px}
+.seg{display:flex;border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.seg button{flex:1;font:inherit;font-weight:700;font-size:15.5px;padding:9px 6px;border:0;background:transparent;color:var(--ink);cursor:pointer}
+.seg button+button{border-left:1px solid var(--line)}
+.seg button[aria-pressed="true"]{background:var(--panel2);color:var(--sun)}
+.btns{display:flex;gap:8px;flex-wrap:wrap}
+.btn{font:inherit;font-weight:700;font-size:15.5px;padding:9px 14px;border-radius:10px;border:1px solid var(--line);background:var(--panel2);color:var(--ink);cursor:pointer}
+.btn.primary{background:var(--sun);border-color:var(--sun);color:#1A1405}
+.btn:hover{border-color:var(--sun)}
+.btn.sm{font-size:14px;padding:6px 10px}
+.verdict{display:flex;flex-direction:column;gap:2px}
+.verdict .lbl{font-size:13.5px;color:var(--muted);font-weight:700}
+.verdict strong{font-family:var(--font-display);font-weight:400;font-size:38px;line-height:1.1;display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+.verdict strong small{font-family:var(--font-body);font-size:16px;font-weight:700}
+.verdict p{margin:2px 0 0;font-size:15px;color:var(--muted)}
+.st-pro{color:var(--pro)}.st-retro{color:var(--retro)}.st-stay{color:#fff}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{font-size:14.5px;font-weight:700;padding:5px 11px;border-radius:999px;background:var(--panel2);border:1px solid var(--line)}
+.chip.hl{background:rgba(255,201,74,.14);border-color:var(--sun);color:var(--sun)}
+.legend{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:14px;color:var(--muted)}
+.legend i{display:inline-block;width:12px;height:12px;border-radius:50%;vertical-align:-1px;margin-right:5px}
+.ask{background:var(--panel2);border-radius:12px;padding:12px 14px;font-size:15.5px}
+.ask b{color:var(--sun)}
+.ask ol{margin:6px 0 0;padding-left:1.2em}
+.check{display:flex;gap:8px;align-items:center;font-size:15px;cursor:pointer}
+.check input{width:18px;height:18px;accent-color:var(--sun)}
+.why-text{font-size:16px;line-height:1.6}
+.why-text b{color:var(--sun)}
+#miniSky{width:100%;display:block;border-radius:10px}
+.speed{display:grid;grid-template-columns:auto 1fr auto;gap:6px 10px;align-items:center;font-size:15px}
+.speed b{font-family:var(--font-num);font-weight:500}
+.bar{height:12px;border-radius:6px;background:var(--line);overflow:hidden}
+.bar i{display:block;height:100%;border-radius:6px}
+/* quiz */
+.qz{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);gap:16px;align-items:start}
+.q{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:16px;display:flex;flex-direction:column;gap:12px}
+.qh{margin:0;font-size:19px}
+.qprog{display:flex;gap:5px}
+.qprog i{flex:1;height:7px;border-radius:4px;background:var(--line)}
+.qprog i.ok{background:var(--good)}.qprog i.no{background:var(--bad)}.qprog i.cur{background:var(--sun)}
+.qq{font-size:21px;font-weight:700;margin:0;line-height:1.45}
+.qopts{display:grid;gap:8px}
+.qopt{font:inherit;font-size:17px;text-align:left;padding:12px 14px;border-radius:12px;border:2px solid var(--line);background:var(--panel2);color:var(--ink);cursor:pointer;display:flex;gap:10px;align-items:center}
+.qopt b{font-family:var(--font-num);width:28px;height:28px;border-radius:50%;display:grid;place-items:center;background:var(--bg);flex:none}
+.qopt.ok{border-color:var(--good)}.qopt.ok b{background:var(--good);color:#06210f}
+.qopt.no{border-color:var(--bad)}.qopt.no b{background:var(--bad);color:#2a0606}
+.qopt[disabled]{cursor:default}
+.fb{border-radius:12px;padding:12px 14px;font-size:16px}
+.fb.ok{background:rgba(91,211,154,.12)}.fb.no{background:rgba(255,122,122,.12)}
+.fb strong{display:block}
+.score{font-family:var(--font-display);font-size:64px;line-height:1;color:var(--sun)}
+.self{gap:12px}
+.srow{display:flex;flex-direction:column;gap:6px;margin-bottom:10px}
+.srow p{margin:0;font-size:15.5px}
+.srow .tag{font-size:12.5px;font-weight:700;color:var(--sun)}
+.lv{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.lv button{font:inherit;font-size:14px;font-weight:700;padding:9px 4px;border-radius:10px;border:1px solid var(--line);background:var(--panel2);color:var(--ink);cursor:pointer}
+.lv button[aria-pressed="true"]{background:var(--sun);color:#1A1405;border-color:var(--sun)}
+textarea{width:100%;min-height:76px;font:inherit;font-size:15.5px;padding:10px;border-radius:10px;border:1px solid var(--line);background:var(--panel2);color:var(--ink);resize:vertical}
+#selfSum{background:var(--panel2)}
+.small{font-size:13px;color:var(--muted)}
+@media (max-width:980px){.below,.qz{grid-template-columns:minmax(0,1fr)}}
+@media (max-width:560px){nav.tabs{grid-template-columns:repeat(2,minmax(0,1fr))}.verdict strong{font-size:32px}}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header>
+    <div><div class="eyebrow">지구과학Ⅱ · Ⅲ-02 태양계 행성의 겉보기 운동</div><h1>행성 운동 탐구실</h1></div>
+    <p class="goal">목표: 태양계 모형을 바탕으로 내행성과 외행성의 겉보기 운동이 다르게 나타남을 알고, 지구와 행성의 위치 관계에 따라 역행이 나타나는 모습을 관찰한다.</p>
+  </header>
+  <nav class="tabs" role="tablist" aria-label="탐구 탭">
+    <button class="tab" role="tab" id="tab-inner" data-v="inner">① 내행성의 겉보기 운동<small>수성 · 금성</small></button>
+    <button class="tab" role="tab" id="tab-outer" data-v="outer">② 외행성의 겉보기 운동<small>화성 · 목성 · 토성</small></button>
+    <button class="tab" role="tab" id="tab-why" data-v="why">③ 왜 역행할까?<small>공전 속도 차이</small></button>
+    <button class="tab" role="tab" id="tab-check" data-v="check">④ 형성평가<small>스스로 돌아보기</small></button>
+  </nav>
+
+  <!-- ①② simulation views share one template (filled by JS) -->
+  <section class="sim" id="v-inner" hidden></section>
+  <section class="sim" id="v-outer" hidden></section>
+
+  <!-- ③ why -->
+  <section class="sim" id="v-why" hidden>
+    <div class="below">
+      <div class="stage">
+        <h2>공전하는 지구와 행성 <small>위에서 내려다본 모습 · 화살표 길이 = 공전 속력</small></h2>
+        <div class="orbitwrap"><canvas id="cvW" aria-label="지구와 행성의 공전 속도와 상대 속도를 나타낸 모식도"></canvas></div>
+        <div class="legend"><span><i style="background:#5BB5F0"></i>지구의 공전 속도</span><span><i style="background:#E2603A"></i>행성의 공전 속도</span><span><i style="background:var(--pro)"></i><i style="background:var(--retro)"></i>지구에서 본 행성의 움직임(시선을 가로지르는 방향)</span></div>
+        <div class="cap">지구는 아래쪽에 고정해 두었습니다. 행성을 끌거나 슬라이더를 움직여 지구와의 위치 관계를 바꿔 보세요. 궤도 크기와 화살표 길이는 실제 비율에 맞췄습니다.</div>
+      </div>
+      <div class="panel">
+        <div class="box">
+          <div class="seg" role="group" aria-label="행성 고르기"><button id="wIn" aria-pressed="true">내행성 (금성)</button><button id="wOut" aria-pressed="false">외행성 (화성)</button></div>
+          <div class="ctl"><label for="wPhi">지구와 행성의 위치 관계 <span id="wPhiV">0°</span></label><input type="range" id="wPhi" min="-180" max="180" step="1" value="0"></div>
+          <div class="btns" id="wJump"></div>
+        </div>
+        <div class="box">
+          <div class="verdict"><span class="lbl">지구에서 보면 행성은 별들 사이에서</span><strong id="wVerdict">—</strong></div>
+          <canvas id="miniSky" aria-label="지구에서 본 하늘에서 행성이 움직이는 방향"></canvas>
+          <div class="speed" id="wSpeed"></div>
+        </div>
+        <div class="box"><h3>까닭</h3><div class="why-text" id="wWhy"></div></div>
+        <div class="ask"><b>운동장 트랙으로 생각해 보기</b><br>안쪽 레인을 도는 친구가 더 빠릅니다. 내가 바깥 레인의 느린 친구를 앞지를 때, 친구 뒤로 멀리 보이는 나무(별)를 기준으로 보면 친구가 <b>뒤로 가는 것처럼</b> 보입니다. 친구는 계속 앞으로 달리고 있는데도요!</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ④ check -->
+  <section id="v-check" hidden>
+    <div class="qz">
+      <div class="q" id="quiz"></div>
+      <div class="q self">
+        <h3 class="qh">학습 목표, 스스로 돌아보기</h3>
+        <div id="selfRows"></div>
+        <div class="srow"><p><b>오늘 새로 생긴 질문</b> (예: 태양에서 먼 행성일수록 역행하는 폭은 어떻게 달라질까?)</p><textarea id="selfQ" placeholder="궁금한 점을 적어 보세요."></textarea><button class="btn" type="button" id="toPlaza" style="margin-top:4px">질문 광장에 올리기 →</button><p class="small" style="margin:0">새 창에서 질문 광장이 열리고, 내 질문이 미리 채워져요.</p></div>
+        <div class="box" id="selfSum"></div>
+        <p class="small">이 화면의 기록은 이 기기에만 남습니다. 제출이 필요하면 결과 화면을 캡처하세요.</p>
+      </div>
+    </div>
+  </section>
+  <p class="small">기준: 교과서 158~163쪽, 수업 판서 「Ⅲ-02. 태양계 행성의 겉보기 운동」 · 궤도는 원으로 단순화했고, 하늘 띠의 위아래(황위) 폭은 3배 과장했습니다.</p>
+</div>
+
+<script>
+(() => {
+const FONT='"IBM Plex Sans KR","Malgun Gothic",sans-serif';
+const D2R=Math.PI/180, R2D=180/Math.PI;
+const wrap180=a=>{a=((a+180)%360+360)%360-180;return a;};
+function rng(seed){return function(){seed|=0;seed=seed+0x6D2B79F5|0;let t=Math.imul(seed^seed>>>15,1|seed);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
+const stages=[];
+function makeStage(cv,W,H,draw){const ctx=cv.getContext('2d');cv.style.aspectRatio=W+'/'+H;const st={W,H,ctx,cv};
+  st.render=()=>{ctx.setTransform(cv.width/W,0,0,cv.width/W,0,0);ctx.clearRect(0,0,W,H);draw(ctx);};
+  st.resize=()=>{const r=cv.getBoundingClientRect();if(!r.width)return;const d=window.devicePixelRatio||1;const w=Math.round(r.width*d),h=Math.round(w*H/W);if(cv.width!==w||cv.height!==h){cv.width=w;cv.height=h;}st.render();};
+  new ResizeObserver(st.resize).observe(cv);stages.push(st);return st;}
+function rr(c,x,y,w,h,r){c.beginPath();c.moveTo(x+r,y);c.arcTo(x+w,y,x+w,y+h,r);c.arcTo(x+w,y+h,x,y+h,r);c.arcTo(x,y+h,x,y,r);c.arcTo(x,y,x+w,y,r);c.closePath();}
+function pill(c,t,x,y,o={}){const s=o.size||15;c.save();c.font=`700 ${s}px ${FONT}`;const w=c.measureText(t).width+s*1.1,h=s*1.75,x0=o.align==='left'?x:o.align==='right'?x-w:x-w/2;
+  rr(c,x0,y-h/2,w,h,h/2);c.fillStyle=o.fill||'rgba(10,19,34,.85)';c.fill();c.strokeStyle=o.stroke||'rgba(255,255,255,.35)';c.lineWidth=1.2;c.stroke();
+  c.fillStyle=o.color||'#E9EEF7';c.textAlign='center';c.textBaseline='middle';c.fillText(t,x0+w/2,y+1);c.restore();return w;}
+function arrow(c,x1,y1,x2,y2,col,w=3,hd=11){const L=Math.hypot(x2-x1,y2-y1);if(L<2)return;const a=Math.atan2(y2-y1,x2-x1);hd=Math.min(hd,L*.6);c.save();c.strokeStyle=col;c.fillStyle=col;c.lineWidth=w;c.lineCap='round';c.beginPath();c.moveTo(x1,y1);c.lineTo(x2-Math.cos(a)*hd*.7,y2-Math.sin(a)*hd*.7);c.stroke();c.beginPath();c.moveTo(x2,y2);c.lineTo(x2-Math.cos(a-.45)*hd,y2-Math.sin(a-.45)*hd);c.lineTo(x2-Math.cos(a+.45)*hd,y2-Math.sin(a+.45)*hd);c.closePath();c.fill();c.restore();}
+function drawSun(c,x,y,r){const g=c.createRadialGradient(x,y,r*.2,x,y,r*1.25);g.addColorStop(0,'#FFF4C2');g.addColorStop(.7,'#FFC23A');g.addColorStop(.85,'#FF8A1F');g.addColorStop(1,'rgba(255,120,30,0)');c.fillStyle=g;c.beginPath();c.arc(x,y,r*1.25,0,7);c.fill();}
+function ball(c,x,y,r,col){const g=c.createRadialGradient(x-r*.35,y-r*.35,r*.1,x,y,r);g.addColorStop(0,'#fff');g.addColorStop(.25,col);g.addColorStop(1,shade(col));c.fillStyle=g;c.beginPath();c.arc(x,y,r,0,7);c.fill();}
+function shade(h){const n=parseInt(h.slice(1),16);const f=v=>Math.round(v*.45);return `rgb(${f(n>>16)},${f(n>>8&255)},${f(n&255)})`;}
+function drawEarth(c,x,y,r){ball(c,x,y,r,'#4FA6E8');c.save();c.beginPath();c.arc(x,y,r,0,7);c.clip();c.fillStyle='rgba(79,154,74,.85)';c.beginPath();c.ellipse(x-r*.25,y+r*.1,r*.35,r*.22,.6,0,7);c.fill();c.beginPath();c.ellipse(x+r*.35,y-r*.3,r*.22,r*.14,-.4,0,7);c.fill();c.restore();}
+function label(c,t,x,y,o={}){c.save();c.font=`${o.w||700} ${o.size||15}px ${FONT}`;c.textAlign=o.align||'center';c.textBaseline=o.base||'middle';c.lineWidth=4;c.strokeStyle='rgba(8,14,26,.85)';c.strokeText(t,x,y);c.fillStyle=o.color||'#E9EEF7';c.fillText(t,x,y);c.restore();}
+
+/* ===================== orbital model ===================== */
+const YEAR=365.256, WE=2*Math.PI/YEAR;
+const PL={
+  mercury:{n:'수성',a:.387,P:87.97,i:7.0,col:'#CDBBA0',D:40,win:125,inner:true,sp:12,step:.5,km:47.4},
+  venus:{n:'금성',a:.723,P:224.7,i:3.39,col:'#F3D9A0',D:100,win:125,inner:true,sp:28,step:1,km:35.0},
+  mars:{n:'화성',a:1.524,P:687,i:1.85,col:'#E2603A',D:150,win:95,inner:false,sp:40,step:1.5,km:24.1},
+  jupiter:{n:'목성',a:5.203,P:4332.6,i:1.3,col:'#D9B48A',D:200,win:95,inner:false,sp:50,step:1.5,km:13.1},
+  saturn:{n:'토성',a:9.537,P:10759,i:2.49,col:'#E6D29A',D:200,win:95,inner:false,sp:50,step:1.5,km:9.7}};
+const EXAG=3;
+function stateAt(p,t){ // t: days from scenario start; conjunction(내합)/opposition(충) at t=D
+  const dt=t-p.D, wp=2*Math.PI/p.P;
+  const tE=-Math.PI/2+WE*dt, tP=-Math.PI/2+wp*dt, Om=-Math.PI/2-.7;
+  const E=[Math.cos(tE),Math.sin(tE),0];
+  const P=[p.a*Math.cos(tP),p.a*Math.sin(tP),p.a*Math.sin(p.i*D2R)*Math.sin(tP-Om)];
+  const d=[P[0]-E[0],P[1]-E[1],P[2]];
+  const lam=Math.atan2(d[1],d[0])*R2D, beta=Math.atan2(d[2],Math.hypot(d[0],d[1]))*R2D;
+  const lamS=Math.atan2(-E[1],-E[0])*R2D;
+  return {E,P,tE,tP,lam,beta,elong:wrap180(lam-lamS),dist:Math.hypot(d[0],d[1])};
+}
+function rateAt(p,t){return wrap180(stateAt(p,t+.5).lam-stateAt(p,t-.5).lam);} // deg/day, + = 서→동(순행)
+const STAY=.07;
+function motion(r){return Math.abs(r)<STAY?'stay':r>0?'pro':'retro';}
+const MOT={pro:{t:'순행',d:'서 → 동',cls:'st-pro',col:'#FFC94A'},retro:{t:'역행',d:'동 → 서',cls:'st-retro',col:'#FF6B6B'},stay:{t:'유',d:'잠시 멈춘 듯',cls:'st-stay',col:'#FFFFFF'}};
+function relPos(p,s){const e=s.elong,ae=Math.abs(e);
+  if(p.inner){const mx=Math.asin(p.a)*R2D;
+    if(ae<4)return s.dist<1?'내합':'외합';
+    if(ae>mx-1.3)return e>0?'동방 최대이각':'서방 최대이각';
+    if(s.dist<1&&ae<mx*.55)return '내합 부근';
+    return e>0?'태양의 동쪽':'태양의 서쪽';}
+  if(ae>176)return '충';if(ae<4)return '합';
+  if(ae>145)return '충 부근';
+  if(Math.abs(ae-90)<2.5)return e>0?'동구':'서구';
+  return e>0?'태양의 동쪽':'태양의 서쪽';}
+
+/* ===================== sim views ①② ===================== */
+const STARS=(()=>{const r=rng(7);return Array.from({length:520},()=>({l:r()*360-180,b:(r()*2-1)*11,m:r()}));})();
+const RING=(()=>{const r=rng(3);return Array.from({length:150},()=>({l:r()*360,m:r()}));})();
+const views={};
+function buildSim(id,keys){
+  const el=document.getElementById('v-'+id), inner=PL[keys[0]].inner, conj=inner?'내합':'충';
+  el.innerHTML=`
+  <div class="stage">
+    <h2>지구에서 본 하늘 <small>별자리 사이를 움직이는 ${inner?'내행성':'외행성'} · 남쪽 하늘을 바라본 모습</small></h2>
+    <canvas id="${id}Sky" aria-label="지구에서 본 하늘에서 행성의 이동 경로"></canvas>
+    <div class="legend"><span><i style="background:var(--pro)"></i>순행 (서 → 동)</span><span><i style="background:var(--retro)"></i>역행 (동 → 서)</span><span><i style="background:#fff"></i>유 (방향이 바뀌는 곳)</span><span>①~⑨ 같은 간격의 날짜에 찍은 위치</span></div>
+  </div>
+  <div class="below">
+    <div class="stage">
+      <h2>위에서 내려다본 태양계 <small>지구와 ${inner?'내행성':'외행성'}의 위치 관계</small></h2>
+      <div class="orbitwrap"><canvas id="${id}Orb" aria-label="태양, 지구, 행성의 위치 관계와 시선 방향"></canvas></div>
+      <div class="cap">지구에서 행성을 바라보는 시선(점선)을 멀리 있는 별까지 이으면, 그 별 쪽 하늘에 행성이 보입니다. 바깥 원의 밝은 구간이 위쪽 하늘 띠에 보이는 범위입니다.</div>
+    </div>
+    <div class="panel">
+      <div class="box">
+        <div class="seg" role="group" aria-label="행성 고르기">${keys.map((k,i)=>`<button data-k="${k}" aria-pressed="${i===(inner?1:0)}">${PL[k].n}</button>`).join('')}</div>
+        <div class="verdict"><span class="lbl">지금 ${'<span data-pn></span>'}의 겉보기 운동</span><strong data-mot>—</strong><p data-motd></p></div>
+        <div class="chips"><span class="chip hl" data-rel>—</span><span class="chip" data-day>—</span><span class="chip" data-el>—</span></div>
+      </div>
+      <div class="box">
+        <div class="btns"><button class="btn primary" data-play>▶ 재생</button><button class="btn" data-reset>↺ 처음부터</button><button class="btn" data-conj>${conj}으로 이동</button></div>
+        <div class="ctl"><label for="${id}T">날짜 <span data-tv>0일</span></label><input type="range" id="${id}T" min="0" max="200" step="0.5" value="0"></div>
+        <div class="seg" role="group" aria-label="재생 속도"><button data-sp=".5" aria-pressed="false">느리게</button><button data-sp="1" aria-pressed="true">보통</button><button data-sp="2" aria-pressed="false">빠르게</button></div>
+        <label class="check"><input type="checkbox" data-num checked> ①~⑨ 번호와 시선 표시</label>
+      </div>
+      <div class="ask"><b>관찰 질문</b><ol>${inner?
+        '<li>금성이 별들 사이에서 거꾸로(동 → 서) 움직이는 것은 지구와 금성이 어떤 위치 관계에 있을 때인가?</li><li>①→②, ③→⑤, ⑦→⑨ 구간에서 금성은 각각 어느 쪽으로 움직였나?</li><li>수성으로 바꾸면 무엇이 같고 무엇이 다른가?</li>':
+        '<li>화성이 역행하는 것은 지구와 화성이 어떤 위치 관계에 있을 때인가?</li><li>역행할 때 지구와 화성 중 누가 누구를 앞지르고 있나?</li><li>목성·토성으로 바꾸면 역행하는 폭은 어떻게 달라지나?</li>'}</ol></div>
+    </div>
+  </div>`;
+  const V={id,keys,inner,key:keys[inner?1:0],t:0,play:false,sp:1,num:true,last:0};
+  const q=s=>el.querySelector(s);
+  const slider=document.getElementById(id+'T');
+  V.p=()=>PL[V.key];
+  V.sky=makeStage(document.getElementById(id+'Sky'),1240,300,c=>drawSky(c,V));
+  V.orb=makeStage(document.getElementById(id+'Orb'),600,600,c=>drawOrbit(c,V));
+  V.setKey=k=>{V.key=k;V.t=0;stop(V);el.querySelectorAll('[data-k]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.k===k));slider.max=2*PL[k].D;sync(V);};
+  el.querySelectorAll('[data-k]').forEach(b=>b.onclick=()=>V.setKey(b.dataset.k));
+  el.querySelectorAll('[data-sp]').forEach(b=>b.onclick=()=>{V.sp=+b.dataset.sp;el.querySelectorAll('[data-sp]').forEach(x=>x.setAttribute('aria-pressed',x===b));});
+  q('[data-play]').onclick=()=>V.play?stop(V):start(V);
+  q('[data-reset]').onclick=()=>{stop(V);V.t=0;sync(V);};
+  q('[data-conj]').onclick=()=>{stop(V);V.t=V.p().D;sync(V);};
+  q('[data-num]').onchange=e=>{V.num=e.target.checked;sync(V);};
+  slider.oninput=()=>{stop(V);V.t=+slider.value;sync(V);};
+  V.ui={slider,play:q('[data-play]'),mot:q('[data-mot]'),motd:q('[data-motd]'),rel:q('[data-rel]'),day:q('[data-day]'),el:q('[data-el]'),pn:q('[data-pn]'),tv:q('[data-tv]')};
+  slider.max=2*V.p().D;
+  views[id]=V;return V;
+}
+function start(V){if(V.t>=2*V.p().D-.01)V.t=0;V.play=true;V.ui.play.textContent='⏸ 멈춤';V.last=performance.now();requestAnimationFrame(ts=>tick(V,ts));}
+function stop(V){V.play=false;V.ui.play.textContent='▶ 재생';}
+function tick(V,ts){if(!V.play)return;const dt=Math.min(.05,(ts-V.last)/1000);V.last=ts;const p=V.p();V.t=Math.min(2*p.D,V.t+dt*p.sp*V.sp);sync(V);if(V.t>=2*p.D){stop(V);return;}requestAnimationFrame(t=>tick(V,t));}
+function sync(V){const p=V.p(),s=stateAt(p,V.t),m=motion(rateAt(p,V.t)),M=MOT[m];
+  V.ui.slider.value=V.t;V.ui.tv.textContent=Math.round(V.t)+'일';V.ui.pn.textContent=p.n;
+  V.ui.mot.className=M.cls;V.ui.mot.innerHTML=`${M.t}<small>${M.d}</small>`;
+  V.ui.motd.textContent=m==='retro'?'별들 사이에서 거꾸로 가는 것처럼 보여요.':m==='stay'?'이동 방향이 바뀌는 순간이에요.':'행성의 공전 방향(서 → 동)대로 움직여 보여요.';
+  const rel=relPos(p,s),conj=p.inner?'내합':'충',dd=Math.round(V.t-p.D);
+  V.ui.rel.textContent='위치 관계: '+rel;
+  V.ui.day.textContent=dd===0?conj+' 당일':dd<0?`${conj} ${-dd}일 전`:`${conj} ${dd}일 후`;
+  V.ui.el.textContent=`태양과의 각거리(이각) ${Math.round(Math.abs(s.elong))}°`;
+  V.sky.render();V.orb.render();}
+
+function numTimes(p){return Array.from({length:9},(_,k)=>k*2*p.D/8);}
+function drawSky(c,V){const W=1240,H=300,p=V.p(),cx=W/2,cy=H/2+6,kx=(W-90)/p.win,ky=(H/2-40)/(11*EXAG);
+  const lc=stateAt(p,p.D).lam;
+  const X=l=>cx-wrap180(l-lc)*kx, Y=b=>cy-b*EXAG*ky;
+  const g=c.createLinearGradient(0,0,0,H);g.addColorStop(0,'#0E2550');g.addColorStop(1,'#163A6E');c.fillStyle=g;c.fillRect(0,0,W,H);
+  STARS.forEach(s=>{const x=X(s.l);if(x<-5||x>W+5)return;c.globalAlpha=.25+.6*s.m;c.fillStyle='#fff';const r=.6+s.m*1.5;c.beginPath();c.arc(x,Y(s.b),r,0,7);c.fill();});c.globalAlpha=1;
+  c.save();c.setLineDash([6,8]);c.strokeStyle='rgba(255,255,255,.28)';c.lineWidth=1.2;c.beginPath();c.moveTo(0,Y(0));c.lineTo(W,Y(0));c.stroke();c.restore();
+  label(c,'황도',W-60,Y(0)-12,{size:13,color:'rgba(255,255,255,.6)',w:500});
+  // 동/서 arrows
+  c.fillStyle='rgba(91,211,154,.9)';c.beginPath();c.moveTo(14,36);c.lineTo(38,20);c.lineTo(38,52);c.closePath();c.fill();label(c,'동',56,36,{size:18,color:'#5BD39A'});
+  c.beginPath();c.moveTo(W-14,36);c.lineTo(W-38,20);c.lineTo(W-38,52);c.closePath();c.fill();label(c,'서',W-56,36,{size:18,color:'#5BD39A'});
+  // trail
+  const st=p.step;let prev=null;
+  for(let t=0;t<=V.t+1e-6;t+=st){const s=stateAt(p,t),m=motion(rateAt(p,t)),x=X(s.lam),y=Y(s.beta);
+    if(prev){c.strokeStyle=MOT[m].col;c.globalAlpha=.55;c.lineWidth=2.4;c.beginPath();c.moveTo(prev[0],prev[1]);c.lineTo(x,y);c.stroke();c.globalAlpha=1;}
+    prev=[x,y];}
+  // stationary points
+  let pr=rateAt(p,0);for(let t=st;t<=V.t;t+=st){const r=rateAt(p,t);if(Math.sign(r)!==Math.sign(pr)){const s=stateAt(p,t);const x=X(s.lam),y=Y(s.beta);c.strokeStyle='#fff';c.lineWidth=2;c.beginPath();c.arc(x,y,8,0,7);c.stroke();label(c,'유',x-16,y-16,{size:14});}pr=r;}
+  // numbers
+  if(V.num){const placed=[];numTimes(p).forEach((tk,k)=>{if(tk>V.t+1e-6)return;const s=stateAt(p,tk);const x=X(s.lam),y=Y(s.beta);c.fillStyle='#fff';c.beginPath();c.arc(x,y,4,0,7);c.fill();
+    const dir=k%2?1:-1;let off=dir*24;while(placed.some(([px,py])=>Math.abs(px-x)<16&&Math.abs(py-(y+off))<18))off+=dir*20;placed.push([x,y+off]);
+    if(Math.abs(off)>30){c.strokeStyle='rgba(255,233,168,.45)';c.lineWidth=1;c.beginPath();c.moveTo(x,y+dir*5);c.lineTo(x,y+off-dir*9);c.stroke();}
+    label(c,String(k+1),x,y+off,{size:15,color:'#FFE9A8'});});}
+  const s=stateAt(p,V.t),x=X(s.lam),y=Y(s.beta);
+  const gl=c.createRadialGradient(x,y,0,x,y,22);gl.addColorStop(0,'rgba(255,255,255,.55)');gl.addColorStop(1,'rgba(255,255,255,0)');c.fillStyle=gl;c.beginPath();c.arc(x,y,22,0,7);c.fill();
+  ball(c,x,y,8,p.col);
+  const m=motion(rateAt(p,V.t));pill(c,`${p.n} · ${MOT[m].t}`,x,y-(y<90?-34:34),{color:MOT[m].col,size:15});
+  label(c,`위아래 폭 3배 과장 · 가로 폭 약 ${p.win}°`,W-14,H-14,{size:12.5,align:'right',color:'rgba(255,255,255,.55)',w:500});
+}
+function drawOrbit(c,V){const W=600,H=600,p=V.p(),cx=W/2,cy=H/2,Rr=278;
+  const sc=p.inner?232:242/p.a, X=v=>cx+v[0]*sc, Y=v=>cy-v[1]*sc;
+  c.fillStyle='#08101E';c.fillRect(0,0,W,H);
+  // star ring + window
+  const lc=stateAt(p,p.D).lam;
+  c.save();c.strokeStyle='rgba(255,201,74,.22)';c.lineWidth=16;c.beginPath();c.arc(cx,cy,Rr,-(lc+p.win/2)*D2R,-(lc-p.win/2)*D2R);c.stroke();c.restore();
+  RING.forEach(s=>{const a=s.l*D2R;c.globalAlpha=.3+.6*s.m;c.fillStyle='#fff';c.beginPath();c.arc(cx+Math.cos(a)*Rr,cy-Math.sin(a)*Rr,.8+s.m*1.3,0,7);c.fill();});c.globalAlpha=1;
+  label(c,'멀리 있는 별들',cx+Math.cos((lc+p.win/2+14)*D2R)*(Rr-4),cy-Math.sin((lc+p.win/2+14)*D2R)*(Rr-4)+(p.inner?-2:2),{size:13,color:'rgba(255,233,168,.85)',w:500});
+  // orbits
+  c.lineWidth=2;c.strokeStyle='rgba(115,212,255,.75)';c.beginPath();c.arc(cx,cy,sc,0,7);c.stroke();
+  c.strokeStyle=p.col+'cc';c.beginPath();c.arc(cx,cy,p.a*sc,0,7);c.stroke();
+  drawSun(c,cx,cy,p.inner?20:Math.max(9,Math.min(18,sc*.18)));
+  const s=stateAt(p,V.t),E=[s.E[0],s.E[1]],P=[s.P[0],s.P[1]];
+  // numbered ghosts + sight lines
+  if(V.num) numTimes(p).forEach((tk,k)=>{if(tk>V.t+1e-6)return;const q=stateAt(p,tk);const e=[X(q.E),Y(q.E)],pp=[X(q.P),Y(q.P)];const hit=ray(q.E,[q.P[0]-q.E[0],q.P[1]-q.E[1]],Rr/sc);
+    c.strokeStyle='rgba(255,233,168,.22)';c.lineWidth=1;c.beginPath();c.moveTo(e[0],e[1]);c.lineTo(X(hit),Y(hit));c.stroke();
+    c.fillStyle='rgba(115,212,255,.45)';c.beginPath();c.arc(e[0],e[1],4,0,7);c.fill();c.fillStyle=p.col+'88';c.beginPath();c.arc(pp[0],pp[1],3.5,0,7);c.fill();
+    const ox=(e[0]-cx)/sc*12,oy=(e[1]-cy)/sc*12;label(c,String(k+1),e[0]+ox,e[1]+oy,{size:12,color:'rgba(160,220,255,.9)'});
+    const px=(pp[0]-cx),py=(pp[1]-cy),pl=Math.hypot(px,py)||1;label(c,String(k+1),pp[0]+px/pl*(p.inner?-12:12),pp[1]+py/pl*(p.inner?-12:12),{size:12,color:'rgba(255,233,168,.95)'});});
+  // current sight line
+  const hit=ray(E,[P[0]-E[0],P[1]-E[1]],Rr/sc);const m=motion(rateAt(p,V.t));
+  c.save();c.setLineDash([7,6]);c.strokeStyle=MOT[m].col;c.lineWidth=2;c.beginPath();c.moveTo(X(E),Y(E));c.lineTo(X(hit),Y(hit));c.stroke();c.restore();
+  c.fillStyle=MOT[m].col;c.beginPath();c.arc(X(hit),Y(hit),6,0,7);c.fill();
+  // direction of orbit arrows
+  [[sc,'rgba(115,212,255,.9)'],[p.a*sc,p.col]].forEach(([r,col])=>{const a=-35*D2R;const x=cx+Math.cos(a)*r,y=cy-Math.sin(a)*r;arrow(c,x,y,x-Math.sin(a)*1*16,y-Math.cos(a)*16,col,2.2,9);});
+  drawEarth(c,X(E),Y(E),10);ball(c,X(P),Y(P),p.inner?8:9,p.col);
+  label(c,'지구',X(E)+(E[0]>=0?24:-24),Y(E)+(E[1]>0?-16:16),{size:15,color:'#9ED8FF'});
+  label(c,p.n,X(P)+(P[0]>=0?-22:22)*(p.inner?1:-1),Y(P)+(P[1]>0?16:-16)*(p.inner?1:-1),{size:15,color:p.col});
+  label(c,'태양',cx,cy+(p.inner?34:26),{size:14,color:'#FFD77A'});
+  pill(c,'위치 관계: '+relPos(p,s),16,24,{align:'left',size:15,color:'#FFC94A'});
+  label(c,'행성들은 모두 시계 반대 방향(서 → 동)으로 공전',W-14,H-14,{size:12.5,align:'right',color:'rgba(255,255,255,.55)',w:500});
+}
+function ray(o,d,R){const a=d[0]*d[0]+d[1]*d[1],b=2*(o[0]*d[0]+o[1]*d[1]),cc=o[0]*o[0]+o[1]*o[1]-R*R;const u=(-b+Math.sqrt(b*b-4*a*cc))/(2*a);return[o[0]+d[0]*u,o[1]+d[1]*u];}
+
+/* ===================== ③ why ===================== */
+const Wv={inner:true,phi:0,drag:false};
+const VK=29.78; // km/s at 1 AU
+const wSt=makeStage(document.getElementById('cvW'),600,600,c=>drawWhy(c));
+const mini=makeStage(document.getElementById('miniSky'),340,92,c=>drawMini(c));
+function whyGeom(){const a=Wv.inner?.723:1.524,sc=Wv.inner?236:128,cx=300,cy=300;
+  const tE=-Math.PI/2,tP=-Math.PI/2+Wv.phi*D2R;
+  const E=[Math.cos(tE),Math.sin(tE)],P=[a*Math.cos(tP),a*Math.sin(tP)];
+  const vE=[-Math.sin(tE),Math.cos(tE)].map(v=>v*VK),vp=VK/Math.sqrt(a),vP=[-Math.sin(tP)*vp,Math.cos(tP)*vp];
+  const d=[P[0]-E[0],P[1]-E[1]],dl=Math.hypot(...d),n=[-d[1]/dl,d[0]/dl];
+  const vr=[vP[0]-vE[0],vP[1]-vE[1]],perp=vr[0]*n[0]+vr[1]*n[1];
+  const rate=perp/dl; // relative units
+  return {a,sc,cx,cy,E,P,vE,vP,vp,d,dl,n,vr,perp,rate};}
+function whyMot(g){const lim=Wv.inner?3.2:1.6;return Math.abs(g.rate)<lim?'stay':g.rate>0?'pro':'retro';}
+function drawWhy(c){const g=whyGeom(),{cx,cy,sc}=g,X=v=>cx+v[0]*sc,Y=v=>cy-v[1]*sc,K=3.3;
+  c.fillStyle='#08101E';c.fillRect(0,0,600,600);
+  const r=rng(11);for(let i=0;i<90;i++){c.globalAlpha=.15+.4*r();c.fillStyle='#fff';c.fillRect(r()*600,r()*600,1.3,1.3);}c.globalAlpha=1;
+  c.lineWidth=2;c.strokeStyle='rgba(115,212,255,.75)';c.beginPath();c.arc(cx,cy,sc,0,7);c.stroke();
+  const pc=Wv.inner?'#F3D9A0':'#E2603A';c.strokeStyle=pc+'cc';c.beginPath();c.arc(cx,cy,g.a*sc,0,7);c.stroke();
+  drawSun(c,cx,cy,Wv.inner?20:16);label(c,'태양',cx,cy+30,{size:14,color:'#FFD77A'});
+  const ex=X(g.E),ey=Y(g.E),px=X(g.P),py=Y(g.P),m=whyMot(g);
+  // sight line extended to edge
+  const ux=(px-ex),uy=(py-ey),ul=Math.hypot(ux,uy);let L=900;c.save();c.setLineDash([7,6]);c.strokeStyle='rgba(255,255,255,.35)';c.lineWidth=1.5;c.beginPath();c.moveTo(ex,ey);c.lineTo(ex+ux/ul*L,ey+uy/ul*L);c.stroke();c.restore();
+  // velocities
+  arrow(c,ex,ey,ex+g.vE[0]*K,ey-g.vE[1]*K,'#5BB5F0',4);
+  arrow(c,px,py,px+g.vP[0]*K,py-g.vP[1]*K,pc,4);
+  // relative velocity (dashed white) and perpendicular component
+  const ox=px+ux/ul*34,oy=py+uy/ul*34,K2=K*2.2;
+  c.save();c.setLineDash([3,4]);c.strokeStyle='rgba(255,255,255,.5)';c.lineWidth=1.2;c.beginPath();c.moveTo(px,py);c.lineTo(ox,oy);c.stroke();c.restore();
+  if(m!=='stay')arrow(c,ox,oy,ox+g.n[0]*g.perp*K2,oy-g.n[1]*g.perp*K2,MOT[m].col,6,14);else{c.strokeStyle='#fff';c.lineWidth=2.5;c.beginPath();c.arc(ox,oy,9,0,7);c.stroke();}
+  {const sg=g.perp>=0?1:-1,lx=ox-g.n[0]*sg*30,ly=oy+g.n[1]*sg*30;label(c,'지구에서 본 움직임',lx,ly,{size:13,color:MOT[m].col,align:Math.abs(g.n[0])>.5?(g.n[0]*sg>0?'right':'left'):'center'});}
+  drawEarth(c,ex,ey,11);ball(c,px,py,9,pc);
+  label(c,'지구',ex-30,ey+22,{size:15,color:'#9ED8FF'});label(c,Wv.inner?'금성':'화성',px+(g.P[0]>-.05?-30:30),py+(Wv.inner?-2:2),{size:15,color:pc,align:g.P[0]>-.05?'right':'left'});
+  pill(c,'위치 관계: '+whyRel(),16,24,{align:'left',size:15,color:'#FFC94A'});
+  label(c,'노랑·빨강 화살표 = 지구에서 본 행성의 움직임 (길이 2.2배 확대)',584,588,{size:12.5,align:'right',color:'rgba(255,255,255,.6)',w:500});
+}
+function whyRel(){const g=whyGeom();const lamS=Math.atan2(-g.E[1],-g.E[0])*R2D,lam=Math.atan2(g.d[1],g.d[0])*R2D,e=wrap180(lam-lamS),ae=Math.abs(e);
+  if(Wv.inner){const mx=Math.asin(.723)*R2D;if(ae<4)return g.dl<1?'내합':'외합';if(ae>mx-1.5)return e>0?'동방 최대이각':'서방 최대이각';return e>0?'태양의 동쪽':'태양의 서쪽';}
+  if(ae>176)return'충';if(ae<4)return'합';if(Math.abs(ae-90)<3)return e>0?'동구':'서구';return e>0?'태양의 동쪽':'태양의 서쪽';}
+function drawMini(c){const g=whyGeom(),m=whyMot(g),W=340,H=92;const gr=c.createLinearGradient(0,0,0,H);gr.addColorStop(0,'#0E2550');gr.addColorStop(1,'#163A6E');c.fillStyle=gr;c.fillRect(0,0,W,H);
+  const r=rng(5);for(let i=0;i<60;i++){c.globalAlpha=.3+.5*r();c.fillStyle='#fff';c.beginPath();c.arc(r()*W,r()*H,.6+r()*1.2,0,7);c.fill();}c.globalAlpha=1;
+  label(c,'동',18,16,{size:14,color:'#5BD39A'});label(c,'서',W-18,16,{size:14,color:'#5BD39A'});
+  const x=W/2,y=H/2+8,len=Math.max(-130,Math.min(130,-g.rate*(Wv.inner?6:12)));
+  if(m!=='stay')arrow(c,x,y,x+len,y,MOT[m].col,5,14);
+  ball(c,x,y,8,Wv.inner?'#F3D9A0':'#E2603A');if(m==='stay'){c.strokeStyle='#fff';c.lineWidth=2;c.beginPath();c.arc(x,y,13,0,7);c.stroke();}}
+const WJ={true:['내합','동방 최대이각','서방 최대이각','외합'],false:['충','동구','서구','합']};
+function whyJump(){document.getElementById('wJump').innerHTML=WJ[Wv.inner].map(t=>`<button class="btn sm" data-j="${t}">${t}</button>`).join('');
+  document.querySelectorAll('#wJump [data-j]').forEach(b=>b.onclick=()=>setPhi(findPhi(b.dataset.j)));}
+function findPhi(name){if(name==='내합'||name==='충')return 0;if(name==='외합'||name==='합')return 180;
+  const keep=Wv.phi;let best=0,bs=-1e9;
+  for(let ph=-180;ph<=180;ph+=.5){Wv.phi=ph;const g=whyGeom();const lamS=Math.atan2(-g.E[1],-g.E[0])*R2D,lam=Math.atan2(g.d[1],g.d[0])*R2D,e=wrap180(lam-lamS);
+    const east=/동/.test(name);if((e>0)!==east)continue;const sc=Wv.inner?Math.abs(e):-Math.abs(Math.abs(e)-90);if(sc>bs){bs=sc;best=ph;}}
+  Wv.phi=keep;return best;}
+function setPhi(v){Wv.phi=v;document.getElementById('wPhi').value=Math.round(Wv.phi);document.getElementById('wPhiV').textContent=(Wv.phi>0?'+':'')+Math.round(Wv.phi)+'°';whyUpdate();}
+function whyUpdate(){const g=whyGeom(),m=whyMot(g),M=MOT[m],nm=Wv.inner?'금성':'화성';
+  const v=document.getElementById('wVerdict');v.className=M.cls;v.innerHTML=`${M.t}<small>${M.d}</small>`;
+  const vp=Math.round(VK/Math.sqrt(g.a)*10)/10;
+  document.getElementById('wSpeed').innerHTML=`<span>지구</span><span class="bar"><i style="width:${29.8/47.4*100}%;background:#5BB5F0"></i></span><b>29.8 km/s</b><span>${nm}</span><span class="bar"><i style="width:${vp/47.4*100}%;background:${Wv.inner?'#F3D9A0':'#E2603A'}"></i></span><b>${vp} km/s</b>`;
+  const rel=whyRel();let t;
+  if(Wv.inner){t=m==='retro'?`<b>${rel==='내합'?'내합':'내합 부근'}</b>에서는 금성이 지구와 같은 쪽에 있어요. 안쪽 궤도의 금성(${vp} km/s)이 지구(29.8 km/s)보다 <b>빨라서 지구를 앞지르는 중</b>이에요. 지구에서 보면 금성이 시선을 가로질러 <b>동 → 서</b>로 지나가므로 <b>역행</b>하는 것처럼 보여요.`
+    :m==='stay'?`앞지르기가 시작되거나 끝나는 곳이에요. 금성의 움직임과 지구의 움직임이 시선 방향에서 서로 비겨서 금성이 <b>잠시 멈춘 것처럼(유)</b> 보여요.`
+    :`금성이 태양 너머(외합 쪽)나 옆쪽에 있으면, 금성 자신의 공전 방향(서 → 동)이 그대로 드러나서 <b>순행</b>하는 것처럼 보여요.`;}
+  else{t=m==='retro'?`<b>${rel==='충'?'충':'충 부근'}</b>에서는 화성이 지구와 같은 쪽에 있어요. 안쪽 궤도의 지구(29.8 km/s)가 화성(${vp} km/s)보다 <b>빨라서 화성을 앞지르는 중</b>이에요. 앞지르는 동안 화성은 뒤로 처지는 것처럼, 즉 별들 사이에서 <b>동 → 서</b>로 <b>역행</b>하는 것처럼 보여요.`
+    :m==='stay'?`지구가 화성을 앞지르기 시작하거나 끝내는 곳이에요. 두 움직임이 시선 방향에서 비겨서 화성이 <b>잠시 멈춘 것처럼(유)</b> 보여요.`
+    :`화성이 태양 쪽(합)이나 옆쪽(구)에 있으면 지구가 화성을 앞지르지 않아요. 화성 자신의 공전 방향(서 → 동)이 그대로 드러나서 <b>순행</b>하는 것처럼 보여요.`;}
+  document.getElementById('wWhy').innerHTML=t+`<br><span class="small">핵심: 역행은 행성이 실제로 거꾸로 도는 것이 아니라, <b>지구와 행성의 공전 속도 차이</b> 때문에 겉으로 그렇게 보이는 것이에요.</span>`;
+  wSt.render();mini.render();}
+document.getElementById('wPhi').oninput=e=>setPhi(+e.target.value);
+function setWhyPlanet(inner){Wv.inner=inner;document.getElementById('wIn').setAttribute('aria-pressed',inner);document.getElementById('wOut').setAttribute('aria-pressed',!inner);whyJump();setPhi(0);}
+document.getElementById('wIn').onclick=()=>setWhyPlanet(true);document.getElementById('wOut').onclick=()=>setWhyPlanet(false);
+// drag planet
+(()=>{const cv=document.getElementById('cvW');const pt=e=>{const r=cv.getBoundingClientRect();return[(e.clientX-r.left)*600/r.width,(e.clientY-r.top)*600/r.height];};
+  const near=([x,y])=>{const g=whyGeom();return Math.hypot(x-(g.cx+g.P[0]*g.sc),y-(g.cy-g.P[1]*g.sc))<28;};
+  cv.addEventListener('pointerdown',e=>{if(near(pt(e))){Wv.drag=true;cv.setPointerCapture(e.pointerId);e.preventDefault();}});
+  cv.addEventListener('pointermove',e=>{const p=pt(e);cv.style.cursor=Wv.drag||near(p)?'grab':'default';if(!Wv.drag)return;const a=Math.atan2(-(p[1]-300),p[0]-300)*R2D;setPhi(Math.round(wrap180(a+90)));});
+  cv.addEventListener('pointerup',()=>Wv.drag=false);cv.style.touchAction='none';})();
+
+/* ===================== ④ check ===================== */
+const UNIT='Ⅲ-02 태양계 행성의 겉보기 운동';
+const PLAZA='https://muhan-teacher.github.io/Inter-Science/question-plaza.html';
+const TABN={inner:'① 내행성',outer:'② 외행성',why:'③ 왜 역행할까?'};
+const QZ=[
+ {q:'지구에서 관측할 때 행성이 별들 사이에서 서쪽에서 동쪽으로 이동하는 것처럼 보이는 운동은?',o:['역행','순행','유','자전'],a:1,ex:'행성이 별들 사이에서 서 → 동으로 움직여 보이는 것을 순행이라고 한다. 행성의 공전 방향(서 → 동)과 같다.',tab:'inner'},
+ {q:'행성의 이동 방향이 바뀔 때 잠시 멈춘 것처럼 보이는 것은?',o:['유','합','충','역행'],a:0,ex:'순행에서 역행으로, 역행에서 순행으로 바뀔 때 행성이 잠시 멈춘 것처럼 보이는 것을 유라고 한다.',tab:'outer'},
+ {q:'행성이 역행할 때, 별들 사이에서 움직이는 방향은?',o:['서 → 동','남 → 북','동 → 서','북 → 남'],a:2,ex:'역행은 행성이 별들 사이에서 반대 방향, 즉 동 → 서로 이동하는 것처럼 보이는 것이다.',tab:'outer'},
+ {q:'행성의 역행이 관찰되는 까닭으로 옳은 것은?',o:['행성이 실제로 거꾸로 공전하기 때문','지구가 자전하기 때문','별들이 하늘에서 움직이기 때문','지구와 행성의 공전 속도가 다르기 때문'],a:3,ex:'행성은 언제나 서 → 동으로 공전한다. 역행은 지구와 행성의 공전 속도 차이 때문에 겉으로 그렇게 보이는 것이다.',tab:'why'},
+ {q:'내행성(금성)의 역행이 관찰되는 것은 지구와 어떤 위치 관계에 있을 때인가?',o:['외합 부근','내합 부근','동방 최대이각','서방 최대이각'],a:1,ex:'내행성은 지구와 같은 쪽, 즉 태양과 지구 사이에 놓이는 내합 부근에서 역행한다.',tab:'inner'},
+ {q:'외행성(화성)의 역행이 관찰되는 것은 지구와 어떤 위치 관계에 있을 때인가?',o:['충 부근','합 부근','동구','서구'],a:0,ex:'외행성은 태양-지구-외행성 순으로 놓이는 충 부근에서 역행한다.',tab:'outer'},
+ {q:'화성이 충 부근에서 역행하는 것처럼 보이는 까닭은?',o:['지구가 화성보다 빠르게 공전하며 화성을 앞지르기 때문','화성이 지구보다 빠르게 공전하기 때문','화성이 태양 뒤쪽에 숨기 때문','화성의 공전 방향이 바뀌기 때문'],a:0,ex:'안쪽 궤도의 지구가 더 빠르게 돌며 화성을 앞지르는 동안, 화성은 별들 사이에서 뒤로 처지는 것처럼 보인다.',tab:'why'},
+ {q:'태양계 행성의 공전 속도를 빠른 순서대로 옳게 나타낸 것은?',o:['외행성 > 지구 > 내행성','모두 같다','내행성 > 지구 > 외행성','지구 > 내행성 > 외행성'],a:2,ex:'태양에 가까울수록 공전 속도가 빠르다. 따라서 내행성 > 지구 > 외행성이다.',tab:'why'}];
+const GOALS=[
+ {t:'기본 목표',p:'태양계 모형을 바탕으로 내행성과 외행성의 겉보기 운동이 다르게 나타남을 알 수 있다.',tab:'inner'},
+ {t:'지식·이해',p:'행성이 별들 사이에서 순행 → 유 → 역행 → 유 → 순행하는 겉보기 운동을 설명할 수 있다.',tab:'outer'},
+ {t:'지식·이해',p:'내행성은 내합 부근, 외행성은 충 부근에서 역행하는 까닭을 공전 속도 차이로 설명할 수 있다.',tab:'why'},
+ {t:'심화 목표 · 과정·기능',p:'천체 관측 프로그램에서 행성의 겉보기 운동을 시뮬레이션할 수 있다.',tab:null,hint:'교과서 161~162쪽 탐구 활동, 스텔라리움'},
+ {t:'심화 목표 · 가치·태도',p:'다양한 천문 현상의 경이로움을 인식할 수 있다.',tab:null,hint:'"행성(planet)=떠돌이 별"이라는 이름의 까닭 생각해 보기'}];
+const qz={i:0,ans:[]},quiz=document.getElementById('quiz');
+function qrender(){
+  const prog=`<div class="qprog">${QZ.map((_,k)=>`<i class="${k<qz.ans.length?(qz.ans[k]===QZ[k].a?'ok':'no'):k===qz.i?'cur':''}"></i>`).join('')}</div>`;
+  if(qz.i>=QZ.length){const sc=qz.ans.filter((a,k)=>a===QZ[k].a).length;const wrong=QZ.map((x,k)=>({x,k})).filter(o=>qz.ans[o.k]!==o.x.a);
+    quiz.innerHTML=`<h3 class="qh">확인 문제 결과</h3>${prog}<div style="display:flex;gap:16px;align-items:center"><div class="score">${sc}<span style="font-size:28px"> / ${QZ.length}</span></div><p style="margin:0">${sc===QZ.length?'모두 맞혔어요! 오른쪽에서 학습 목표를 돌아보세요.':'틀린 문제와 연결된 탭을 다시 탐구해 보세요.'}</p></div>`+
+      wrong.map(o=>`<div class="fb no"><strong>${o.k+1}. ${o.x.q}</strong>정답: ${o.x.o[o.x.a]} &nbsp;<button class="btn sm" type="button" data-go="${o.x.tab}">${TABN[o.x.tab]} 다시 보기</button></div>`).join('')+`<div class="btns"><button class="btn primary" type="button" id="qAgain">↺ 다시 풀기</button></div>`;
+    document.getElementById('qAgain').onclick=()=>{qz.i=0;qz.ans=[];qrender();};quiz.querySelectorAll('[data-go]').forEach(b=>b.onclick=()=>show(b.dataset.go));selfSummary();return;}
+  const x=QZ[qz.i],done=qz.ans.length>qz.i;
+  quiz.innerHTML=`<h3 class="qh">확인 문제 ${qz.i+1} / ${QZ.length}</h3>${prog}<p class="qq">${x.q}</p><div class="qopts">${x.o.map((o,k)=>`<button class="qopt${done?(k===x.a?' ok':k===qz.ans[qz.i]?' no':''):''}" type="button" data-k="${k}" ${done?'disabled':''}><b>${k+1}</b><span>${o}</span></button>`).join('')}</div>`+
+    (done?`<div class="fb ${qz.ans[qz.i]===x.a?'ok':'no'}" role="status"><strong>${qz.ans[qz.i]===x.a?'정답입니다!':'다시 생각해 봐요. 정답은 '+(x.a+1)+'번'}</strong>${x.ex}</div><div class="btns"><button class="btn primary" type="button" id="qNext">${qz.i===QZ.length-1?'결과 보기':'다음 문제 ▶'}</button></div>`:'');
+  quiz.querySelectorAll('.qopt').forEach(b=>b.onclick=()=>{if(qz.ans.length>qz.i)return;qz.ans.push(+b.dataset.k);qrender();});
+  const n=document.getElementById('qNext');if(n){n.onclick=()=>{qz.i++;qrender();};n.focus({preventScroll:true});}}
+const LV=['아직 어려워요','조금 할 수 있어요','자신 있어요'],self=GOALS.map(()=>-1);
+function selfRender(){document.getElementById('selfRows').innerHTML=GOALS.map((g,i)=>`<div class="srow"><span class="tag">${g.t}</span><p>${g.p}</p><div class="lv" role="group" aria-label="${g.p}">${LV.map((l,k)=>`<button type="button" data-i="${i}" data-k="${k}" aria-pressed="${self[i]===k}">${l}</button>`).join('')}</div></div>`).join('');
+  document.querySelectorAll('.lv button').forEach(b=>b.onclick=()=>{self[+b.dataset.i]=+b.dataset.k;selfRender();});selfSummary();}
+function selfSummary(){const el=document.getElementById('selfSum'),n=self.filter(v=>v>=0).length;
+  if(n<GOALS.length){el.innerHTML=`<b>돌아보기 ${n} / ${GOALS.length}</b><span class="small">모든 목표를 체크하면 다음 할 일을 알려 줍니다.</span>`;return;}
+  const weak=GOALS.filter((g,i)=>self[i]===0);const sc=qz.ans.length===QZ.length?qz.ans.filter((a,k)=>a===QZ[k].a).length:null;
+  el.innerHTML=`<b>나의 돌아보기 결과</b>`+(sc!==null?`<span>확인 문제: ${sc} / ${QZ.length}</span>`:`<span class="small">왼쪽 확인 문제도 끝까지 풀어 보세요.</span>`)+
+    (weak.length?`<span>더 연습할 목표:</span>`+weak.map(g=>`<span>• ${g.p} ${g.tab?`<button class="btn sm" type="button" data-go="${g.tab}">${TABN[g.tab]}</button>`:`<span class="small">(${g.hint})</span>`}</span>`).join(''):`<span style="color:var(--good)">모든 목표에 도전했어요. 새로 생긴 질문을 적고 친구와 나눠 보세요.</span>`);
+  el.querySelectorAll('[data-go]').forEach(b=>b.onclick=()=>show(b.dataset.go));}
+document.getElementById('toPlaza').onclick=()=>{const q=document.getElementById('selfQ').value.trim();window.open(PLAZA+'?unit='+encodeURIComponent(UNIT)+(q?'&q='+encodeURIComponent(q.slice(0,400)):''),'_blank','noopener');};
+
+/* ===================== tabs ===================== */
+buildSim('inner',['mercury','venus']);buildSim('outer',['mars','jupiter','saturn']);
+const VIEWS=['inner','outer','why','check'];
+function show(v){if(!VIEWS.includes(v))v='inner';VIEWS.forEach(k=>{document.getElementById('v-'+k).hidden=k!==v;document.getElementById('tab-'+k).setAttribute('aria-selected',k===v);});
+  Object.values(views).forEach(V=>{if(V.id!==v)stop(V);});
+  try{history.replaceState(null,'','#'+v);}catch(e){}requestAnimationFrame(()=>stages.forEach(s=>s.resize()));}
+document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>show(b.dataset.v));
+Object.values(views).forEach(V=>{V.t=reduce?V.p().D:0;sync(V);});
+setWhyPlanet(true);qrender();selfRender();
+show((location.hash||'').slice(1));
+})();
+</script>
+
+</body>
+</html>
