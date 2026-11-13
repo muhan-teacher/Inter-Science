@@ -71,6 +71,8 @@ textarea.t{min-height:130px;resize:vertical;line-height:1.55}
 .act{border:1.5px solid var(--line);background:transparent;border-radius:999px;padding:5px 14px;font-size:15px;display:inline-flex;gap:6px;align-items:center}
 .act.on{border-color:var(--accent);color:var(--accent);background:var(--accent-soft)}
 .act.mod{font-size:13px;padding:4px 10px;border-style:dashed}
+.act.del{color:var(--muted)}
+.act.del.warn{color:#fff;background:var(--accent);border-color:var(--accent);border-style:solid}
 .thread{margin-top:14px;border-top:1px solid var(--line);padding-top:12px}
 .ans{padding:10px 14px;border-radius:12px;background:var(--bg);margin-bottom:8px}
 .ans p{margin:4px 0 6px;white-space:pre-wrap;word-break:keep-all;overflow-wrap:anywhere;font-size:17px}
@@ -159,7 +161,7 @@ async function call(body){
 async function load(manual){
   if(!API){ $('setupNote').hidden=false; S.loaded=true; S.units=['기타 질문']; render(); return; }
   try{
-    const r = await fetch(API + (S.key ? '?key='+encodeURIComponent(S.key) : ''), {cache:'no-store'});
+    const r = await fetch(API + '?device='+encodeURIComponent(device) + (S.key ? '&key='+encodeURIComponent(S.key) : ''), {cache:'no-store'});
     const d = await r.json();
     if(!d.ok) throw new Error(d.error||'');
     S.units=d.units; S.posts=d.posts; S.teacher=d.teacher; S.loaded=true; S.at=Date.now();
@@ -215,6 +217,19 @@ function likeBtn(p){
   };
   return b;
 }
+function delBtn(p, wrap){
+  if(!(S.teacher || (p.type==='a' && p.mine))) return;
+  const b=el('button','act mod del','🗑 삭제');
+  b.onclick=async()=>{
+    if(!b.dataset.ask){ b.dataset.ask='1'; b.textContent=p.type==='q'?'질문과 답글 모두 지울까요? 한 번 더 누르기':'정말 지울까요? 한 번 더 누르기'; b.classList.add('warn'); setTimeout(()=>{ if(b.isConnected){ delete b.dataset.ask; b.textContent='🗑 삭제'; b.classList.remove('warn'); } },4000); return; }
+    b.disabled=true; b.textContent='지우는 중…';
+    const d=await call({action:'del',id:p.id,device,key:S.key}).catch(()=>({ok:false,error:'연결이 끊겼어요. 다시 시도해 주세요.'}));
+    if(!d.ok){ alertMsg(d.error||'삭제하지 못했어요.'); b.disabled=false; b.textContent='🗑 삭제'; delete b.dataset.ask; return; }
+    if(p.type==='q') S.open.delete(p.id);
+    await load();
+  };
+  wrap.appendChild(b);
+}
 function modBtns(p, wrap){
   if(!S.teacher) return;
   const mk=(t,op)=>{ const b=el('button','act mod',t); b.onclick=async()=>{ b.disabled=true; const d=await call({action:'mod',id:p.id,op,key:S.key}).catch(()=>({ok:false})); if(!d.ok) alertMsg(d.error||'실패'); load(); }; wrap.appendChild(b); };
@@ -237,14 +252,14 @@ function card(q, ans){
   const tb=el('button','act'+(open?' on':''), (open?'답변 접기':'💬 답변 '+(S.teacher?ans.length:vis)));
   tb.setAttribute('aria-expanded',String(open));
   tb.onclick=()=>{ open?S.open.delete(q.id):S.open.add(q.id); render(); if(!open) setTimeout(()=>{ const t=document.getElementById('r-'+q.id); t&&t.focus(); },0); };
-  acts.appendChild(tb); modBtns(q, acts); c.appendChild(acts);
+  acts.appendChild(tb); modBtns(q, acts); delBtn(q, acts); c.appendChild(acts);
   if(open){
     const th=el('div','thread');
     if(!ans.length) th.appendChild(el('p','hint','아직 답변이 없어요. 내 생각을 먼저 나눠 보세요.'));
     ans.forEach(a=>{
       const d=el('div','ans'+(a.hidden?' hid':''));
       const mm=el('div','meta'); if(a.hidden) mm.appendChild(el('span','badge h','숨김')); mm.appendChild(el('span',null,a.nick+' · '+ago(a.created)));
-      const aa=el('div','acts'); aa.appendChild(likeBtn(a)); modBtns(a, aa);
+      const aa=el('div','acts'); aa.appendChild(likeBtn(a)); modBtns(a, aa); delBtn(a, aa);
       d.append(mm, el('p',null,a.text), aa); th.appendChild(d);
     });
     const rp=el('div','reply'); const ta=el('textarea','t'); ta.id='r-'+q.id; ta.maxLength=400; ta.placeholder='내 생각이나 근거를 써 보세요'; ta.setAttribute('aria-label','답변 쓰기');
@@ -256,7 +271,7 @@ function card(q, ans){
       if(!nick){ msg.className='msg err'; msg.textContent='왼쪽에 닉네임을 먼저 써 주세요.'; $('nick').focus(); return; }
       if(text.length<2){ msg.className='msg err'; msg.textContent='두 글자 이상 써 주세요.'; return; }
       sb.disabled=true; store.set('plaza.nick',nick);
-      const d=await call({action:'post',type:'a',parent:q.id,unit:q.unit,nick,text}).catch(()=>({ok:false,error:'연결이 끊겼어요. 다시 시도해 주세요.'}));
+      const d=await call({action:'post',type:'a',parent:q.id,unit:q.unit,nick,text,device}).catch(()=>({ok:false,error:'연결이 끊겼어요. 다시 시도해 주세요.'}));
       sb.disabled=false;
       if(!d.ok){ msg.className='msg err'; msg.textContent=d.error; return; }
       delete S.drafts[q.id]; await load();
@@ -273,7 +288,7 @@ $('qSend').onclick=async()=>{
   if(!nick){ m.className='msg err'; m.textContent='닉네임을 써 주세요.'; $('nick').focus(); return; }
   if(text.length<2){ m.className='msg err'; m.textContent='질문을 두 글자 이상 써 주세요.'; $('qText').focus(); return; }
   $('qSend').disabled=true; m.className='msg'; m.textContent='게시하는 중…';
-  const d=await call({action:'post',type:'q',unit,nick,text}).catch(()=>({ok:false,error:'연결이 끊겼어요. 다시 시도해 주세요.'}));
+  const d=await call({action:'post',type:'q',unit,nick,text,device}).catch(()=>({ok:false,error:'연결이 끊겼어요. 다시 시도해 주세요.'}));
   $('qSend').disabled=false;
   if(!d.ok){ m.className='msg err'; m.textContent=d.error; return; }
   store.set('plaza.nick',nick); $('qText').value=''; $('qCount').textContent='0';
