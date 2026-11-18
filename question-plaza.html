@@ -177,8 +177,19 @@ function flash(t){ $('stamp').textContent=t; }
 function ago(t){ const s=(Date.now()-t)/1000; if(s<60) return '방금'; if(s<3600) return Math.floor(s/60)+'분 전'; if(s<86400) return Math.floor(s/3600)+'시간 전'; const d=new Date(t); return (d.getMonth()+1)+'/'+d.getDate(); }
 function el(tag, cls, text){ const e=document.createElement(tag); if(cls) e.className=cls; if(text!=null) e.textContent=text; return e; }
 
+// lesson apps may send a unit name that differs slightly from the sheet: match by code (e.g. 'Ⅲ-04') or by name
+function matchUnit(pre, units){
+  if(!pre) return '';
+  if(units.includes(pre)) return pre;
+  const norm=x=>String(x).replace(/\s+/g,'');
+  const code=pre.split(' ')[0], name=norm(pre.slice(code.length));
+  const byName = name && units.find(u=>{const n=norm(u.slice(u.split(' ')[0].length)); return n && (n.includes(name)||name.includes(n));});
+  return byName || units.find(u=>u.split(' ')[0]===code) || '';
+}
 function renderUnits(){
-  const sel=$('unit'), cur=sel.value || (preUnit && S.units.includes(preUnit) ? preUnit : (S.filter!=='전체'?S.filter:''));
+  const mu=matchUnit(preUnit,S.units);
+  if(mu && S.filter===preUnit) S.filter=mu;
+  const sel=$('unit'), cur=sel.value || (mu || (S.filter!=='전체'?S.filter:''));
   sel.innerHTML=''; S.units.forEach(u=>{ const o=el('option',null,u); o.value=u; sel.appendChild(o); });
   if(cur && S.units.includes(cur)) sel.value=cur;
   const ch=$('chips'); ch.innerHTML='';
